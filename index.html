@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Long Canvas Plog Editor</title>
+    <link rel="icon" href="./favicon.svg?v=20260325-2238" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css?v=20260325-2238" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <h1>Long Canvas Plog Editor</h1>
+          <p>Notion × Canva × Long Image Tool</p>
+        </div>
+        <div class="actions">
+          <div class="toolbar-group toolbar-docs">
+            <label class="export-scale-label compact-label">
+              Doc
+              <select id="doc-select"></select>
+            </label>
+            <details class="toolbar-menu">
+              <summary class="btn">Manage</summary>
+              <div class="menu-panel">
+                <button id="btn-doc-new" class="btn menu-btn">New Plog</button>
+                <button id="btn-doc-rename" class="btn menu-btn">Rename</button>
+                <button id="btn-doc-delete" class="btn menu-btn btn-danger">Delete</button>
+              </div>
+            </details>
+          </div>
+
+          <div class="toolbar-group toolbar-edit">
+            <button id="btn-undo" class="btn">Undo</button>
+            <button id="btn-redo" class="btn">Redo</button>
+            <button id="btn-bold" class="btn tool-icon">B</button>
+            <button id="btn-italic" class="btn tool-icon">I</button>
+            <button id="btn-clear-format" class="btn">Clear</button>
+          </div>
+
+          <div class="toolbar-group toolbar-view">
+            <button id="btn-theme-mode" class="btn">Theme: Night</button>
+            <label class="export-scale-label compact-label">
+              Zoom
+              <select id="canvas-zoom">
+                <option value="0.5">50%</option>
+                <option value="0.67">67%</option>
+                <option value="0.8">80%</option>
+                <option value="1" selected>100%</option>
+                <option value="1.25">125%</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="toolbar-group toolbar-export">
+            <details class="toolbar-menu">
+              <summary class="btn">Options</summary>
+              <div class="menu-panel menu-panel-wide">
+                <button id="btn-toggle-lock" class="btn menu-btn">Layout Locked</button>
+                <button id="btn-fit-frame" class="btn menu-btn">Fit To Frame</button>
+                <button id="btn-auto-stack" class="btn menu-btn">Auto Layout</button>
+                <label class="export-scale-label menu-field">
+                  Scale
+                  <select id="export-scale">
+                    <option value="1">1x</option>
+                    <option value="2" selected>2x</option>
+                    <option value="3">3x</option>
+                  </select>
+                </label>
+                <label class="export-scale-label menu-field">
+                  Format
+                  <select id="export-format">
+                    <option value="png" selected>PNG</option>
+                    <option value="jpg">JPG</option>
+                    <option value="webp">WebP</option>
+                  </select>
+                </label>
+                <label class="export-scale-label menu-field">
+                  Quality
+                  <select id="export-quality">
+                    <option value="0.82">82</option>
+                    <option value="0.9" selected>90</option>
+                    <option value="0.96">96</option>
+                  </select>
+                </label>
+                <label class="export-scale-label menu-field">
+                  Appearance
+                  <select id="export-appearance">
+                    <option value="match" selected>Match</option>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                  </select>
+                </label>
+                <button id="btn-export-html" class="btn menu-btn">Export HTML</button>
+              </div>
+            </details>
+            <button id="btn-export" class="btn btn-primary">Export PNG</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="panel left-panel">
+          <h2>Elements</h2>
+          <button id="btn-add-text" class="btn">+ Text</button>
+          <button id="btn-add-text-section" class="btn">+ New Paragraph</button>
+          <label class="file-btn">
+            + Image
+            <input id="input-image" type="file" accept="image/*" />
+          </label>
+          <button id="btn-add-divider" class="btn">+ Divider</button>
+          <button id="btn-add-header" class="btn">+ Header</button>
+          <button id="btn-add-quote" class="btn">+ Quote</button>
+          <button id="btn-add-card" class="btn">+ Card</button>
+
+          <div class="group">
+            <h3>Canvas</h3>
+            <label>
+              Width
+              <select id="canvas-width">
+                <option value="1080">1080px</option>
+                <option value="1200" selected>1200px</option>
+                <option value="custom">Custom</option>
+              </select>
+            </label>
+            <label id="custom-width-wrap" class="hidden">
+              Custom Width
+              <input id="custom-width" type="number" min="480" max="2400" value="1200" />
+            </label>
+            <label>
+              Background
+              <input id="canvas-bg" type="color" value="#ffffff" />
+            </label>
+          </div>
+        </aside>
+
+        <section class="canvas-wrap">
+          <div id="canvas-stage" class="canvas-stage">
+            <div id="canvas-viewport" class="canvas-viewport">
+              <div id="canvas-scale" class="canvas-scale">
+                <div id="canvas" class="long-canvas"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="panel right-panel">
+          <h2>Settings</h2>
+          <p id="no-selection">Select an element to edit style.</p>
+          <div id="inspector" class="hidden">
+            <label>
+              Type
+              <input id="prop-type" type="text" readonly />
+            </label>
+            <p class="hint">Drag with the top-left handle. Resize with the bottom-right dot.</p>
+            <label>
+              Font Size
+              <input id="prop-font-size" type="number" min="12" max="140" />
+            </label>
+            <label>
+              Font Size Preset
+              <select id="prop-font-size-preset">
+                <option value="">Custom</option>
+                <option value="36">36</option>
+                <option value="44">44</option>
+                <option value="52">52</option>
+                <option value="60">60</option>
+                <option value="68">68</option>
+                <option value="76">76</option>
+              </select>
+            </label>
+            <label>
+              Font Family
+              <select id="prop-font-family">
+                <option value="fangzheng">Fangzheng YueSong</option>
+                <option value="song">Songti</option>
+                <option value="sans">Sans</option>
+              </select>
+            </label>
+            <label>
+              Block Weight
+              <select id="prop-font-weight">
+                <option value="200">Thin</option>
+                <option value="300" selected>Light</option>
+                <option value="400">Regular</option>
+                <option value="500">Medium</option>
+                <option value="600">SemiBold</option>
+              </select>
+            </label>
+            <p class="hint">This controls the whole text box. `Ctrl+B` only affects selected text.</p>
+            <label>
+              Spacing Before
+              <select id="prop-spacing-before">
+                <option value="tight">Tight</option>
+                <option value="normal">Normal</option>
+                <option value="section">New Paragraph</option>
+              </select>
+            </label>
+            <label>
+              Text Color
+              <input id="prop-color" type="color" value="#1f1f22" />
+            </label>
+            <div id="image-controls" class="hidden">
+              <label>
+                Rotation
+                <input id="prop-rotation" type="range" min="-180" max="180" value="0" />
+              </label>
+              <label>
+                Brightness
+                <input id="prop-brightness" type="range" min="50" max="150" value="100" />
+              </label>
+              <label>
+                Contrast
+                <input id="prop-contrast" type="range" min="50" max="150" value="100" />
+              </label>
+              <label>
+                Grayscale
+                <input id="prop-grayscale" type="range" min="0" max="100" value="0" />
+              </label>
+              <label>
+                Frame
+                <select id="prop-frame">
+                  <option value="none">None</option>
+                  <option value="polaroid">Polaroid</option>
+                  <option value="card">Card</option>
+                </select>
+              </label>
+            </div>
+            <button id="btn-delete" class="btn btn-danger">Delete Element</button>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <div id="dialog-backdrop" class="dialog-backdrop hidden">
+      <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+        <h3 id="dialog-title">Edit</h3>
+        <p id="dialog-message" class="dialog-message"></p>
+        <input id="dialog-input" type="text" />
+        <div class="dialog-actions">
+          <button id="dialog-cancel" class="btn">Cancel</button>
+          <button id="dialog-confirm" class="btn btn-primary">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <template id="tpl-text">
+      <div class="el el-text" data-type="text">
+        <div class="move-handle" aria-hidden="true">Drag</div>
+        <div class="content" contenteditable="true" data-placeholder="Write your story..."></div>
+        <div class="resize-handle" aria-hidden="true"></div>
+      </div>
+    </template>
+
+    <template id="tpl-image">
+      <div class="el el-image" data-type="image">
+        <div class="move-handle" aria-hidden="true">Drag</div>
+        <img alt="Plog image" />
+        <div class="resize-handle" aria-hidden="true"></div>
+      </div>
+    </template>
+
+    <template id="tpl-divider">
+      <div class="el el-divider" data-type="divider">
+        <div class="move-handle" aria-hidden="true">Drag</div>
+        <div class="divider-line"></div>
+        <div class="resize-handle" aria-hidden="true"></div>
+      </div>
+    </template>
+
+    <template id="tpl-header">
+      <div class="el el-header" data-type="header">
+        <div class="move-handle" aria-hidden="true">Drag</div>
+        <div class="header-title" contenteditable="true">Tokyo Coffee Log</div>
+        <div class="header-meta" contenteditable="true">[Aug. 2020]</div>
+        <div class="resize-handle" aria-hidden="true"></div>
+      </div>
+    </template>
+
+    <template id="tpl-quote">
+      <div class="el el-quote" data-type="quote">
+        <div class="move-handle" aria-hidden="true">Drag</div>
+        <div class="quote-mark">"</div>
+        <div class="quote-content" contenteditable="true" data-placeholder="Quote..."></div>
+        <div class="resize-handle" aria-hidden="true"></div>
+      </div>
+    </template>
+
+    <template id="tpl-card">
+      <div class="el el-card" data-type="card">
+        <div class="move-handle" aria-hidden="true">Drag</div>
+        <div class="card-title" contenteditable="true" data-placeholder="Card title"></div>
+        <div class="card-body" contenteditable="true" data-placeholder="Card text..."></div>
+        <div class="resize-handle" aria-hidden="true"></div>
+      </div>
+    </template>
+
+    <script src="./app.js?v=20260325-2238" type="module"></script>
+  </body>
+</html>

@@ -1,0 +1,55 @@
+flowchart TB
+    U["User"] --> B["Browser"]
+
+    subgraph FE["Static Frontend"]
+        H["index.html<br/>App shell + templates"]
+        S["styles.css<br/>Theme + layout + editor styling"]
+        A["app.js<br/>Editor state + render + events + export orchestration"]
+        D["js/dialog.js<br/>In-app modal dialog"]
+        ST["js/storage.js<br/>Persistence adapter"]
+    end
+
+    B --> H
+    B --> S
+    B --> A
+    A --> D
+    A --> ST
+
+    subgraph EDIT["Editor Runtime"]
+        C["Long Canvas<br/>Text / Image / Header / Quote / Card"]
+        F["Formatting<br/>Bold / Italic / Clear"]
+        L["Layout Engine<br/>Flow placement + reflow"]
+        E["Export Engine<br/>DOM export + canvas fallback"]
+    end
+
+    A --> C
+    A --> F
+    A --> L
+    A --> E
+
+    subgraph STORE["Browser Storage"]
+        IDB["IndexedDB<br/>Documents + images + document payloads"]
+        LS["localStorage<br/>Small legacy/migration flags + light UI state"]
+    end
+
+    ST --> IDB
+    ST --> LS
+
+    subgraph OUT["Outputs"]
+        PNG["PNG / JPG / WebP"]
+        HTML["Exported HTML file"]
+    end
+
+    E --> PNG
+    E --> HTML
+
+    subgraph DATA["Core Data Shape"]
+        DOC["Plog Document"]
+        ELS["elements[]"]
+        UI["UI state<br/>zoom / theme / export options / selected doc"]
+    end
+
+    IDB --> DOC
+    DOC --> ELS
+    LS --> UI
+    A --> UI
