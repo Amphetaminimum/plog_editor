@@ -7,13 +7,7 @@ export function createDocStoreManager({
   setCanvasBackground,
   serializeElementsForStorage,
   clearAssetUrls,
-  hydrateAssetSources,
   setLayoutLocked,
-  applyCanvasWidth,
-  applyZoom,
-  applyThemeMode,
-  flushRender,
-  pushHistory,
   createDefaultDocData,
   createDocRecord,
   addElement,
@@ -95,14 +89,8 @@ export function createDocStoreManager({
     controls.exportQuality.value = payload.ui?.exportQuality || "0.9";
     controls.exportAppearance.value = payload.ui?.exportAppearance || "match";
     state.zoomMode = payload.ui?.zoomMode === "manual" ? "manual" : "fit";
-    applyCanvasWidth();
-    applyZoom(state.zoomMode === "fit" ? "fit" : state.zoom, { mode: state.zoomMode, persist: false });
-    applyThemeMode(state.themeMode);
-    flushRender();
     controls.exportButton.textContent = `Export ${controls.exportFormat.value.toUpperCase()}`;
-    pushHistory();
     state.suppressHistory = false;
-    void hydrateAssetSources(state.elements, state.assetLoadToken);
   }
 
   function buildStarterDoc(doc) {

@@ -4,7 +4,6 @@ export function createShellManager({
   state,
   controls,
   nodes,
-  saveSession,
   authoredCanvasWidth,
 }) {
   function isMobileShell() {
@@ -45,7 +44,6 @@ export function createShellManager({
     nodes.canvasScale.style.zoom = String(state.zoom);
     syncZoomControl();
     updateViewportMetrics();
-    if (persist) saveSession();
   }
 
   function fitToFrame() {
@@ -76,16 +74,21 @@ export function createShellManager({
     }
   }
 
-  function bindEvents({ onEscape, onOpenMobileElements, onOpenMobileSettings }) {
+  function bindEvents({ onEscape, onOpenMobileElements, onOpenMobileSettings, onZoomChange }) {
     controls.canvasZoom.addEventListener("change", () => {
       if (controls.canvasZoom.value === "fit") {
-        applyZoom("fit", { mode: "fit" });
+        applyZoom("fit", { mode: "fit", persist: false });
+        onZoomChange?.();
         return;
       }
-      applyZoom(Number(controls.canvasZoom.value), { mode: "manual" });
+      applyZoom(Number(controls.canvasZoom.value), { mode: "manual", persist: false });
+      onZoomChange?.();
     });
 
-    controls.btnFitFrame.addEventListener("click", fitToFrame);
+    controls.btnFitFrame.addEventListener("click", () => {
+      fitToFrame();
+      onZoomChange?.();
+    });
 
     controls.btnMobileElements.addEventListener("click", onOpenMobileElements);
     controls.btnMobileSettings.addEventListener("click", onOpenMobileSettings);

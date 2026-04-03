@@ -2,6 +2,8 @@ import { createTextDialog } from "./js/dialog.js";
 import { authoredCanvasWidthFromControls, canvasLayoutForWidth } from "./js/canvas-layout.js";
 import { createDocStoreManager } from "./js/doc-store.js";
 import { createExportManager } from "./js/export-manager.js";
+import { createHistoryManager } from "./js/history-manager.js";
+import { createStateRenderer } from "./js/render-state.js";
 import { createShellManager } from "./js/shell-manager.js";
 import { idbDeleteAsset, idbGetAsset, idbSetAsset } from "./js/storage.js";
 
@@ -345,12 +347,6 @@ function serializeElementsForStorage(elements) {
   });
 }
 
-function plainTextFromHtml(html) {
-  const temp = document.createElement("div");
-  temp.innerHTML = html || "";
-  return temp.innerText || "";
-}
-
 function currentExportAppearance() {
   if (exportAppearance.value === "match") {
     return state.themeMode === "night" ? "dark" : "light";
@@ -399,10 +395,15 @@ let exportHtml;
 let exportRaster;
 let applyZoom;
 let bindShellEvents;
+let commitMutation;
 let closeMobilePanels;
 let openMobilePanel;
+let pushHistory;
+let redoHistory;
+let renderCanvasFromState;
 let syncResponsiveShell;
 let syncZoomControl;
+let undoHistory;
 let updateViewportMetrics;
 
 const docStore = createDocStoreManager({
@@ -423,13 +424,7 @@ const docStore = createDocStoreManager({
   },
   serializeElementsForStorage,
   clearAssetUrls,
-  hydrateAssetSources,
   setLayoutLocked,
-  applyCanvasWidth,
-  applyZoom: (...args) => applyZoom(...args),
-  applyThemeMode,
-  flushRender,
-  pushHistory,
   createDefaultDocData,
   createDocRecord,
   addElement,
@@ -450,6 +445,17 @@ const docStore = createDocStoreManager({
   switchDocument,
 } = docStore);
 
+({ renderCanvasFromState } = createStateRenderer({
+  getCanvasMetrics: () => ({
+    width: canvas.clientWidth,
+    height: canvas.offsetHeight,
+  }),
+  getElements: () => state.elements,
+  getPalette: exportPalette,
+  resolveFontFamily: familyCss,
+  resolveTextColor: exportTextColor,
+}));
+
 const exportManager = createExportManager({
   canvas,
   flushRender,
@@ -467,6 +473,26 @@ const exportManager = createExportManager({
 
 ({ exportHtml, exportRaster } = exportManager);
 
+({ commitMutation, pushHistory, redoHistory, undoHistory } = createHistoryManager({
+  state,
+  controls: {
+    canvasBg: document.getElementById("canvas-bg"),
+    customWidth,
+    exportAppearance,
+    exportButton: btnExport,
+    exportFormat,
+    exportQuality,
+    exportScale,
+    widthSelect,
+  },
+  setCanvasBackground: (value) => {
+    document.getElementById("canvas-bg").value = value;
+    const dark = state.themeMode === "night";
+    canvas.style.background = dark ? "#14110d" : value;
+  },
+  setLayoutLocked,
+}));
+
 const shellManager = createShellManager({
   state,
   controls: {
@@ -482,7 +508,6 @@ const shellManager = createShellManager({
     canvasStage,
     canvasViewport,
   },
-  saveSession: (...args) => saveSession(...args),
   authoredCanvasWidth,
 });
 
@@ -508,6 +533,31 @@ function applyThemeMode(mode = state.themeMode) {
     btnThemeMode.textContent = `Theme: ${label}`;
   }
   saveSession();
+}
+
+function syncAppliedDocState({ hydrate = true, pushInitialHistory = false } = {}) {
+  applyCanvasWidth();
+  applyZoom(state.zoomMode === "fit" ? "fit" : state.zoom, { mode: state.zoomMode, persist: false });
+  applyThemeMode(state.themeMode);
+  flushRender();
+  if (hydrate) {
+    void hydrateAssetSources(state.elements, state.assetLoadToken);
+  }
+  if (pushInitialHistory && state.history.length === 0) {
+    pushHistory();
+  }
+}
+
+function commitAndSave() {
+  commitMutation();
+  saveSession();
+}
+
+function syncRestoredHistoryState() {
+  applyCanvasWidth();
+  applyZoom(state.zoomMode === "fit" ? "fit" : state.zoom, { mode: state.zoomMode, persist: false });
+  applyThemeMode(state.themeMode);
+  flushRender();
 }
 
 function cycleThemeMode() {
@@ -665,86 +715,8 @@ function applyInlineFormat(command, value = null) {
   updateCanvasHeight();
   updateViewportMetrics();
   syncInspector();
-  commitMutation();
+  commitAndSave();
   return true;
-}
-
-function cloneStateForHistory() {
-  return JSON.parse(
-    JSON.stringify({
-      elements: state.elements,
-      selectedId: state.selectedId,
-      seq: state.seq,
-      layoutLocked: state.layoutLocked,
-      zoom: state.zoom,
-      ui: {
-        widthSelect: widthSelect.value,
-        customWidth: customWidth.value,
-        canvasBg: document.getElementById("canvas-bg").value,
-        exportScale: exportScale.value,
-        exportFormat: exportFormat.value,
-        exportQuality: exportQuality.value,
-        exportAppearance: exportAppearance.value,
-        zoomMode: state.zoomMode,
-        themeMode: state.themeMode,
-      },
-    }),
-  );
-}
-
-function pushHistory() {
-  if (state.suppressHistory) return;
-  const snapshot = cloneStateForHistory();
-  const current = state.history[state.historyIndex];
-  if (current && JSON.stringify(current) === JSON.stringify(snapshot)) return;
-  state.history = state.history.slice(0, state.historyIndex + 1);
-  state.history.push(snapshot);
-  state.historyIndex = state.history.length - 1;
-}
-
-function commitMutation() {
-  pushHistory();
-  saveSession();
-}
-
-function restoreHistorySnapshot(snapshot) {
-  state.suppressHistory = true;
-  state.elements = snapshot.elements || [];
-  state.selectedId = snapshot.selectedId || null;
-  state.seq = snapshot.seq || 1;
-  state.savedSelection = null;
-  state.savedSelectionElementId = null;
-  state.savedSelectionTarget = null;
-  setLayoutLocked(snapshot.layoutLocked !== false);
-  state.zoom = snapshot.zoom || 1;
-  widthSelect.value = snapshot.ui?.widthSelect || widthSelect.value;
-  customWidth.value = snapshot.ui?.customWidth || customWidth.value;
-  document.getElementById("canvas-bg").value = snapshot.ui?.canvasBg || "#ffffff";
-  exportScale.value = snapshot.ui?.exportScale || exportScale.value;
-  exportFormat.value = snapshot.ui?.exportFormat || exportFormat.value;
-  exportQuality.value = snapshot.ui?.exportQuality || exportQuality.value;
-  exportAppearance.value = snapshot.ui?.exportAppearance || exportAppearance.value;
-  state.zoomMode = snapshot.ui?.zoomMode === "manual" ? "manual" : "fit";
-  state.themeMode = snapshot.ui?.themeMode === "day" ? "day" : "night";
-  applyCanvasWidth();
-  canvas.style.background = document.getElementById("canvas-bg").value;
-  applyZoom(state.zoomMode === "fit" ? "fit" : state.zoom, { mode: state.zoomMode, persist: false });
-  applyThemeMode(state.themeMode);
-  flushRender();
-  document.getElementById("btn-export").textContent = `Export ${exportFormat.value.toUpperCase()}`;
-  state.suppressHistory = false;
-}
-
-function undoHistory() {
-  if (state.historyIndex <= 0) return;
-  state.historyIndex -= 1;
-  restoreHistorySnapshot(state.history[state.historyIndex]);
-}
-
-function redoHistory() {
-  if (state.historyIndex >= state.history.length - 1) return;
-  state.historyIndex += 1;
-  restoreHistorySnapshot(state.history[state.historyIndex]);
 }
 
 function updateCanvasHeight() {
@@ -1062,7 +1034,7 @@ function addElement(item) {
   state.selectedId = item.id;
   if (state.layoutLocked) reflowFrom(0);
   render();
-  commitMutation();
+  commitAndSave();
 }
 
 function snapX(value) {
@@ -1160,7 +1132,7 @@ document.addEventListener("mouseup", () => {
   if (!interaction) return;
   if (activeId) reflowAfterElement(activeId);
   render();
-  commitMutation();
+  commitAndSave();
 });
 
 document.addEventListener("selectionchange", () => {
@@ -1192,8 +1164,8 @@ document.addEventListener("keydown", (ev) => {
   const selected = getElement(state.selectedId);
 
   if ((ev.ctrlKey || ev.metaKey) && !ev.altKey && ev.key.toLowerCase() === "z") {
-    if (ev.shiftKey) redoHistory();
-    else undoHistory();
+    const restored = ev.shiftKey ? redoHistory() : undoHistory();
+    if (restored) syncRestoredHistoryState();
     ev.preventDefault();
     return;
   }
@@ -1203,7 +1175,7 @@ document.addEventListener("keydown", (ev) => {
     state.elements = state.elements.filter((item) => item.id !== selected.id);
     state.selectedId = null;
     render();
-    commitMutation();
+    commitAndSave();
     ev.preventDefault();
     return;
   }
@@ -1218,7 +1190,7 @@ document.addEventListener("keydown", (ev) => {
     const current = Number(selected.style.fontWeight || 300);
     selected.style.fontWeight = current >= 500 ? 300 : 500;
     render();
-    commitMutation();
+    commitAndSave();
     ev.preventDefault();
   }
 
@@ -1323,13 +1295,13 @@ document.getElementById("btn-delete").addEventListener("click", () => {
   state.elements = state.elements.filter((item) => item.id !== state.selectedId);
   state.selectedId = null;
   render();
-  commitMutation();
+  commitAndSave();
 });
 
 document.getElementById("btn-auto-stack").addEventListener("click", () => {
   reflowFrom(0);
   render();
-  commitMutation();
+  commitAndSave();
 });
 
 function wireInspectorNumber(input, updater) {
@@ -1338,7 +1310,7 @@ function wireInspectorNumber(input, updater) {
     if (!selected) return;
     updater(selected, Number(input.value));
     render();
-    commitMutation();
+    commitAndSave();
   });
 }
 
@@ -1370,7 +1342,7 @@ propFontSizePreset.addEventListener("change", () => {
   selected.style.fontSize = clamp(Number(propFontSizePreset.value), 12, 128);
   propFontSize.value = String(selected.style.fontSize);
   render();
-  commitMutation();
+  commitAndSave();
 });
 
 propFontFamily.addEventListener("change", () => {
@@ -1378,7 +1350,7 @@ propFontFamily.addEventListener("change", () => {
   if (!selected) return;
   selected.style.fontFamily = propFontFamily.value;
   render();
-  commitMutation();
+  commitAndSave();
 });
 
 propFontWeight.addEventListener("change", () => {
@@ -1386,7 +1358,7 @@ propFontWeight.addEventListener("change", () => {
   if (!selected) return;
   selected.style.fontWeight = clamp(Number(propFontWeight.value) || 300, 200, 700);
   render();
-  commitMutation();
+  commitAndSave();
 });
 
 propSpacingBefore.addEventListener("change", () => {
@@ -1395,7 +1367,7 @@ propSpacingBefore.addEventListener("change", () => {
   selected.spacingBefore = propSpacingBefore.value;
   if (state.layoutLocked) reflowFrom(0);
   render();
-  commitMutation();
+  commitAndSave();
 });
 
 propColor.addEventListener("input", () => {
@@ -1403,7 +1375,7 @@ propColor.addEventListener("input", () => {
   if (!selected) return;
   selected.style.color = propColor.value;
   render();
-  commitMutation();
+  commitAndSave();
 });
 
 propFrame.addEventListener("change", () => {
@@ -1411,7 +1383,7 @@ propFrame.addEventListener("change", () => {
   if (!selected) return;
   selected.style.frame = propFrame.value;
   render();
-  commitMutation();
+  commitAndSave();
 });
 
 function applyCanvasWidth() {
@@ -1442,11 +1414,11 @@ function applyCanvasWidth() {
 
 widthSelect.addEventListener("change", () => {
   applyCanvasWidth();
-  commitMutation();
+  commitAndSave();
 });
 customWidth.addEventListener("input", () => {
   applyCanvasWidth();
-  commitMutation();
+  commitAndSave();
 });
 
 document.getElementById("canvas-bg").addEventListener("input", (ev) => {
@@ -1454,376 +1426,6 @@ document.getElementById("canvas-bg").addEventListener("input", (ev) => {
   canvas.style.background = dark ? "#14110d" : ev.target.value;
   saveSession();
 });
-
-function drawRoundedImage(ctx, img, x, y, w, h, r) {
-  ctx.save();
-  roundRect(ctx, x, y, w, h, r);
-  ctx.clip();
-  ctx.drawImage(img, x, y, w, h);
-  ctx.restore();
-}
-
-async function renderCanvasFromState(scale, format) {
-  const width = canvas.clientWidth;
-  const height = canvas.offsetHeight;
-  const palette = exportPalette();
-  const out = document.createElement("canvas");
-  out.width = width * scale;
-  out.height = height * scale;
-  const ctx = out.getContext("2d");
-  ctx.scale(scale, scale);
-  ctx.fillStyle = palette.background;
-  if (format === "jpg" && palette.appearance === "light") ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, width, height);
-
-  for (const item of state.elements) {
-    if (item.type === "image" && item.src) {
-      const img = await new Promise((resolve, reject) => {
-        const image = new Image();
-        image.onload = () => resolve(image);
-        image.onerror = reject;
-        image.src = item.src;
-      });
-      ctx.save();
-      const centerX = item.x + item.width / 2;
-      const centerY = item.y + item.height / 2;
-      ctx.translate(centerX, centerY);
-      ctx.rotate(((item.style.rotation ?? 0) * Math.PI) / 180);
-      ctx.filter = `brightness(${item.style.brightness ?? 100}%) contrast(${item.style.contrast ?? 100}%) grayscale(${item.style.grayscale ?? 0}%)`;
-      drawRoundedImage(ctx, img, -item.width / 2, -item.height / 2, item.width, item.height, item.style.radius ?? 0);
-      ctx.restore();
-      ctx.filter = "none";
-      continue;
-    }
-
-    if (item.type === "divider") {
-      ctx.fillStyle = "#8d684e";
-      roundRect(ctx, item.x, item.y + 8, item.width, 3, 999);
-      ctx.fill();
-      continue;
-    }
-
-    if (item.type === "header") {
-      drawRichTextBox(ctx, {
-        ...item,
-        width: Math.max(180, item.width - 300),
-        html: item.content?.titleHtml || item.content?.title || "",
-        style: { ...item.style, color: exportTextColor(item.style.color ?? "#1f1f22"), fontWeight: item.style.fontWeight ?? 500 },
-      });
-      const metaHtml = item.content?.metaHtml || item.content?.meta || "";
-      const metaText = plainTextFromHtml(metaHtml);
-      ctx.textAlign = "right";
-      drawText(ctx, metaText, item.x + item.width, item.y + 62, 60, exportTextColor(item.style.color ?? "#1f1f22"), "500", familyCss(item));
-      ctx.textAlign = "left";
-      continue;
-    }
-
-    if (item.type === "quote") {
-      ctx.fillStyle = palette.appearance === "dark" ? "rgba(255,248,239,0.08)" : "rgba(201,178,148,0.18)";
-      ctx.fillRect(item.x, item.y, item.width, item.height);
-      ctx.fillStyle = "#8d7354";
-      ctx.fillRect(item.x, item.y, 6, item.height);
-      drawRichTextBox(ctx, { ...item, html: item.html || item.content || "", style: { ...item.style, color: exportTextColor(item.style.color) } });
-      continue;
-    }
-
-    if (item.type === "card") {
-      ctx.fillStyle = palette.panel;
-      roundRect(ctx, item.x, item.y, item.width, item.height, 14);
-      ctx.fill();
-      drawText(
-        ctx,
-        plainTextFromHtml(item.content?.titleHtml || item.content?.title || ""),
-        item.x + 18,
-        item.y + 52,
-        52,
-        exportTextColor(item.style.color ?? "#1f1f22"),
-        "500",
-        familyCss(item),
-      );
-      drawRichTextBox(ctx, {
-        ...item,
-        x: item.x + 18,
-        y: item.y + 60,
-        width: item.width - 36,
-        html: item.content?.bodyHtml || item.content?.body || "",
-        style: { ...item.style, color: exportTextColor(item.style.color) },
-      });
-      continue;
-    }
-
-    if (item.type === "markdown") {
-      ctx.fillStyle = "#fffdfa";
-      roundRect(ctx, item.x, item.y, item.width, item.height, 12);
-      ctx.fill();
-      drawTextBox(ctx, {
-        ...item,
-        x: item.x + 12,
-        y: item.y + 12,
-        width: item.width - 24,
-        content: stripMarkdown(item.content || ""),
-      });
-      continue;
-    }
-
-    if (item.type === "text") {
-      drawRichTextBox(ctx, { ...item, html: item.html || item.content || "", style: { ...item.style, color: exportTextColor(item.style.color) } });
-    }
-  }
-
-  return out;
-}
-
-function drawTextBox(ctx, item) {
-  const content = item.content || "";
-  if (!content.trim()) return;
-  const fontSize = item.style.fontSize ?? 60;
-  const color = item.style.color ?? "#1f1f22";
-  const family = familyCss(item);
-  const weight = item.style.fontWeight ?? 300;
-  const lines = wrapText(ctx, content, item.width, `${weight} ${fontSize}px ${family}`);
-  ctx.fillStyle = color;
-  ctx.font = `${weight} ${fontSize}px ${family}`;
-  const lineHeight = fontSize * 1.5;
-  lines.forEach((line, idx) => {
-    const y = item.y + lineHeight * (idx + 0.8);
-    const isLast = idx === lines.length - 1;
-    drawJustifiedLine(ctx, line, item.x, y, item.width, isLast);
-  });
-}
-
-function drawText(ctx, text, x, y, size, color, weight = "400", family = FONT_MAP.fangzheng) {
-  ctx.fillStyle = color;
-  ctx.font = `${weight} ${size}px ${family}`;
-  ctx.fillText(text, x, y);
-}
-
-function htmlToRichTokens(html, style) {
-  const root = document.createElement("div");
-  root.innerHTML = html || "";
-  const tokens = [];
-  const base = {
-    weight: Number(style.fontWeight ?? 300),
-    italic: false,
-  };
-
-  function pushText(text, current) {
-    if (!text) return;
-    for (const ch of text.replace(/\r/g, "")) {
-      tokens.push({
-        text: ch,
-        weight: current.weight,
-        italic: current.italic,
-      });
-    }
-  }
-
-  function walk(node, current) {
-    if (node.nodeType === Node.TEXT_NODE) {
-      pushText(node.textContent || "", current);
-      return;
-    }
-    if (node.nodeType !== Node.ELEMENT_NODE) return;
-
-    const tag = node.tagName.toLowerCase();
-    const next = {
-      weight: current.weight,
-      italic: current.italic,
-    };
-
-    if (tag === "strong" || tag === "b") next.weight = Math.max(current.weight, 700);
-    if (tag === "em" || tag === "i") next.italic = true;
-    if (tag === "br") {
-      tokens.push({ text: "\n", weight: current.weight, italic: current.italic });
-      return;
-    }
-
-    const blockLike = tag === "div" || tag === "p";
-    if (blockLike && tokens.length) {
-      const last = tokens[tokens.length - 1];
-      if (last.text !== "\n") tokens.push({ text: "\n", weight: current.weight, italic: current.italic });
-    }
-
-    Array.from(node.childNodes).forEach((child) => walk(child, next));
-
-    if (blockLike && tokens.length) {
-      const last = tokens[tokens.length - 1];
-      if (last.text !== "\n") tokens.push({ text: "\n", weight: current.weight, italic: current.italic });
-    }
-  }
-
-  Array.from(root.childNodes).forEach((child) => walk(child, base));
-  while (tokens.length && tokens[tokens.length - 1].text === "\n") tokens.pop();
-  return tokens;
-}
-
-function measureRichToken(ctx, token, fontSize, family) {
-  const fontStyle = token.italic ? "italic " : "";
-  ctx.font = `${fontStyle}${token.weight} ${fontSize}px ${family}`;
-  return ctx.measureText(token.text).width;
-}
-
-function drawRichTextBox(ctx, item) {
-  const html = item.html || "";
-  if (!html.trim()) return false;
-  const fontSize = item.style.fontSize ?? 60;
-  const color = item.style.color ?? "#1f1f22";
-  const family = familyCss(item);
-  const lineHeight = fontSize * 1.5;
-  const tokens = htmlToRichTokens(html, item.style);
-  if (!tokens.length) return false;
-
-  const lines = [];
-  let currentLine = [];
-  let currentWidth = 0;
-
-  for (const token of tokens) {
-    if (token.text === "\n") {
-      lines.push(currentLine);
-      currentLine = [];
-      currentWidth = 0;
-      continue;
-    }
-    const tokenWidth = measureRichToken(ctx, token, fontSize, family);
-    if (currentWidth + tokenWidth > item.width && currentLine.length) {
-      lines.push(currentLine);
-      currentLine = [token];
-      currentWidth = tokenWidth;
-    } else {
-      currentLine.push(token);
-      currentWidth += tokenWidth;
-    }
-  }
-  if (currentLine.length) lines.push(currentLine);
-
-  lines.forEach((line, index) => {
-    let cursorX = item.x;
-    const y = item.y + lineHeight * (index + 0.8);
-    line.forEach((token) => {
-      const fontStyle = token.italic ? "italic " : "";
-      ctx.fillStyle = color;
-      ctx.font = `${fontStyle}${token.weight} ${fontSize}px ${family}`;
-      ctx.fillText(token.text, cursorX, y);
-      cursorX += ctx.measureText(token.text).width;
-    });
-  });
-
-  return true;
-}
-
-function wrapText(ctx, text, maxWidth, font) {
-  ctx.font = font;
-  const words = tokenizeForWrap(text || "");
-  const lines = [];
-  let line = "";
-
-  for (const word of words) {
-    if (word === "\n") {
-      lines.push(line);
-      line = "";
-      continue;
-    }
-    const needSpace = line && !isCjkChar(word) && !isCjkChar(line[line.length - 1]);
-    const test = line ? `${line}${needSpace ? " " : ""}${word}` : word;
-    if (ctx.measureText(test).width > maxWidth && line) {
-      lines.push(line);
-      line = word;
-    } else {
-      line = test;
-    }
-  }
-
-  if (line) lines.push(line);
-  return lines.length ? lines : [""];
-}
-
-function tokenizeForWrap(text) {
-  const hasCjk = /[\u3400-\u9FFF]/.test(text);
-  if (hasCjk) return [...text.replace(/\r/g, "")];
-  return text.replace(/\r/g, "").split(/\s+/);
-}
-
-function isCjkChar(ch) {
-  if (!ch) return false;
-  return /[\u3400-\u9FFF]/.test(ch);
-}
-
-function drawJustifiedLine(ctx, line, x, y, width, isLastLine) {
-  const trimmed = line.trimEnd();
-  if (isLastLine || trimmed.length <= 1) {
-    ctx.fillText(trimmed, x, y);
-    return;
-  }
-  const chars = [...trimmed];
-  const textWidth = ctx.measureText(trimmed).width;
-  const gapCount = chars.length - 1;
-  const extra = Math.max(0, width - textWidth);
-  const gap = gapCount > 0 ? extra / gapCount : 0;
-  let cursorX = x;
-  for (let i = 0; i < chars.length; i += 1) {
-    const ch = chars[i];
-    ctx.fillText(ch, cursorX, y);
-    cursorX += ctx.measureText(ch).width + (i < chars.length - 1 ? gap : 0);
-  }
-}
-
-function escapeHtml(input) {
-  return input
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
-
-function markdownToHtml(md) {
-  const src = escapeHtml(md || "");
-  const lines = src.split("\n");
-  const html = [];
-  let inList = false;
-  for (const line of lines) {
-    if (line.startsWith("- ")) {
-      if (!inList) html.push("<ul>");
-      inList = true;
-      html.push(`<li>${line.slice(2)}</li>`);
-      continue;
-    }
-    if (inList) {
-      html.push("</ul>");
-      inList = false;
-    }
-    if (line.startsWith("### ")) html.push(`<h4>${line.slice(4)}</h4>`);
-    else if (line.startsWith("## ")) html.push(`<h3>${line.slice(3)}</h3>`);
-    else if (line.startsWith("# ")) html.push(`<h2>${line.slice(2)}</h2>`);
-    else if (line.startsWith("> ")) html.push(`<blockquote>${line.slice(2)}</blockquote>`);
-    else html.push(`<p>${line || "&nbsp;"}</p>`);
-  }
-  if (inList) html.push("</ul>");
-  return html.join("");
-}
-
-function stripMarkdown(md) {
-  return (md || "")
-    .replace(/^#{1,6}\s+/gm, "")
-    .replace(/^>\s+/gm, "")
-    .replace(/^-\s+/gm, "")
-    .replace(/\*\*(.*?)\*\*/g, "$1")
-    .replace(/\*(.*?)\*/g, "$1")
-    .replace(/`(.*?)`/g, "$1");
-}
-
-function roundRect(ctx, x, y, w, h, r) {
-  const radius = Math.min(r, w / 2, h / 2);
-  ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.lineTo(x + w - radius, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
-  ctx.lineTo(x + w, y + h - radius);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
-  ctx.lineTo(x + radius, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
-  ctx.lineTo(x, y + radius);
-  ctx.quadraticCurveTo(x, y, x + radius, y);
-  ctx.closePath();
-}
 
 document.getElementById("btn-export").addEventListener("click", () => {
   exportRaster().catch((err) => {
@@ -1844,15 +1446,15 @@ btnToggleLock.addEventListener("click", () => {
   } else {
     render();
   }
-  commitMutation();
+  commitAndSave();
 });
 
 btnUndo.addEventListener("click", () => {
-  undoHistory();
+  if (undoHistory()) syncRestoredHistoryState();
 });
 
 btnRedo.addEventListener("click", () => {
-  redoHistory();
+  if (redoHistory()) syncRestoredHistoryState();
 });
 
 btnBold.addEventListener("click", (ev) => {
@@ -1900,14 +1502,19 @@ bindShellEvents({
     }
     openMobilePanel("right");
   },
+  onZoomChange: () => {
+    saveSession();
+  },
 });
 
 docSelect.addEventListener("change", async () => {
   await switchDocument(docSelect.value);
+  syncAppliedDocState({ hydrate: true, pushInitialHistory: true });
 });
 
 btnDocNew.addEventListener("click", async () => {
   await createNewDocument();
+  syncAppliedDocState({ hydrate: true, pushInitialHistory: true });
 });
 
 btnDocRename.addEventListener("click", async () => {
@@ -1916,6 +1523,7 @@ btnDocRename.addEventListener("click", async () => {
 
 btnDocDelete.addEventListener("click", async () => {
   await deleteCurrentDocument();
+  syncAppliedDocState({ hydrate: true, pushInitialHistory: true });
 });
 
 exportFormat.addEventListener("change", () => {
@@ -1933,9 +1541,7 @@ async function initApp() {
   if (!restored) {
     await buildStarterDoc(createDocRecord("Untitled Plog"));
   }
-  if (state.history.length === 0) {
-    pushHistory();
-  }
+  syncAppliedDocState({ hydrate: true, pushInitialHistory: true });
   syncResponsiveShell();
 }
 

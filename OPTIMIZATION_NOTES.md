@@ -13,7 +13,7 @@ This repo is already functional as a local-first static editor, but it is still 
 - [x] Move uploaded images to Blob-based asset storage
 - [x] Add IndexedDB connection reuse
 - [x] Start mobile / weird canvas size support
-- [ ] Split `app.js` into modules
+- [~] Split `app.js` into modules
 - [ ] Replace snapshot-based undo/redo with operation-based history
 - [ ] Finish storage layer normalization
 - [ ] Decouple rich text editing from `execCommand`
@@ -89,11 +89,26 @@ Status:
 
 - still a single large runtime file
 - some internals are cleaner now, but the architecture is still monolithic
-- first extraction target is the canvas sizing / fit / responsive-shell calculation layer
 - extracted so far:
   `js/canvas-layout.js`
   `js/doc-store.js`
   `js/export-manager.js`
+  `js/history-manager.js`
+  `js/render-state.js`
+  `js/shell-manager.js`
+
+Remaining heavy areas in `app.js`:
+
+- editor DOM rendering / node sync
+- editor interaction handlers
+- history model
+- inline rich-text command flow
+
+Recent dependency cleanup:
+
+- `shell-manager` no longer persists zoom changes directly
+- `doc-store` no longer pushes history or drives UI sync directly
+- `app.js` now acts more clearly as the orchestration layer after doc restore / doc switch / history restore
 
 #### Not done yet: Replace snapshot-based undo/redo with operation-based history
 

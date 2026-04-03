@@ -10,6 +10,8 @@ flowchart TB
         CL["js/canvas-layout.js<br/>Canvas width + fit calculations"]
         DS["js/doc-store.js<br/>Document persistence manager"]
         EX["js/export-manager.js<br/>Export manager"]
+        HM["js/history-manager.js<br/>Undo / redo history manager"]
+        RS["js/render-state.js<br/>State-based export renderer"]
         SH["js/shell-manager.js<br/>Responsive shell + zoom manager"]
     end
 
@@ -21,21 +23,27 @@ flowchart TB
     A --> CL
     A --> DS
     A --> EX
+    A --> HM
+    A --> RS
     A --> SH
 
     subgraph EDIT["Editor Runtime"]
         C["Long Canvas<br/>Text / Image / Header / Quote / Card"]
         F["Formatting<br/>Bold / Italic / Clear"]
+        HI["History<br/>Snapshot capture + undo / redo"]
         L["Layout Engine<br/>Flow placement + reflow"]
         E["Export Engine<br/>DOM export + canvas fallback"]
+        SR["State Renderer<br/>Canvas snapshot from editor state"]
         R["Responsive Shell<br/>Mobile panels + auto-fit zoom"]
         M["Document Manager<br/>Restore / save / switch docs"]
     end
 
     A --> C
     A --> F
+    HM --> HI
     A --> L
     EX --> E
+    RS --> SR
     SH --> R
     DS --> M
 
