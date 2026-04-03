@@ -1,5 +1,9 @@
 import { createTextDialog } from "./js/dialog.js";
-import { DOCS_STORAGE_KEY, STORAGE_KEY, idbDeleteAsset, idbGet, idbGetAsset, idbSet, idbSetAsset } from "./js/storage.js";
+import { authoredCanvasWidthFromControls, canvasLayoutForWidth } from "./js/canvas-layout.js";
+import { createDocStoreManager } from "./js/doc-store.js";
+import { createExportManager } from "./js/export-manager.js";
+import { createShellManager } from "./js/shell-manager.js";
+import { idbDeleteAsset, idbGetAsset, idbSetAsset } from "./js/storage.js";
 
 const FONT_MAP = {
   fangzheng: '"方正清刻本悦宋", "FZQKBYSJW--GB1-0", "Songti SC", "STSong", "Noto Serif SC", serif',
@@ -64,6 +68,7 @@ const exportScale = document.getElementById("export-scale");
 const btnToggleLock = document.getElementById("btn-toggle-lock");
 const canvasZoom = document.getElementById("canvas-zoom");
 const btnFitFrame = document.getElementById("btn-fit-frame");
+const btnExport = document.getElementById("btn-export");
 const btnUndo = document.getElementById("btn-undo");
 const btnRedo = document.getElementById("btn-redo");
 const btnBold = document.getElementById("btn-bold");
@@ -146,18 +151,7 @@ function clamp(n, min, max) {
 }
 
 function authoredCanvasWidth() {
-  if (widthSelect.value === "custom") {
-    return clamp(Number(customWidth.value) || 1200, 480, 2400);
-  }
-  return clamp(Number(widthSelect.value) || 1200, 480, 2400);
-}
-
-function canvasLayoutForWidth(width) {
-  const horizontalPad = clamp(Math.round(width * 0.08), 24, 96);
-  const contentWidth = Math.max(220, width - horizontalPad * 2);
-  const contentX = Math.floor((width - contentWidth) / 2);
-  const topPad = 36;
-  return { width, contentWidth, contentX, topPad };
+  return authoredCanvasWidthFromControls(widthSelect.value, customWidth.value);
 }
 
 function canvasLayout() {
@@ -392,6 +386,97 @@ const openTextDialog = createTextDialog({
   confirmBtn: dialogConfirm,
 });
 
+const docStore = createDocStoreManager({
+  state,
+  controls: {
+    customWidth,
+    docSelect,
+    exportAppearance,
+    exportButton: btnExport,
+    exportFormat,
+    exportQuality,
+    exportScale,
+    widthSelect,
+  },
+  getCanvasBackground: () => document.getElementById("canvas-bg").value,
+  setCanvasBackground: (value) => {
+    document.getElementById("canvas-bg").value = value;
+  },
+  serializeElementsForStorage,
+  clearAssetUrls,
+  hydrateAssetSources,
+  setLayoutLocked,
+  applyCanvasWidth,
+  applyZoom,
+  applyThemeMode,
+  flushRender,
+  pushHistory,
+  createDefaultDocData,
+  createDocRecord,
+  addElement,
+  createElement,
+  deleteImageAssetsForItems,
+  openTextDialog,
+});
+
+const {
+  applyDocData,
+  buildStarterDoc,
+  createNewDocument,
+  deleteCurrentDocument,
+  flushSaveSession,
+  renameCurrentDocument,
+  restoreSession,
+  saveSession,
+  switchDocument,
+} = docStore;
+
+const exportManager = createExportManager({
+  canvas,
+  flushRender,
+  hydrateAssetSources,
+  getElements: () => state.elements,
+  getAssetLoadToken: () => state.assetLoadToken,
+  exportScale,
+  exportFormat,
+  exportQuality,
+  currentExportAppearance,
+  exportPalette,
+  docName,
+  renderCanvasFromState,
+});
+
+const { exportHtml, exportRaster } = exportManager;
+
+const shellManager = createShellManager({
+  state,
+  controls: {
+    btnFitFrame,
+    btnMobileElements,
+    btnMobileSettings,
+    canvasZoom,
+    mobilePanelBackdrop,
+  },
+  nodes: {
+    canvas,
+    canvasScale,
+    canvasStage,
+    canvasViewport,
+  },
+  saveSession,
+  authoredCanvasWidth,
+});
+
+const {
+  applyZoom,
+  bindEvents: bindShellEvents,
+  closeMobilePanels,
+  openMobilePanel,
+  syncResponsiveShell,
+  syncZoomControl,
+  updateViewportMetrics,
+} = shellManager;
+
 function applyThemeMode(mode = state.themeMode) {
   state.themeMode = mode === "day" ? "day" : "night";
   const dark = state.themeMode === "night";
@@ -410,34 +495,6 @@ function cycleThemeMode() {
   const index = THEME_SEQUENCE.indexOf(state.themeMode);
   const next = THEME_SEQUENCE[(index + 1) % THEME_SEQUENCE.length];
   applyThemeMode(next);
-}
-
-function isMobileShell() {
-  return window.matchMedia("(max-width: 900px)").matches;
-}
-
-function closeMobilePanels() {
-  document.body.classList.remove("mobile-panel-left-open", "mobile-panel-right-open");
-  mobilePanelBackdrop.classList.add("hidden");
-}
-
-function openMobilePanel(side) {
-  if (!isMobileShell()) return;
-  document.body.classList.toggle("mobile-panel-left-open", side === "left");
-  document.body.classList.toggle("mobile-panel-right-open", side === "right");
-  mobilePanelBackdrop.classList.remove("hidden");
-}
-
-function syncResponsiveShell() {
-  if (!isMobileShell()) {
-    closeMobilePanels();
-  }
-  if (state.zoomMode === "fit") {
-    applyZoom("fit", { mode: "fit", persist: false });
-  } else {
-    updateViewportMetrics();
-    syncZoomControl();
-  }
 }
 
 function updateEditableStateFromDom(editable) {
@@ -1364,44 +1421,6 @@ function applyCanvasWidth() {
   render();
 }
 
-function updateViewportMetrics() {
-  const width = canvas.offsetWidth * state.zoom;
-  const height = canvas.offsetHeight * state.zoom;
-  canvasViewport.style.width = `${width}px`;
-  canvasViewport.style.height = `${height}px`;
-}
-
-function syncZoomControl() {
-  canvasZoom.value = state.zoomMode === "fit" ? "fit" : String(state.zoom);
-}
-
-function fitZoomRatio() {
-  const stageStyles = getComputedStyle(canvasStage);
-  const paddingX = parseFloat(stageStyles.paddingLeft) + parseFloat(stageStyles.paddingRight);
-  const available = Math.max(180, canvasStage.clientWidth - paddingX - 8);
-  return clamp(available / Math.max(1, authoredCanvasWidth()), 0.32, 1);
-}
-
-function applyZoom(nextZoom, { mode = "manual", persist = true } = {}) {
-  if (nextZoom === "fit" || mode === "fit") {
-    state.zoomMode = "fit";
-    state.zoom = fitZoomRatio();
-  } else {
-    state.zoomMode = "manual";
-    state.zoom = clamp(Number(nextZoom) || 1, 0.3, 2);
-  }
-  canvas.style.transform = "none";
-  canvasScale.style.transform = "none";
-  canvasScale.style.zoom = String(state.zoom);
-  syncZoomControl();
-  updateViewportMetrics();
-  if (persist) saveSession();
-}
-
-function fitToFrame() {
-  applyZoom("fit", { mode: "fit" });
-}
-
 widthSelect.addEventListener("change", () => {
   applyCanvasWidth();
   commitMutation();
@@ -1410,14 +1429,6 @@ customWidth.addEventListener("input", () => {
   applyCanvasWidth();
   commitMutation();
 });
-canvasZoom.addEventListener("change", () => {
-  if (canvasZoom.value === "fit") {
-    applyZoom("fit", { mode: "fit" });
-    return;
-  }
-  applyZoom(Number(canvasZoom.value), { mode: "manual" });
-});
-btnFitFrame.addEventListener("click", fitToFrame);
 
 document.getElementById("canvas-bg").addEventListener("input", (ev) => {
   const dark = state.themeMode === "night";
@@ -1425,149 +1436,12 @@ document.getElementById("canvas-bg").addEventListener("input", (ev) => {
   saveSession();
 });
 
-function collectStylesText() {
-  return Array.from(document.styleSheets)
-    .map((sheet) => {
-      try {
-        return Array.from(sheet.cssRules || []).map((rule) => rule.cssText).join("\n");
-      } catch {
-        return "";
-      }
-    })
-    .join("\n");
-}
-
-function cloneCanvasForExport() {
-  const clone = canvas.cloneNode(true);
-  clone.style.transform = "none";
-  clone.style.margin = "0";
-  const palette = exportPalette();
-  clone.style.background = palette.background;
-  clone.querySelectorAll(".move-handle,.resize-handle").forEach((node) => node.remove());
-  clone.querySelectorAll(".selected").forEach((node) => node.classList.remove("selected"));
-  clone.querySelectorAll("[contenteditable]").forEach((node) => node.removeAttribute("contenteditable"));
-  return clone;
-}
-
-function buildExportSvgMarkup(width, height, scale, clone) {
-  const palette = exportPalette();
-  const css = collectStylesText();
-  const themedCss = currentExportAppearance() === "dark" ? `${css}\n${css.replaceAll("body.theme-dark", ".theme-dark")}` : css;
-  const wrapperClass = currentExportAppearance() === "dark" ? "theme-dark" : "";
-  return `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${width * scale}" height="${height * scale}" viewBox="0 0 ${width} ${height}">
-      <foreignObject width="100%" height="100%">
-        <div xmlns="http://www.w3.org/1999/xhtml" class="${wrapperClass}" style="width:${width}px;height:${height}px;background:${palette.background};">
-          <style>${themedCss}</style>
-          ${clone.outerHTML}
-        </div>
-      </foreignObject>
-    </svg>
-  `;
-}
-
-async function loadSvgIntoImage(markup) {
-  const blob = new Blob([markup], { type: "image/svg+xml;charset=utf-8" });
-  const blobUrl = URL.createObjectURL(blob);
-  try {
-    return await new Promise((resolve, reject) => {
-      const image = new Image();
-      image.crossOrigin = "anonymous";
-      image.onload = () => resolve({ image, url: blobUrl });
-      image.onerror = () => reject(new Error("blob-svg-load-failed"));
-      image.src = blobUrl;
-    });
-  } catch {
-    URL.revokeObjectURL(blobUrl);
-    const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(markup)}`;
-    return await new Promise((resolve, reject) => {
-      const image = new Image();
-      image.crossOrigin = "anonymous";
-      image.onload = () => resolve({ image, url: null });
-      image.onerror = () => reject(new Error("data-svg-load-failed"));
-      image.src = dataUrl;
-    });
-  }
-}
-
-async function exportRaster() {
-  flushRender();
-  await hydrateAssetSources(state.elements, state.assetLoadToken);
-  const scale = clamp(Number(exportScale.value) || 2, 1, 3);
-  const format = exportFormat.value || "png";
-  const quality = clamp(Number(exportQuality.value) || 0.9, 0.5, 1);
-  const width = canvas.clientWidth;
-  const height = canvas.offsetHeight;
-  let out;
-  try {
-    const clone = cloneCanvasForExport();
-    const markup = buildExportSvgMarkup(width, height, scale, clone);
-    const { image, url } = await loadSvgIntoImage(markup);
-    out = document.createElement("canvas");
-    out.width = width * scale;
-    out.height = height * scale;
-    const ctx = out.getContext("2d");
-    ctx.fillStyle = exportPalette().background;
-    if (format === "jpg" && currentExportAppearance() === "light") ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, out.width, out.height);
-    ctx.drawImage(image, 0, 0);
-    if (url) URL.revokeObjectURL(url);
-  } catch (err) {
-    console.warn("DOM export failed, falling back to state renderer", err);
-    out = await renderCanvasFromState(scale, format);
-  }
-
-  const mime = format === "jpg" ? "image/jpeg" : format === "webp" ? "image/webp" : "image/png";
-  const ext = format === "jpg" ? "jpg" : format;
-  triggerDownload(out.toDataURL(mime, quality), filenameForExport(ext, scale));
-}
-
-async function exportHtml() {
-  flushRender();
-  await hydrateAssetSources(state.elements, state.assetLoadToken);
-  const clone = cloneCanvasForExport();
-  const css = collectStylesText();
-  const appearance = currentExportAppearance();
-  const width = canvas.clientWidth;
-  const height = canvas.offsetHeight;
-  const html = `<!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${docName()}</title>
-  <style>${css}</style>
-</head>
-<body class="${appearance === "dark" ? "theme-dark" : ""}" style="margin:0;background:${exportPalette().background};display:flex;justify-content:center;padding:24px;">
-  <div style="position:relative;width:${width}px;min-height:${height}px;">${clone.outerHTML}</div>
-</body>
-</html>`;
-  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  triggerDownload(url, `${docName().replace(/\s+/g, "-").toLowerCase() || "plog"}.html`);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
 function drawRoundedImage(ctx, img, x, y, w, h, r) {
   ctx.save();
   roundRect(ctx, x, y, w, h, r);
   ctx.clip();
   ctx.drawImage(img, x, y, w, h);
   ctx.restore();
-}
-
-function triggerDownload(url, filename) {
-  const link = document.createElement("a");
-  link.download = filename;
-  link.href = url;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-}
-
-function filenameForExport(ext, scale) {
-  const stamp = new Date().toISOString().slice(0, 10);
-  return `${docName().replace(/\s+/g, "-").toLowerCase() || "plog"}-${stamp}-${scale}x.${ext}`;
 }
 
 async function renderCanvasFromState(scale, format) {
@@ -1943,239 +1817,6 @@ document.getElementById("btn-export-html").addEventListener("click", () => {
   void exportHtml();
 });
 
-function captureCurrentDocData() {
-  return {
-    state: {
-      elements: serializeElementsForStorage(state.elements),
-      seq: state.seq,
-      selectedId: state.selectedId,
-      layoutLocked: state.layoutLocked,
-      zoom: state.zoom,
-      themeMode: state.themeMode,
-    },
-    ui: {
-      widthSelect: widthSelect.value,
-      customWidth: customWidth.value,
-      canvasBg: document.getElementById("canvas-bg").value,
-      exportScale: exportScale.value,
-      exportFormat: exportFormat.value,
-      exportQuality: exportQuality.value,
-      exportAppearance: exportAppearance.value,
-      zoomMode: state.zoomMode,
-      themeMode: state.themeMode,
-    },
-  };
-}
-
-async function persistDocStore() {
-  if (!state.currentDocId) return;
-  const current = state.docs.find((entry) => entry.id === state.currentDocId);
-  if (current) current.data = captureCurrentDocData();
-  const payload = {
-    currentDocId: state.currentDocId,
-    docs: state.docs,
-  };
-  try {
-    await idbSet(DOCS_STORAGE_KEY, payload);
-    localStorage.setItem("plog_editor_current_doc_id", state.currentDocId);
-  } catch (err) {
-    console.error("Failed to persist docs", err);
-  }
-}
-
-function refreshDocSelect() {
-  docSelect.innerHTML = "";
-  state.docs.forEach((doc) => {
-    const option = document.createElement("option");
-    option.value = doc.id;
-    option.textContent = doc.name;
-    docSelect.appendChild(option);
-  });
-  if (state.currentDocId) docSelect.value = state.currentDocId;
-}
-
-function applyDocData(payload) {
-  state.suppressHistory = true;
-  state.assetLoadToken += 1;
-  clearAssetUrls();
-  state.elements = Array.isArray(payload.state?.elements) ? payload.state.elements : [];
-  state.seq = Number(payload.state?.seq) || 1;
-  state.selectedId = payload.state?.selectedId || null;
-  state.zoom = Number(payload.state?.zoom) || 1;
-  state.history = [];
-  state.historyIndex = -1;
-  state.savedSelection = null;
-  state.savedSelectionElementId = null;
-  state.savedSelectionTarget = null;
-  state.themeMode = payload.state?.themeMode === "day" || payload.ui?.themeMode === "day" ? "day" : "night";
-  setLayoutLocked(payload.state?.layoutLocked !== false);
-  widthSelect.value = payload.ui?.widthSelect || "1200";
-  customWidth.value = payload.ui?.customWidth || "1200";
-  document.getElementById("canvas-bg").value = payload.ui?.canvasBg || "#ffffff";
-  exportScale.value = payload.ui?.exportScale || "2";
-  exportFormat.value = payload.ui?.exportFormat || "png";
-  exportQuality.value = payload.ui?.exportQuality || "0.9";
-  exportAppearance.value = payload.ui?.exportAppearance || "match";
-  state.zoomMode = payload.ui?.zoomMode === "manual" ? "manual" : "fit";
-  applyCanvasWidth();
-  canvas.style.background = document.getElementById("canvas-bg").value;
-  applyZoom(state.zoomMode === "fit" ? "fit" : state.zoom, { mode: state.zoomMode, persist: false });
-  applyThemeMode(state.themeMode);
-  flushRender();
-  document.getElementById("btn-export").textContent = `Export ${exportFormat.value.toUpperCase()}`;
-  pushHistory();
-  state.suppressHistory = false;
-  void hydrateAssetSources(state.elements, state.assetLoadToken);
-}
-
-function buildStarterDoc(doc) {
-  if (!state.docs.find((entry) => entry.id === doc.id)) {
-    state.docs.push(doc);
-  }
-  state.currentDocId = doc.id;
-  applyDocData(doc.data);
-  addElement(
-    createElement("header", {
-      content: {
-        title: "Prayer",
-        meta: "[Aug. 2020]",
-      },
-      spacingBefore: "normal",
-      style: { fontSize: 62, color: "#1f1f22", radius: 0, fontFamily: "fangzheng" },
-    }),
-  );
-  addElement(createElement("text", { content: "", placeholder: "Paragraph", spacingBefore: "section" }));
-  refreshDocSelect();
-  persistDocStore();
-}
-
-async function restoreSession() {
-  let docsPayload = null;
-  try {
-    docsPayload = await idbGet(DOCS_STORAGE_KEY);
-  } catch (err) {
-    console.error("Failed to read docs store", err);
-  }
-  if (docsPayload) {
-    try {
-      state.docs = Array.isArray(docsPayload.docs) ? docsPayload.docs : [];
-      state.currentDocId = docsPayload.currentDocId || state.docs[0]?.id || null;
-      if (!state.docs.length) throw new Error("Empty docs");
-      refreshDocSelect();
-      const current = state.docs.find((entry) => entry.id === state.currentDocId) || state.docs[0];
-      state.currentDocId = current.id;
-      applyDocData(current.data || createDefaultDocData());
-      return true;
-    } catch (err) {
-      console.error("Failed to restore docs", err);
-    }
-  }
-
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (raw) {
-    try {
-      const parsed = JSON.parse(raw);
-      const doc = createDocRecord("Untitled Plog");
-      doc.data = parsed;
-      state.docs = [doc];
-      state.currentDocId = doc.id;
-      refreshDocSelect();
-      applyDocData(doc.data);
-      persistDocStore();
-      return true;
-    } catch (err) {
-      console.error("Failed to migrate legacy session", err);
-    }
-  }
-  return false;
-}
-
-async function flushSaveSession() {
-  if (state.saveTimer) {
-    window.clearTimeout(state.saveTimer);
-    state.saveTimer = null;
-  }
-  await persistDocStore();
-}
-
-function saveSession() {
-  if (state.saveTimer) window.clearTimeout(state.saveTimer);
-  state.saveTimer = window.setTimeout(() => {
-    void flushSaveSession();
-    state.saveTimer = null;
-  }, 180);
-}
-
-async function switchDocument(docId) {
-  await flushSaveSession();
-  const doc = state.docs.find((entry) => entry.id === docId);
-  if (!doc) return;
-  state.currentDocId = doc.id;
-  refreshDocSelect();
-  applyDocData(doc.data || createDefaultDocData());
-}
-
-async function createNewDocument() {
-  await flushSaveSession();
-  const name = await openTextDialog({
-    title: "New document",
-    message: "Create a new plog file.",
-    initialValue: `Plog ${state.docs.length + 1}`,
-    confirmLabel: "Create",
-  });
-  if (!name) return;
-  const doc = createDocRecord(name.trim() || `Plog ${state.docs.length + 1}`);
-  state.docs.push(doc);
-  refreshDocSelect();
-  await buildStarterDoc(doc);
-}
-
-async function renameCurrentDocument() {
-  const current = state.docs.find((entry) => entry.id === state.currentDocId);
-  if (!current) return;
-  const next = await openTextDialog({
-    title: "Rename document",
-    message: "Update the current document name.",
-    initialValue: current.name,
-    confirmLabel: "Save",
-  });
-  if (!next) return;
-  current.name = next.trim() || current.name;
-  refreshDocSelect();
-  await persistDocStore();
-}
-
-async function deleteCurrentDocument() {
-  const current = state.docs.find((entry) => entry.id === state.currentDocId);
-  if (!current) return;
-  const confirmation = await openTextDialog({
-    title: "Delete document",
-    message: `Type DELETE to remove "${current.name}".`,
-    initialValue: "",
-    confirmLabel: "Delete",
-  });
-  if (confirmation !== "DELETE") return;
-
-  if (current.id === state.currentDocId) {
-    current.data = captureCurrentDocData();
-  }
-  const docElements = Array.isArray(current.data?.state?.elements) ? current.data.state.elements : [];
-  await deleteImageAssetsForItems(docElements);
-
-  state.docs = state.docs.filter((entry) => entry.id !== current.id);
-
-  if (state.docs.length === 0) {
-    const replacement = createDocRecord("Untitled Plog");
-    await buildStarterDoc(replacement);
-    return;
-  }
-
-  state.currentDocId = state.docs[0].id;
-  refreshDocSelect();
-  await persistDocStore();
-  applyDocData(state.docs[0].data || createDefaultDocData());
-}
-
 btnToggleLock.addEventListener("click", () => {
   setLayoutLocked(!state.layoutLocked);
   if (state.layoutLocked) {
@@ -2222,25 +1863,25 @@ btnThemeMode.addEventListener("click", () => {
   cycleThemeMode();
 });
 
-btnMobileElements.addEventListener("click", () => {
-  const nextOpen = !document.body.classList.contains("mobile-panel-left-open");
-  if (!nextOpen) {
-    closeMobilePanels();
-    return;
-  }
-  openMobilePanel("left");
+bindShellEvents({
+  onEscape: closeMobilePanels,
+  onOpenMobileElements: () => {
+    const nextOpen = !document.body.classList.contains("mobile-panel-left-open");
+    if (!nextOpen) {
+      closeMobilePanels();
+      return;
+    }
+    openMobilePanel("left");
+  },
+  onOpenMobileSettings: () => {
+    const nextOpen = !document.body.classList.contains("mobile-panel-right-open");
+    if (!nextOpen) {
+      closeMobilePanels();
+      return;
+    }
+    openMobilePanel("right");
+  },
 });
-
-btnMobileSettings.addEventListener("click", () => {
-  const nextOpen = !document.body.classList.contains("mobile-panel-right-open");
-  if (!nextOpen) {
-    closeMobilePanels();
-    return;
-  }
-  openMobilePanel("right");
-});
-
-mobilePanelBackdrop.addEventListener("click", closeMobilePanels);
 
 docSelect.addEventListener("change", async () => {
   await switchDocument(docSelect.value);
@@ -2285,12 +1926,6 @@ initApp().catch((err) => {
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") void flushSaveSession();
-});
-
-window.addEventListener("resize", syncResponsiveShell);
-
-window.addEventListener("keydown", (ev) => {
-  if (ev.key === "Escape") closeMobilePanels();
 });
 
 window.addEventListener("pagehide", () => {

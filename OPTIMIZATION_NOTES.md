@@ -6,6 +6,21 @@ This repo is already functional as a local-first static editor, but it is still 
 
 ## Current Status
 
+### To-Do Checklist
+
+- [x] Reduce render cost and render frequency
+- [x] Fix persistence timing and flush behavior
+- [x] Move uploaded images to Blob-based asset storage
+- [x] Add IndexedDB connection reuse
+- [x] Start mobile / weird canvas size support
+- [ ] Split `app.js` into modules
+- [ ] Replace snapshot-based undo/redo with operation-based history
+- [ ] Finish storage layer normalization
+- [ ] Decouple rich text editing from `execCommand`
+- [ ] Sanitize `contenteditable` HTML before persistence/export
+- [ ] Replace CSS `zoom` with a more controlled scaling model
+- [ ] Add tests
+
 ### Completed in the first two optimization rounds
 
 #### Done: Reduce render cost and render frequency
@@ -68,12 +83,17 @@ Current benefit:
 
 ### Still to do
 
-#### Not done yet: Split `app.js` into modules
+#### In progress: Split `app.js` into modules
 
 Status:
 
 - still a single large runtime file
 - some internals are cleaner now, but the architecture is still monolithic
+- first extraction target is the canvas sizing / fit / responsive-shell calculation layer
+- extracted so far:
+  `js/canvas-layout.js`
+  `js/doc-store.js`
+  `js/export-manager.js`
 
 #### Not done yet: Replace snapshot-based undo/redo with operation-based history
 
@@ -114,6 +134,64 @@ Status:
 Status:
 
 - no automated regression coverage yet
+
+## Commit Map
+
+### `4799063` `Init`
+
+Initial project import.
+
+Main scope:
+
+- static frontend app shell
+- vanilla JS editor runtime
+- long-canvas editing MVP
+- local-first persistence baseline
+
+### `74cc069` `Optimize rendering and move image storage to assets`
+
+Main work:
+
+- reduced hot-path render cost
+- added render batching and node reuse
+- improved save flush timing
+- added IndexedDB connection reuse
+- moved uploaded images from inline document payloads to asset-backed Blob storage
+
+Main code areas:
+
+- `app.js`
+- `js/storage.js`
+
+### `6fc8485` `Improve mobile canvas layout and document sizing`
+
+Main work:
+
+- introduced authored canvas width thinking
+- added auto-fit zoom mode
+- started mobile canvas-first shell behavior
+- updated optimization and reference notes
+
+Main code areas:
+
+- `app.js`
+- `index.html`
+- `styles.css`
+- `OPTIMIZATION_NOTES.md`
+
+### Current interpretation of commit scope
+
+Round 1:
+
+- performance
+- persistence reliability
+- asset storage
+
+Round 2:
+
+- responsive shell direction
+- canvas sizing model improvements
+- mobile-first groundwork
 
 ## Highest Priority
 
