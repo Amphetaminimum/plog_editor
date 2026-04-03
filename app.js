@@ -386,6 +386,25 @@ const openTextDialog = createTextDialog({
   confirmBtn: dialogConfirm,
 });
 
+let applyDocData;
+let buildStarterDoc;
+let createNewDocument;
+let deleteCurrentDocument;
+let flushSaveSession;
+let renameCurrentDocument;
+let restoreSession;
+let saveSession;
+let switchDocument;
+let exportHtml;
+let exportRaster;
+let applyZoom;
+let bindShellEvents;
+let closeMobilePanels;
+let openMobilePanel;
+let syncResponsiveShell;
+let syncZoomControl;
+let updateViewportMetrics;
+
 const docStore = createDocStoreManager({
   state,
   controls: {
@@ -407,7 +426,7 @@ const docStore = createDocStoreManager({
   hydrateAssetSources,
   setLayoutLocked,
   applyCanvasWidth,
-  applyZoom,
+  applyZoom: (...args) => applyZoom(...args),
   applyThemeMode,
   flushRender,
   pushHistory,
@@ -419,7 +438,7 @@ const docStore = createDocStoreManager({
   openTextDialog,
 });
 
-const {
+({
   applyDocData,
   buildStarterDoc,
   createNewDocument,
@@ -429,7 +448,7 @@ const {
   restoreSession,
   saveSession,
   switchDocument,
-} = docStore;
+} = docStore);
 
 const exportManager = createExportManager({
   canvas,
@@ -446,7 +465,7 @@ const exportManager = createExportManager({
   renderCanvasFromState,
 });
 
-const { exportHtml, exportRaster } = exportManager;
+({ exportHtml, exportRaster } = exportManager);
 
 const shellManager = createShellManager({
   state,
@@ -463,11 +482,11 @@ const shellManager = createShellManager({
     canvasStage,
     canvasViewport,
   },
-  saveSession,
+  saveSession: (...args) => saveSession(...args),
   authoredCanvasWidth,
 });
 
-const {
+({
   applyZoom,
   bindEvents: bindShellEvents,
   closeMobilePanels,
@@ -475,7 +494,7 @@ const {
   syncResponsiveShell,
   syncZoomControl,
   updateViewportMetrics,
-} = shellManager;
+} = shellManager);
 
 function applyThemeMode(mode = state.themeMode) {
   state.themeMode = mode === "day" ? "day" : "night";
