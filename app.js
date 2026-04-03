@@ -37,6 +37,7 @@ const state = {
   renderScheduled: false,
   assetUrls: new Map(),
   assetLoadToken: 0,
+  zoomMode: "fit",
 };
 
 const elementNodeCache = new Map();
@@ -82,6 +83,9 @@ const propContrast = document.getElementById("prop-contrast");
 const propGrayscale = document.getElementById("prop-grayscale");
 const propFrame = document.getElementById("prop-frame");
 const imageControls = document.getElementById("image-controls");
+const btnMobileElements = document.getElementById("btn-mobile-elements");
+const btnMobileSettings = document.getElementById("btn-mobile-settings");
+const mobilePanelBackdrop = document.getElementById("mobile-panel-backdrop");
 const dialogBackdrop = document.getElementById("dialog-backdrop");
 const dialogTitle = document.getElementById("dialog-title");
 const dialogMessage = document.getElementById("dialog-message");
@@ -113,6 +117,7 @@ function createDefaultDocData() {
       exportScale: "2",
       exportFormat: "png",
       exportQuality: "0.9",
+      zoomMode: "fit",
       themeMode: "night",
     },
   };
@@ -140,12 +145,23 @@ function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
 }
 
-function canvasLayout() {
-  const width = canvas.clientWidth || 1200;
-  const contentWidth = clamp(Math.floor(width * 0.9), 700, 1040);
+function authoredCanvasWidth() {
+  if (widthSelect.value === "custom") {
+    return clamp(Number(customWidth.value) || 1200, 480, 2400);
+  }
+  return clamp(Number(widthSelect.value) || 1200, 480, 2400);
+}
+
+function canvasLayoutForWidth(width) {
+  const horizontalPad = clamp(Math.round(width * 0.08), 24, 96);
+  const contentWidth = Math.max(220, width - horizontalPad * 2);
   const contentX = Math.floor((width - contentWidth) / 2);
   const topPad = 36;
   return { width, contentWidth, contentX, topPad };
+}
+
+function canvasLayout() {
+  return canvasLayoutForWidth(authoredCanvasWidth());
 }
 
 function defaultSpacingBefore(type, prevType) {
@@ -396,6 +412,34 @@ function cycleThemeMode() {
   applyThemeMode(next);
 }
 
+function isMobileShell() {
+  return window.matchMedia("(max-width: 900px)").matches;
+}
+
+function closeMobilePanels() {
+  document.body.classList.remove("mobile-panel-left-open", "mobile-panel-right-open");
+  mobilePanelBackdrop.classList.add("hidden");
+}
+
+function openMobilePanel(side) {
+  if (!isMobileShell()) return;
+  document.body.classList.toggle("mobile-panel-left-open", side === "left");
+  document.body.classList.toggle("mobile-panel-right-open", side === "right");
+  mobilePanelBackdrop.classList.remove("hidden");
+}
+
+function syncResponsiveShell() {
+  if (!isMobileShell()) {
+    closeMobilePanels();
+  }
+  if (state.zoomMode === "fit") {
+    applyZoom("fit", { mode: "fit", persist: false });
+  } else {
+    updateViewportMetrics();
+    syncZoomControl();
+  }
+}
+
 function updateEditableStateFromDom(editable) {
   const host = editable.closest(".el");
   if (!host) return false;
@@ -565,6 +609,7 @@ function cloneStateForHistory() {
         exportFormat: exportFormat.value,
         exportQuality: exportQuality.value,
         exportAppearance: exportAppearance.value,
+        zoomMode: state.zoomMode,
         themeMode: state.themeMode,
       },
     }),
@@ -603,10 +648,11 @@ function restoreHistorySnapshot(snapshot) {
   exportFormat.value = snapshot.ui?.exportFormat || exportFormat.value;
   exportQuality.value = snapshot.ui?.exportQuality || exportQuality.value;
   exportAppearance.value = snapshot.ui?.exportAppearance || exportAppearance.value;
+  state.zoomMode = snapshot.ui?.zoomMode === "manual" ? "manual" : "fit";
   state.themeMode = snapshot.ui?.themeMode === "day" ? "day" : "night";
   applyCanvasWidth();
   canvas.style.background = document.getElementById("canvas-bg").value;
-  applyZoom(state.zoom);
+  applyZoom(state.zoomMode === "fit" ? "fit" : state.zoom, { mode: state.zoomMode, persist: false });
   applyThemeMode(state.themeMode);
   flushRender();
   document.getElementById("btn-export").textContent = `Export ${exportFormat.value.toUpperCase()}`;
@@ -1293,17 +1339,18 @@ propFrame.addEventListener("change", () => {
 });
 
 function applyCanvasWidth() {
+  const previousLayout = canvasLayoutForWidth(canvas.offsetWidth || authoredCanvasWidth());
+  const nextWidth = authoredCanvasWidth();
   if (widthSelect.value === "custom") {
     customWrap.classList.remove("hidden");
-    canvas.style.width = `${clamp(Number(customWidth.value) || 1200, 480, 2400)}px`;
   } else {
     customWrap.classList.add("hidden");
-    canvas.style.width = `${widthSelect.value}px`;
   }
+  canvas.style.width = `${nextWidth}px`;
   const layout = canvasLayout();
   for (const item of state.elements) {
     if (Math.abs(item.x - layout.contentX) <= 100) item.x = layout.contentX;
-    if (item.width >= layout.contentWidth - 60) {
+    if (item.width >= previousLayout.contentWidth - 60) {
       item.width = layout.contentWidth;
       if (item.type === "image" && item.aspectRatio) {
         item.height = Math.max(120, Math.floor(item.width / item.aspectRatio));
@@ -1311,6 +1358,9 @@ function applyCanvasWidth() {
     }
   }
   if (state.layoutLocked) reflowFrom(0);
+  if (state.zoomMode === "fit") {
+    applyZoom("fit", { mode: "fit", persist: false });
+  }
   render();
 }
 
@@ -1321,22 +1371,35 @@ function updateViewportMetrics() {
   canvasViewport.style.height = `${height}px`;
 }
 
-function applyZoom(nextZoom) {
-  state.zoom = clamp(Number(nextZoom) || 1, 0.3, 2);
+function syncZoomControl() {
+  canvasZoom.value = state.zoomMode === "fit" ? "fit" : String(state.zoom);
+}
+
+function fitZoomRatio() {
+  const stageStyles = getComputedStyle(canvasStage);
+  const paddingX = parseFloat(stageStyles.paddingLeft) + parseFloat(stageStyles.paddingRight);
+  const available = Math.max(180, canvasStage.clientWidth - paddingX - 8);
+  return clamp(available / Math.max(1, authoredCanvasWidth()), 0.32, 1);
+}
+
+function applyZoom(nextZoom, { mode = "manual", persist = true } = {}) {
+  if (nextZoom === "fit" || mode === "fit") {
+    state.zoomMode = "fit";
+    state.zoom = fitZoomRatio();
+  } else {
+    state.zoomMode = "manual";
+    state.zoom = clamp(Number(nextZoom) || 1, 0.3, 2);
+  }
   canvas.style.transform = "none";
   canvasScale.style.transform = "none";
   canvasScale.style.zoom = String(state.zoom);
-  canvasZoom.value = String(state.zoom);
+  syncZoomControl();
   updateViewportMetrics();
-  saveSession();
+  if (persist) saveSession();
 }
 
 function fitToFrame() {
-  const stageStyles = getComputedStyle(canvasStage);
-  const paddingX = parseFloat(stageStyles.paddingLeft) + parseFloat(stageStyles.paddingRight);
-  const available = canvasStage.clientWidth - paddingX - 8;
-  const ratio = available / canvas.offsetWidth;
-  applyZoom(Math.min(1, Math.max(0.4, ratio)));
+  applyZoom("fit", { mode: "fit" });
 }
 
 widthSelect.addEventListener("change", () => {
@@ -1347,7 +1410,13 @@ customWidth.addEventListener("input", () => {
   applyCanvasWidth();
   commitMutation();
 });
-canvasZoom.addEventListener("change", () => applyZoom(Number(canvasZoom.value)));
+canvasZoom.addEventListener("change", () => {
+  if (canvasZoom.value === "fit") {
+    applyZoom("fit", { mode: "fit" });
+    return;
+  }
+  applyZoom(Number(canvasZoom.value), { mode: "manual" });
+});
 btnFitFrame.addEventListener("click", fitToFrame);
 
 document.getElementById("canvas-bg").addEventListener("input", (ev) => {
@@ -1892,6 +1961,7 @@ function captureCurrentDocData() {
       exportFormat: exportFormat.value,
       exportQuality: exportQuality.value,
       exportAppearance: exportAppearance.value,
+      zoomMode: state.zoomMode,
       themeMode: state.themeMode,
     },
   };
@@ -1946,9 +2016,10 @@ function applyDocData(payload) {
   exportFormat.value = payload.ui?.exportFormat || "png";
   exportQuality.value = payload.ui?.exportQuality || "0.9";
   exportAppearance.value = payload.ui?.exportAppearance || "match";
+  state.zoomMode = payload.ui?.zoomMode === "manual" ? "manual" : "fit";
   applyCanvasWidth();
   canvas.style.background = document.getElementById("canvas-bg").value;
-  applyZoom(state.zoom);
+  applyZoom(state.zoomMode === "fit" ? "fit" : state.zoom, { mode: state.zoomMode, persist: false });
   applyThemeMode(state.themeMode);
   flushRender();
   document.getElementById("btn-export").textContent = `Export ${exportFormat.value.toUpperCase()}`;
@@ -2151,6 +2222,26 @@ btnThemeMode.addEventListener("click", () => {
   cycleThemeMode();
 });
 
+btnMobileElements.addEventListener("click", () => {
+  const nextOpen = !document.body.classList.contains("mobile-panel-left-open");
+  if (!nextOpen) {
+    closeMobilePanels();
+    return;
+  }
+  openMobilePanel("left");
+});
+
+btnMobileSettings.addEventListener("click", () => {
+  const nextOpen = !document.body.classList.contains("mobile-panel-right-open");
+  if (!nextOpen) {
+    closeMobilePanels();
+    return;
+  }
+  openMobilePanel("right");
+});
+
+mobilePanelBackdrop.addEventListener("click", closeMobilePanels);
+
 docSelect.addEventListener("change", async () => {
   await switchDocument(docSelect.value);
 });
@@ -2185,6 +2276,7 @@ async function initApp() {
   if (state.history.length === 0) {
     pushHistory();
   }
+  syncResponsiveShell();
 }
 
 initApp().catch((err) => {
@@ -2193,6 +2285,12 @@ initApp().catch((err) => {
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") void flushSaveSession();
+});
+
+window.addEventListener("resize", syncResponsiveShell);
+
+window.addEventListener("keydown", (ev) => {
+  if (ev.key === "Escape") closeMobilePanels();
 });
 
 window.addEventListener("pagehide", () => {

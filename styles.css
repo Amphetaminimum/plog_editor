@@ -190,6 +190,18 @@ body.theme-dark .toolbar-group {
   max-width: 220px;
 }
 
+.mobile-shell-actions {
+  display: none;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-shell-btn {
+  width: auto;
+  margin: 0;
+  padding-inline: 12px;
+}
+
 .workspace {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr) 260px;
@@ -315,7 +327,7 @@ body.theme-dark .btn-danger {
   justify-content: center;
   align-items: flex-start;
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: auto;
   border: 1px solid #dbcab3;
   border-radius: 16px;
   padding: 22px;
@@ -658,6 +670,14 @@ body.layout-locked .el {
   display: none;
 }
 
+.mobile-panel-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 14;
+  background: rgba(17, 12, 9, 0.36);
+  backdrop-filter: blur(8px);
+}
+
 #image-controls {
   padding-top: 4px;
 }
@@ -733,5 +753,87 @@ body.layout-locked .el {
 
   .canvas-stage {
     height: 68vh;
+  }
+}
+
+@media (max-width: 900px) {
+  .topbar {
+    gap: 10px;
+    padding: 12px 12px 10px;
+  }
+
+  .brand {
+    min-width: 0;
+    max-width: none;
+  }
+
+  .mobile-shell-actions {
+    display: inline-flex;
+  }
+
+  .actions {
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    justify-content: flex-start;
+  }
+
+  .actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .toolbar-group {
+    flex: 0 0 auto;
+  }
+
+  .workspace {
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding: 10px;
+  }
+
+  .canvas-wrap {
+    min-height: calc(100dvh - 126px);
+  }
+
+  .canvas-stage {
+    height: calc(100dvh - 126px);
+    padding: 12px;
+    border-radius: 18px;
+  }
+
+  .panel {
+    position: fixed;
+    top: 108px;
+    bottom: 12px;
+    z-index: 15;
+    width: min(360px, calc(100vw - 24px));
+    height: auto;
+    box-shadow: 0 26px 70px rgba(17, 12, 9, 0.28);
+    transition: transform 0.22s ease, opacity 0.22s ease;
+  }
+
+  .left-panel {
+    left: 12px;
+    transform: translateX(calc(-100% - 20px));
+  }
+
+  .right-panel {
+    right: 12px;
+    transform: translateX(calc(100% + 20px));
+  }
+
+  body.mobile-panel-left-open .left-panel {
+    transform: translateX(0);
+  }
+
+  body.mobile-panel-right-open .right-panel {
+    transform: translateX(0);
+  }
+
+  body.mobile-panel-left-open .mobile-panel-backdrop,
+  body.mobile-panel-right-open .mobile-panel-backdrop {
+    display: block;
   }
 }
