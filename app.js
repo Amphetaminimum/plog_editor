@@ -1,5 +1,5 @@
 import { createTextDialog } from "./js/dialog.js";
-import { DOCS_STORAGE_KEY, STORAGE_KEY, idbGet, idbSet } from "./js/storage.js";
+import { DOCS_STORAGE_KEY, STORAGE_KEY, idbDeleteAsset, idbGet, idbGetAsset, idbSet, idbSetAsset } from "./js/storage.js";
 
 const FONT_MAP = {
   fangzheng: '"方正清刻本悦宋", "FZQKBYSJW--GB1-0", "Songti SC", "STSong", "Noto Serif SC", serif',
@@ -33,7 +33,13 @@ const state = {
   docs: [],
   currentDocId: null,
   saveTimer: null,
+  renderFrame: 0,
+  renderScheduled: false,
+  assetUrls: new Map(),
+  assetLoadToken: 0,
 };
+
+const elementNodeCache = new Map();
 
 const canvas = document.getElementById("canvas");
 const canvasViewport = document.getElementById("canvas-viewport");
@@ -124,6 +130,10 @@ function uid(prefix) {
   const id = `${prefix}-${state.seq}`;
   state.seq += 1;
   return id;
+}
+
+function createAssetId() {
+  return uid("asset");
 }
 
 function clamp(n, min, max) {
@@ -255,6 +265,76 @@ function getElement(id) {
   return state.elements.find((item) => item.id === id);
 }
 
+function getElementIndex(id) {
+  return state.elements.findIndex((item) => item.id === id);
+}
+
+function getElementNode(id) {
+  const cached = elementNodeCache.get(id);
+  if (cached?.isConnected) return cached;
+  const node = canvas.querySelector(`[data-id="${id}"]`);
+  if (node) elementNodeCache.set(id, node);
+  return node || null;
+}
+
+function reflowAfterElement(id) {
+  const index = getElementIndex(id);
+  if (state.layoutLocked && index >= 0) reflowFrom(index + 1);
+}
+
+function revokeAssetUrl(assetId) {
+  const url = state.assetUrls.get(assetId);
+  if (!url) return;
+  URL.revokeObjectURL(url);
+  state.assetUrls.delete(assetId);
+}
+
+function clearAssetUrls() {
+  state.assetUrls.forEach((url) => URL.revokeObjectURL(url));
+  state.assetUrls.clear();
+}
+
+async function ensureAssetUrl(assetId) {
+  if (!assetId) return "";
+  const cached = state.assetUrls.get(assetId);
+  if (cached) return cached;
+  const blob = await idbGetAsset(assetId);
+  if (!(blob instanceof Blob)) return "";
+  const url = URL.createObjectURL(blob);
+  state.assetUrls.set(assetId, url);
+  return url;
+}
+
+async function hydrateAssetSources(elements, token = state.assetLoadToken) {
+  const pending = elements
+    .filter((item) => item.type === "image" && item.assetId)
+    .map(async (item) => {
+      try {
+        const src = await ensureAssetUrl(item.assetId);
+        if (state.assetLoadToken !== token) return;
+        if (src) item.src = src;
+      } catch (err) {
+        console.error("Failed to hydrate asset", item.assetId, err);
+      }
+    });
+
+  if (!pending.length) return;
+  await Promise.all(pending);
+  if (state.assetLoadToken === token) render();
+}
+
+function serializeElementsForStorage(elements) {
+  return elements.map((item) => {
+    if (item.type !== "image") return item;
+
+    const serialized = { ...item };
+    if (serialized.assetId) {
+      delete serialized.src;
+    }
+    return serialized;
+  });
+}
+
 function plainTextFromHtml(html) {
   const temp = document.createElement("div");
   temp.innerHTML = html || "";
@@ -359,7 +439,7 @@ function restoreSavedSelection(editable, range) {
 
 function findSavedEditable() {
   if (!state.savedSelectionElementId || !state.savedSelectionTarget) return null;
-  const host = canvas.querySelector(`[data-id="${state.savedSelectionElementId}"]`);
+  const host = getElementNode(state.savedSelectionElementId);
   if (!host) return null;
   return host.querySelector(state.savedSelectionTarget);
 }
@@ -460,13 +540,11 @@ function applyInlineFormat(command, value = null) {
       const body = host.querySelector(".card-body");
       current.height = Math.max(170, Math.ceil(title.scrollHeight + body.scrollHeight + 56));
     }
-    const index = state.elements.findIndex((item) => item.id === current.id);
-    if (state.layoutLocked && index >= 0) reflowFrom(index + 1);
+    reflowAfterElement(current.id);
   }
   updateCanvasHeight();
   updateViewportMetrics();
   syncInspector();
-  saveSession();
   commitMutation();
   return true;
 }
@@ -505,6 +583,7 @@ function pushHistory() {
 
 function commitMutation() {
   pushHistory();
+  saveSession();
 }
 
 function restoreHistorySnapshot(snapshot) {
@@ -529,7 +608,7 @@ function restoreHistorySnapshot(snapshot) {
   canvas.style.background = document.getElementById("canvas-bg").value;
   applyZoom(state.zoom);
   applyThemeMode(state.themeMode);
-  render();
+  flushRender();
   document.getElementById("btn-export").textContent = `Export ${exportFormat.value.toUpperCase()}`;
   state.suppressHistory = false;
 }
@@ -596,69 +675,70 @@ function setLayoutLocked(next) {
   btnToggleLock.textContent = state.layoutLocked ? "Layout Locked" : "Layout Unlocked";
 }
 
-function setupNodeOnce(node, item) {
+function setupNodeOnce(node) {
+  const syncEditableItem = (editable) => {
+    const host = editable.closest(".el");
+    const current = host ? getElement(host.dataset.id) : null;
+    if (!current) return;
+
+    if (editable.classList.contains("content")) {
+      current.html = editable.innerHTML || "";
+      current.content = editable.innerText || "";
+    } else if (editable.classList.contains("quote-content")) {
+      current.html = editable.innerHTML || "";
+      current.content = editable.innerText || "";
+    } else if (editable.classList.contains("header-title")) {
+      current.content.title = editable.innerText || "";
+      current.content.titleHtml = editable.innerHTML || "";
+    } else if (editable.classList.contains("header-meta")) {
+      current.content.meta = editable.innerText || "";
+      current.content.metaHtml = editable.innerHTML || "";
+    } else if (editable.classList.contains("card-title")) {
+      current.content.title = editable.innerText || "";
+      current.content.titleHtml = editable.innerHTML || "";
+    } else if (editable.classList.contains("card-body")) {
+      current.content.body = editable.innerText || "";
+      current.content.bodyHtml = editable.innerHTML || "";
+    }
+
+    reflowAfterElement(current.id);
+    render();
+    saveSession();
+  };
+
   const content = node.querySelector(".content");
   if (content) {
-    content.addEventListener("input", () => {
-      item.html = content.innerHTML || "";
-      item.content = content.innerText || "";
-      if (state.layoutLocked) reflowFrom(0);
-      render();
-    });
+    content.addEventListener("input", () => syncEditableItem(content));
   }
 
-  if (item.type === "header") {
+  if (node.dataset.type === "header") {
     const title = node.querySelector(".header-title");
     const meta = node.querySelector(".header-meta");
-    title.addEventListener("input", () => {
-      item.content.title = title.innerText || "";
-      item.content.titleHtml = title.innerHTML || "";
-      if (state.layoutLocked) reflowFrom(0);
-      render();
-    });
-    meta.addEventListener("input", () => {
-      item.content.meta = meta.innerText || "";
-      item.content.metaHtml = meta.innerHTML || "";
-      if (state.layoutLocked) reflowFrom(0);
-      render();
-    });
+    title.addEventListener("input", () => syncEditableItem(title));
+    meta.addEventListener("input", () => syncEditableItem(meta));
   }
 
-  if (item.type === "quote") {
+  if (node.dataset.type === "quote") {
     const quote = node.querySelector(".quote-content");
-    quote.addEventListener("input", () => {
-      item.html = quote.innerHTML || "";
-      item.content = quote.innerText || "";
-      if (state.layoutLocked) reflowFrom(0);
-      render();
-    });
+    quote.addEventListener("input", () => syncEditableItem(quote));
   }
 
-  if (item.type === "card") {
+  if (node.dataset.type === "card") {
     const cardTitle = node.querySelector(".card-title");
     const cardBody = node.querySelector(".card-body");
-    cardTitle.addEventListener("input", () => {
-      item.content.title = cardTitle.innerText || "";
-      item.content.titleHtml = cardTitle.innerHTML || "";
-      if (state.layoutLocked) reflowFrom(0);
-      render();
-    });
-    cardBody.addEventListener("input", () => {
-      item.content.body = cardBody.innerText || "";
-      item.content.bodyHtml = cardBody.innerHTML || "";
-      if (state.layoutLocked) reflowFrom(0);
-      render();
-    });
+    cardTitle.addEventListener("input", () => syncEditableItem(cardTitle));
+    cardBody.addEventListener("input", () => syncEditableItem(cardBody));
   }
-
 }
 
-function bindNodeEvents(node, item) {
+function bindNodeEvents(node) {
   node.addEventListener("mousedown", (ev) => {
     const target = ev.target;
     const isResize = target.classList.contains("resize-handle");
     const isMoveHandle = target.classList.contains("move-handle");
     const isContent = target.getAttribute("contenteditable") === "true";
+    const item = getElement(node.dataset.id);
+    if (!item) return;
     state.selectedId = item.id;
     render();
     if (isContent) return;
@@ -690,19 +770,20 @@ function bindNodeEvents(node, item) {
   });
 }
 
-function render() {
+function renderNow() {
   const existingIds = new Set();
   const layout = canvasLayout();
 
   for (const item of state.elements) {
     existingIds.add(item.id);
     if (item.width > layout.contentWidth) item.width = layout.contentWidth;
-    let node = canvas.querySelector(`[data-id="${item.id}"]`);
+    let node = getElementNode(item.id);
     if (!node) {
       node = templateFor(item.type).content.firstElementChild.cloneNode(true);
       node.dataset.id = item.id;
-      bindNodeEvents(node, item);
-      setupNodeOnce(node, item);
+      elementNodeCache.set(item.id, node);
+      bindNodeEvents(node);
+      setupNodeOnce(node);
       canvas.appendChild(node);
     }
 
@@ -804,13 +885,48 @@ function render() {
   }
 
   canvas.querySelectorAll(".el").forEach((node) => {
-    if (!existingIds.has(node.dataset.id)) node.remove();
+    if (!existingIds.has(node.dataset.id)) {
+      elementNodeCache.delete(node.dataset.id);
+      node.remove();
+    }
   });
 
   updateCanvasHeight();
   updateViewportMetrics();
   syncInspector();
-  saveSession();
+}
+
+function render() {
+  if (state.renderScheduled) return;
+  state.renderScheduled = true;
+  state.renderFrame = window.requestAnimationFrame(() => {
+    state.renderScheduled = false;
+    state.renderFrame = 0;
+    renderNow();
+  });
+}
+
+function flushRender() {
+  if (state.renderFrame) {
+    window.cancelAnimationFrame(state.renderFrame);
+    state.renderFrame = 0;
+    state.renderScheduled = false;
+  }
+  renderNow();
+}
+
+async function deleteImageAssetForItem(item) {
+  if (!item?.assetId) return;
+  revokeAssetUrl(item.assetId);
+  try {
+    await idbDeleteAsset(item.assetId);
+  } catch (err) {
+    console.error("Failed to delete asset", item.assetId, err);
+  }
+}
+
+async function deleteImageAssetsForItems(items) {
+  await Promise.all(items.filter((item) => item?.type === "image" && item.assetId).map((item) => deleteImageAssetForItem(item)));
 }
 
 function addElement(item) {
@@ -915,8 +1031,14 @@ document.addEventListener("mousemove", (ev) => {
 });
 
 document.addEventListener("mouseup", () => {
+  const interaction = state.drag || state.resize;
+  const activeId = state.drag?.id || state.resize?.id || null;
   state.drag = null;
   state.resize = null;
+  if (!interaction) return;
+  if (activeId) reflowAfterElement(activeId);
+  render();
+  commitMutation();
 });
 
 document.addEventListener("selectionchange", () => {
@@ -1030,29 +1152,40 @@ document.getElementById("btn-add-card").addEventListener("click", () => {
 document.getElementById("input-image").addEventListener("change", async (ev) => {
   const file = ev.target.files?.[0];
   if (!file) return;
+  const tempUrl = URL.createObjectURL(file);
 
-  const dataUrl = await new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-
-  const image = await new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = dataUrl;
-  });
+  let image;
+  try {
+    image = await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = tempUrl;
+    });
+  } finally {
+    URL.revokeObjectURL(tempUrl);
+  }
 
   const layout = canvasLayout();
   const width = layout.contentWidth;
   const aspectRatio = image.naturalWidth / image.naturalHeight;
   const height = Math.max(120, Math.floor(width / aspectRatio));
+  const assetId = createAssetId();
+
+  try {
+    await idbSetAsset(assetId, file);
+  } catch (err) {
+    console.error("Failed to persist image asset", err);
+    ev.target.value = "";
+    return;
+  }
+
+  const src = await ensureAssetUrl(assetId);
 
   addElement(
     createElement("image", {
-      src: dataUrl,
+      src,
+      assetId,
       width,
       height,
       aspectRatio,
@@ -1074,6 +1207,7 @@ document.getElementById("btn-delete").addEventListener("click", () => {
 document.getElementById("btn-auto-stack").addEventListener("click", () => {
   reflowFrom(0);
   render();
+  commitMutation();
 });
 
 function wireInspectorNumber(input, updater) {
@@ -1114,6 +1248,7 @@ propFontSizePreset.addEventListener("change", () => {
   selected.style.fontSize = clamp(Number(propFontSizePreset.value), 12, 128);
   propFontSize.value = String(selected.style.fontSize);
   render();
+  commitMutation();
 });
 
 propFontFamily.addEventListener("change", () => {
@@ -1204,8 +1339,14 @@ function fitToFrame() {
   applyZoom(Math.min(1, Math.max(0.4, ratio)));
 }
 
-widthSelect.addEventListener("change", applyCanvasWidth);
-customWidth.addEventListener("input", applyCanvasWidth);
+widthSelect.addEventListener("change", () => {
+  applyCanvasWidth();
+  commitMutation();
+});
+customWidth.addEventListener("input", () => {
+  applyCanvasWidth();
+  commitMutation();
+});
 canvasZoom.addEventListener("change", () => applyZoom(Number(canvasZoom.value)));
 btnFitFrame.addEventListener("click", fitToFrame);
 
@@ -1281,6 +1422,8 @@ async function loadSvgIntoImage(markup) {
 }
 
 async function exportRaster() {
+  flushRender();
+  await hydrateAssetSources(state.elements, state.assetLoadToken);
   const scale = clamp(Number(exportScale.value) || 2, 1, 3);
   const format = exportFormat.value || "png";
   const quality = clamp(Number(exportQuality.value) || 0.9, 0.5, 1);
@@ -1310,7 +1453,9 @@ async function exportRaster() {
   triggerDownload(out.toDataURL(mime, quality), filenameForExport(ext, scale));
 }
 
-function exportHtml() {
+async function exportHtml() {
+  flushRender();
+  await hydrateAssetSources(state.elements, state.assetLoadToken);
   const clone = cloneCanvasForExport();
   const css = collectStylesText();
   const appearance = currentExportAppearance();
@@ -1726,13 +1871,13 @@ document.getElementById("btn-export").addEventListener("click", () => {
 });
 
 document.getElementById("btn-export-html").addEventListener("click", () => {
-  exportHtml();
+  void exportHtml();
 });
 
 function captureCurrentDocData() {
   return {
     state: {
-      elements: state.elements,
+      elements: serializeElementsForStorage(state.elements),
       seq: state.seq,
       selectedId: state.selectedId,
       layoutLocked: state.layoutLocked,
@@ -1781,6 +1926,8 @@ function refreshDocSelect() {
 
 function applyDocData(payload) {
   state.suppressHistory = true;
+  state.assetLoadToken += 1;
+  clearAssetUrls();
   state.elements = Array.isArray(payload.state?.elements) ? payload.state.elements : [];
   state.seq = Number(payload.state?.seq) || 1;
   state.selectedId = payload.state?.selectedId || null;
@@ -1803,10 +1950,11 @@ function applyDocData(payload) {
   canvas.style.background = document.getElementById("canvas-bg").value;
   applyZoom(state.zoom);
   applyThemeMode(state.themeMode);
-  render();
+  flushRender();
   document.getElementById("btn-export").textContent = `Export ${exportFormat.value.toUpperCase()}`;
   pushHistory();
   state.suppressHistory = false;
+  void hydrateAssetSources(state.elements, state.assetLoadToken);
 }
 
 function buildStarterDoc(doc) {
@@ -1871,16 +2019,24 @@ async function restoreSession() {
   return false;
 }
 
+async function flushSaveSession() {
+  if (state.saveTimer) {
+    window.clearTimeout(state.saveTimer);
+    state.saveTimer = null;
+  }
+  await persistDocStore();
+}
+
 function saveSession() {
   if (state.saveTimer) window.clearTimeout(state.saveTimer);
   state.saveTimer = window.setTimeout(() => {
-    persistDocStore();
+    void flushSaveSession();
     state.saveTimer = null;
   }, 180);
 }
 
 async function switchDocument(docId) {
-  await persistDocStore();
+  await flushSaveSession();
   const doc = state.docs.find((entry) => entry.id === docId);
   if (!doc) return;
   state.currentDocId = doc.id;
@@ -1889,7 +2045,7 @@ async function switchDocument(docId) {
 }
 
 async function createNewDocument() {
-  await persistDocStore();
+  await flushSaveSession();
   const name = await openTextDialog({
     title: "New document",
     message: "Create a new plog file.",
@@ -1928,6 +2084,12 @@ async function deleteCurrentDocument() {
     confirmLabel: "Delete",
   });
   if (confirmation !== "DELETE") return;
+
+  if (current.id === state.currentDocId) {
+    current.data = captureCurrentDocData();
+  }
+  const docElements = Array.isArray(current.data?.state?.elements) ? current.data.state.elements : [];
+  await deleteImageAssetsForItems(docElements);
 
   state.docs = state.docs.filter((entry) => entry.id !== current.id);
 
@@ -2029,6 +2191,14 @@ initApp().catch((err) => {
   console.error("Failed to initialize app", err);
 });
 
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") void flushSaveSession();
+});
+
+window.addEventListener("pagehide", () => {
+  void flushSaveSession();
+});
+
 window.addEventListener("beforeunload", () => {
-  saveSession();
+  void flushSaveSession();
 });
