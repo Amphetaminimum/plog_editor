@@ -19,7 +19,7 @@ export function canvasLayoutForWidth(width) {
 
 export function fitZoomRatioForStage({ stageClientWidth, paddingLeft, paddingRight, authoredWidth }) {
   const available = Math.max(180, stageClientWidth - paddingLeft - paddingRight - 8);
-  return clamp(available / Math.max(1, authoredWidth), 0.32, 1);
+  return clamp(available / Math.max(1, authoredWidth), 0.08, 1);
 }
 
 export function isMobileViewport(viewportWidth) {
