@@ -767,38 +767,6 @@ function familyCss(item) {
   return FONT_MAP[item.style.fontFamily] || FONT_MAP.fangzheng;
 }
 
-function syncInspector() {
-  const selected = getElement(state.selectedId);
-  if (!selected) {
-    elNoSelection.classList.remove("hidden");
-    inspector.classList.add("hidden");
-    return;
-  }
-
-  elNoSelection.classList.add("hidden");
-  inspector.classList.remove("hidden");
-  propType.value = selected.type;
-  propFontSize.value = selected.style.fontSize ?? 60;
-  propFontSizePreset.value = String(selected.style.fontSize ?? "");
-  propFontFamily.value = selected.style.fontFamily ?? "fangzheng";
-  propFontWeight.value = String(selected.style.fontWeight ?? 300);
-  propSpacingBefore.value = selected.spacingBefore ?? "normal";
-  propColor.value = selected.style.color ?? "#1f1f22";
-  propRotation.value = String(selected.style.rotation ?? 0);
-  propBrightness.value = String(selected.style.brightness ?? 100);
-  propContrast.value = String(selected.style.contrast ?? 100);
-  propGrayscale.value = String(selected.style.grayscale ?? 0);
-  propFrame.value = selected.style.frame ?? "none";
-  imageControls.classList.toggle("hidden", selected.type !== "image");
-
-  const textLike = selected.type === "text" || selected.type === "header" || selected.type === "quote" || selected.type === "card";
-  propFontSize.disabled = !textLike;
-  propFontSizePreset.disabled = !textLike;
-  propFontFamily.disabled = !textLike;
-  propFontWeight.disabled = !textLike;
-  propColor.disabled = selected.type === "divider";
-}
-
 function setLayoutLocked(next) {
   state.layoutLocked = next;
   document.body.classList.toggle("layout-locked", state.layoutLocked);
