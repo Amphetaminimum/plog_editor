@@ -9,6 +9,7 @@ flowchart TB
         ST["js/storage.js<br/>IndexedDB adapter"]
         CL["js/canvas-layout.js<br/>Canvas width + fit calculations"]
         DS["js/doc-store.js<br/>Document persistence manager"]
+        ER["js/editor-render.js<br/>DOM render + inspector sync manager"]
         EX["js/export-manager.js<br/>Export manager"]
         HM["js/history-manager.js<br/>Undo / redo history manager"]
         RS["js/render-state.js<br/>State-based export renderer"]
@@ -22,6 +23,7 @@ flowchart TB
     A --> ST
     A --> CL
     A --> DS
+    A --> ER
     A --> EX
     A --> HM
     A --> RS
@@ -29,6 +31,7 @@ flowchart TB
 
     subgraph EDIT["Editor Runtime"]
         C["Long Canvas<br/>Text / Image / Header / Quote / Card"]
+        DR["DOM Renderer<br/>Node sync + render scheduling + inspector sync"]
         F["Formatting<br/>Bold / Italic / Clear"]
         HI["History<br/>Snapshot capture + undo / redo"]
         L["Layout Engine<br/>Flow placement + reflow"]
@@ -39,6 +42,7 @@ flowchart TB
     end
 
     A --> C
+    ER --> DR
     A --> F
     HM --> HI
     A --> L

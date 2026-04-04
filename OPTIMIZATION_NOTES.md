@@ -92,6 +92,7 @@ Status:
 - extracted so far:
   `js/canvas-layout.js`
   `js/doc-store.js`
+  `js/editor-render.js`
   `js/export-manager.js`
   `js/history-manager.js`
   `js/render-state.js`
@@ -109,6 +110,7 @@ Recent dependency cleanup:
 - `shell-manager` no longer persists zoom changes directly
 - `doc-store` no longer pushes history or drives UI sync directly
 - `app.js` now acts more clearly as the orchestration layer after doc restore / doc switch / history restore
+- display scaling now uses `transform: scale(...)` instead of CSS `zoom`
 
 #### Not done yet: Replace snapshot-based undo/redo with operation-based history
 

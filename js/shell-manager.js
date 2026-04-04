@@ -40,8 +40,8 @@ export function createShellManager({
       state.zoom = Math.max(0.3, Math.min(2, Number(nextZoom) || 1));
     }
     nodes.canvas.style.transform = "none";
-    nodes.canvasScale.style.transform = "none";
-    nodes.canvasScale.style.zoom = String(state.zoom);
+    nodes.canvasScale.style.zoom = "";
+    nodes.canvasScale.style.transform = `scale(${state.zoom})`;
     syncZoomControl();
     updateViewportMetrics();
   }
