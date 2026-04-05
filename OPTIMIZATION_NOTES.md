@@ -147,7 +147,8 @@ Status:
 - `Auto Layout` has now been removed from the topbar because it overlapped with the existing locked-flow model
 - the `details`-based menus now dismiss on outside click and on `Escape`
 - the old generic `Options` entry has been split so canvas actions and export settings are no longer mixed together
-- the top bar is cleaner, but it still needs another pass to reduce visual density and decide what should remain permanently visible
+- theme, zoom, and canvas actions have now been consolidated into a single `View` entry
+- the top bar is much cleaner, but it still needs a later pass to decide whether any remaining controls should move deeper into the app
 
 Desired next step:
 
