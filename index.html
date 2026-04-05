@@ -13,6 +13,7 @@
   <body>
     <div class="app-shell">
       <header class="topbar">
+        <button id="btn-doc-drawer" class="btn shell-icon-btn" type="button" aria-label="Open documents">≡</button>
         <div class="brand">
           <h1>Long Canvas Plog Editor</h1>
           <p>Notion × Canva × Long Image Tool</p>
@@ -22,21 +23,6 @@
           <button id="btn-mobile-settings" class="btn mobile-shell-btn" type="button">Settings</button>
         </div>
         <div class="actions">
-          <div class="toolbar-group toolbar-docs">
-            <label class="export-scale-label compact-label">
-              Doc
-              <select id="doc-select"></select>
-            </label>
-            <details class="toolbar-menu">
-              <summary class="btn">Manage</summary>
-              <div class="menu-panel">
-                <button id="btn-doc-new" class="btn menu-btn">New Plog</button>
-                <button id="btn-doc-rename" class="btn menu-btn">Rename</button>
-                <button id="btn-doc-delete" class="btn menu-btn btn-danger">Delete</button>
-              </div>
-            </details>
-          </div>
-
           <div class="toolbar-group toolbar-view">
             <button id="btn-theme-mode" class="btn">Theme: Night</button>
             <label class="export-scale-label compact-label">
@@ -97,6 +83,26 @@
           </div>
         </div>
       </header>
+
+      <aside id="doc-drawer" class="doc-drawer" aria-label="Documents">
+        <div class="doc-drawer-header">
+          <div>
+            <p class="doc-drawer-eyebrow">Library</p>
+            <h2>Plogs</h2>
+          </div>
+          <button id="btn-doc-drawer-close" class="btn shell-icon-btn shell-icon-btn-quiet" type="button" aria-label="Close documents">×</button>
+        </div>
+        <div class="doc-drawer-toolbar">
+          <button id="btn-doc-new" class="btn" type="button">New Plog</button>
+          <button id="btn-doc-rename" class="btn" type="button">Rename</button>
+          <button id="btn-doc-delete" class="btn btn-danger" type="button">Delete</button>
+        </div>
+        <label class="hidden">
+          Doc
+          <select id="doc-select"></select>
+        </label>
+        <div id="doc-drawer-list" class="doc-drawer-list"></div>
+      </aside>
 
       <main class="workspace">
         <aside class="panel left-panel">
@@ -242,6 +248,7 @@
         </aside>
       </main>
     </div>
+    <div id="doc-drawer-backdrop" class="doc-drawer-backdrop hidden"></div>
     <div id="mobile-panel-backdrop" class="mobile-panel-backdrop hidden"></div>
 
     <div id="dialog-backdrop" class="dialog-backdrop hidden">

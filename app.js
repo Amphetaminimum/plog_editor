@@ -78,10 +78,14 @@ const btnBold = document.getElementById("btn-bold");
 const btnItalic = document.getElementById("btn-italic");
 const btnClearFormat = document.getElementById("btn-clear-format");
 const btnThemeMode = document.getElementById("btn-theme-mode");
+const btnDocDrawer = document.getElementById("btn-doc-drawer");
 const docSelect = document.getElementById("doc-select");
 const btnDocNew = document.getElementById("btn-doc-new");
 const btnDocRename = document.getElementById("btn-doc-rename");
 const btnDocDelete = document.getElementById("btn-doc-delete");
+const btnDocDrawerClose = document.getElementById("btn-doc-drawer-close");
+const docDrawerBackdrop = document.getElementById("doc-drawer-backdrop");
+const docDrawerList = document.getElementById("doc-drawer-list");
 const exportFormat = document.getElementById("export-format");
 const exportQuality = document.getElementById("export-quality");
 const exportAppearance = document.getElementById("export-appearance");
@@ -158,6 +162,79 @@ function clamp(n, min, max) {
 function closeToolbarMenus({ except = null } = {}) {
   toolbarMenus.forEach((menu) => {
     if (menu !== except) menu.removeAttribute("open");
+  });
+}
+
+function openDocDrawer() {
+  document.body.classList.add("doc-drawer-open");
+  docDrawerBackdrop.classList.remove("hidden");
+}
+
+function closeDocDrawer() {
+  document.body.classList.remove("doc-drawer-open");
+  docDrawerBackdrop.classList.add("hidden");
+}
+
+function previewTextFromDoc(doc) {
+  const elements = doc.id === state.currentDocId
+    ? state.elements
+    : Array.isArray(doc.data?.state?.elements) ? doc.data.state.elements : [];
+  for (const item of elements) {
+    if (item?.type === "text" || item?.type === "quote") {
+      const text = String(item.content || "").replace(/\s+/g, " ").trim();
+      if (text) return text;
+    }
+    if (item?.type === "header") {
+      const text = [item.content?.title, item.content?.meta].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+      if (text) return text;
+    }
+    if (item?.type === "card") {
+      const text = [item.content?.title, item.content?.body].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+      if (text) return text;
+    }
+  }
+  return "No preview yet";
+}
+
+function renderDocDrawer() {
+  docDrawerList.innerHTML = "";
+  state.docs.forEach((doc) => {
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = "doc-card";
+    if (doc.id === state.currentDocId) item.classList.add("is-active");
+    item.dataset.docId = doc.id;
+
+    const elementCount = doc.id === state.currentDocId
+      ? state.elements.length
+      : Array.isArray(doc.data?.state?.elements) ? doc.data.state.elements.length : 0;
+    const preview = previewTextFromDoc(doc).slice(0, 120);
+
+    const titleRow = document.createElement("div");
+    titleRow.className = "doc-card-title-row";
+
+    const title = document.createElement("span");
+    title.className = "doc-card-title";
+    title.textContent = doc.name;
+    titleRow.appendChild(title);
+
+    if (doc.id === state.currentDocId) {
+      const badge = document.createElement("span");
+      badge.className = "doc-card-badge";
+      badge.textContent = "Current";
+      titleRow.appendChild(badge);
+    }
+
+    const meta = document.createElement("div");
+    meta.className = "doc-card-meta";
+    meta.textContent = `${elementCount} block${elementCount === 1 ? "" : "s"}`;
+
+    const previewNode = document.createElement("div");
+    previewNode.className = "doc-card-preview";
+    previewNode.textContent = preview;
+
+    item.append(titleRow, meta, previewNode);
+    docDrawerList.appendChild(item);
   });
 }
 
@@ -585,6 +662,7 @@ function syncAppliedDocState({ hydrate = true, pushInitialHistory = false } = {}
   applyZoom(state.zoomMode === "fit" ? "fit" : state.zoom, { mode: state.zoomMode, persist: false });
   applyThemeMode(state.themeMode);
   flushRender();
+  renderDocDrawer();
   if (hydrate) {
     void hydrateAssetSources(state.elements, state.assetLoadToken);
   }
@@ -603,6 +681,7 @@ function syncRestoredHistoryState() {
   applyZoom(state.zoomMode === "fit" ? "fit" : state.zoom, { mode: state.zoomMode, persist: false });
   applyThemeMode(state.themeMode);
   flushRender();
+  renderDocDrawer();
 }
 
 toolbarMenus.forEach((menu) => {
@@ -623,6 +702,33 @@ document.addEventListener("pointerdown", (ev) => {
   if (!(target instanceof Node)) return;
   if (toolbarMenus.some((menu) => menu.contains(target))) return;
   closeToolbarMenus();
+});
+
+docDrawerBackdrop.addEventListener("click", closeDocDrawer);
+btnDocDrawer.addEventListener("click", () => {
+  const nextOpen = !document.body.classList.contains("doc-drawer-open");
+  closeMobilePanels();
+  if (!nextOpen) {
+    closeDocDrawer();
+    return;
+  }
+  closeToolbarMenus();
+  openDocDrawer();
+});
+btnDocDrawerClose.addEventListener("click", closeDocDrawer);
+docDrawerList.addEventListener("click", async (ev) => {
+  const target = ev.target;
+  if (!(target instanceof HTMLElement)) return;
+  const item = target.closest(".doc-card");
+  if (!item) return;
+  const { docId } = item.dataset;
+  if (!docId || docId === state.currentDocId) {
+    closeDocDrawer();
+    return;
+  }
+  await switchDocument(docId);
+  syncAppliedDocState({ hydrate: true, pushInitialHistory: true });
+  closeDocDrawer();
 });
 
 function cycleThemeMode() {
@@ -1274,6 +1380,7 @@ btnThemeMode.addEventListener("click", () => {
 bindShellEvents({
   onEscape: () => {
     closeToolbarMenus();
+    closeDocDrawer();
     closeMobilePanels();
   },
   onOpenMobileElements: () => {
@@ -1305,15 +1412,18 @@ docSelect.addEventListener("change", async () => {
 btnDocNew.addEventListener("click", async () => {
   await createNewDocument();
   syncAppliedDocState({ hydrate: true, pushInitialHistory: true });
+  closeDocDrawer();
 });
 
 btnDocRename.addEventListener("click", async () => {
   await renameCurrentDocument();
+  renderDocDrawer();
 });
 
 btnDocDelete.addEventListener("click", async () => {
   await deleteCurrentDocument();
   syncAppliedDocState({ hydrate: true, pushInitialHistory: true });
+  closeDocDrawer();
 });
 
 exportFormat.addEventListener("change", () => {

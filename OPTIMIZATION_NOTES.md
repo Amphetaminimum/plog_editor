@@ -15,7 +15,7 @@ This repo is already functional as a local-first static editor, but it is still 
 - [x] Start mobile / weird canvas size support
 - [~] Clean up topbar options and menu-dismiss behavior
 - [~] Move text-only formatting actions into contextual settings UI
-- [ ] Redesign document management into a drawer-style flow
+- [~] Redesign document management into a drawer-style flow
 - [ ] Replace snapshot-based undo/redo with operation-based history
 - [ ] Finish storage layer normalization
 - [ ] Decouple rich text editing from `execCommand`
@@ -172,13 +172,14 @@ Desired direction:
 
 Status:
 
-- document switching and management currently sit prominently in the top bar and look more utilitarian than productized
-- the current model is functional but visually heavy
-- a drawer or sidebar entry point would better fit a multi-document workflow
+- document switching has been moved out of the top bar and into a dedicated left-side drawer entry point
+- the drawer now supports browsing current documents with title and lightweight preview text
+- create / rename / delete actions now live inside the drawer instead of the global toolbar
+- the current model is still a first pass and does not yet include thumbnails or richer document metadata cards
 
 Desired direction:
 
-- move document browsing behind a left-side drawer or similar compact entry point
+- continue refining the drawer interaction and visual hierarchy
 - explore richer document list items with title, preview text, and possibly lightweight thumbnails
 - keep IndexedDB pressure in mind and prefer derived or lightweight preview metadata over large duplicated payloads
 - separate "switch document" from "manage document lifecycle" so the workflow feels less like a raw form control
