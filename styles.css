@@ -55,7 +55,7 @@ body.theme-dark {
   z-index: 5;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 16px;
   padding: 14px 22px;
   border-bottom: 1px solid var(--line);
@@ -65,6 +65,13 @@ body.theme-dark {
 
 body.theme-dark .topbar {
   background: rgba(24, 18, 13, 0.88);
+}
+
+.topbar-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
 }
 
 .shell-icon-btn {
@@ -85,15 +92,9 @@ body.theme-dark .topbar {
 
 .brand h1 {
   margin: 0;
-  font-size: 20px;
+  font-size: 30px;
   letter-spacing: 0.2px;
-  line-height: 1.15;
-}
-
-.brand p {
-  margin: 2px 0 0;
-  color: var(--muted);
-  font-size: 12px;
+  line-height: 1;
 }
 
 .actions {
@@ -103,6 +104,10 @@ body.theme-dark .topbar {
   flex-wrap: wrap;
   gap: 10px;
   max-width: min(1180px, 100%);
+}
+
+.toolbar-actions {
+  gap: 8px;
 }
 
 .actions .btn {
@@ -1021,10 +1026,11 @@ body.layout-locked .el {
 @media (max-width: 1180px) {
   .topbar {
     flex-direction: column;
+    align-items: stretch;
   }
 
-  .brand {
-    max-width: none;
+  .topbar-main {
+    width: 100%;
   }
 
   .actions {
@@ -1048,6 +1054,7 @@ body.layout-locked .el {
   .topbar {
     gap: 10px;
     padding: 12px 12px 10px;
+    align-items: stretch;
   }
 
   .shell-icon-btn {
@@ -1055,9 +1062,17 @@ body.layout-locked .el {
     padding-inline: 12px;
   }
 
+  .topbar-main {
+    width: 100%;
+    gap: 10px;
+  }
+
   .brand {
     min-width: 0;
-    max-width: none;
+  }
+
+  .brand h1 {
+    font-size: 24px;
   }
 
   .mobile-shell-actions {
