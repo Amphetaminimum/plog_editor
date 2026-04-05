@@ -163,12 +163,13 @@ Status:
 - `Undo`, `Redo`, `Bold`, `Italic`, and `Clear` have been moved out of the global top bar into the right-side inspector
 - in practice these actions are most relevant only when a text-like block is selected or actively being edited
 - the controls now only appear for text-like selections, which better matches the "select block -> edit in settings" model
-- we still need to decide whether `Undo` / `Redo` should remain contextual only or also have a stronger global affordance
+- `Undo` / `Redo` now have clearer product behavior: keyboard shortcuts remain global, while the contextual buttons expose local availability via enabled / disabled states
+- we may still want a later pass on whether history should get an additional always-visible affordance
 
 Desired direction:
 
 - keep the top bar focused on document-level and canvas-level actions
-- decide whether `Undo` / `Redo` remain globally accessible via shortcuts only, via contextual buttons, or both
+- decide whether the current shortcut-plus-contextual-button model is sufficient, or whether history needs a stronger always-visible affordance
 
 #### Not done yet: Redesign document management into a drawer-style flow
 

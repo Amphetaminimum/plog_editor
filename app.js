@@ -589,6 +589,8 @@ const docStore = createDocStoreManager({
   canvas,
   elementNodeCache,
   controls: {
+    btnRedo,
+    btnUndo,
     elNoSelection,
     imageControls,
     inspector,

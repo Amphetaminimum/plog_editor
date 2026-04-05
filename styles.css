@@ -524,6 +524,13 @@ body.theme-dark select {
   border-color: #c8b79f;
 }
 
+.btn:disabled,
+.file-btn:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+  border-color: var(--line);
+}
+
 body.theme-dark .btn,
 body.theme-dark .file-btn {
   background: #241d16;

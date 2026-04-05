@@ -19,6 +19,8 @@ export function createEditorRenderManager({
       controls.elNoSelection.classList.remove("hidden");
       controls.inspector.classList.add("hidden");
       controls.textFormattingControls.classList.add("hidden");
+      controls.btnUndo.disabled = state.historyIndex <= 0;
+      controls.btnRedo.disabled = state.historyIndex >= state.history.length - 1;
       return;
     }
 
@@ -40,6 +42,8 @@ export function createEditorRenderManager({
 
     const textLike = selected.type === "text" || selected.type === "header" || selected.type === "quote" || selected.type === "card";
     controls.textFormattingControls.classList.toggle("hidden", !textLike);
+    controls.btnUndo.disabled = state.historyIndex <= 0;
+    controls.btnRedo.disabled = state.historyIndex >= state.history.length - 1;
     controls.propFontSize.disabled = !textLike;
     controls.propFontSizePreset.disabled = !textLike;
     controls.propFontFamily.disabled = !textLike;
