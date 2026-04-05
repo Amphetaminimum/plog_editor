@@ -103,6 +103,7 @@ const dialogBackdrop = document.getElementById("dialog-backdrop");
 const dialogTitle = document.getElementById("dialog-title");
 const dialogMessage = document.getElementById("dialog-message");
 const dialogInput = document.getElementById("dialog-input");
+const dialogFields = document.getElementById("dialog-fields");
 const dialogCancel = document.getElementById("dialog-cancel");
 const dialogConfirm = document.getElementById("dialog-confirm");
 const toolbarMenus = [...document.querySelectorAll(".toolbar-menu")];
@@ -462,14 +463,16 @@ function exportTextColor(color) {
   return color;
 }
 
-const openTextDialog = createTextDialog({
+const dialogApi = createTextDialog({
   backdrop: dialogBackdrop,
+  fieldsEl: dialogFields,
   titleEl: dialogTitle,
   messageEl: dialogMessage,
   inputEl: dialogInput,
   cancelBtn: dialogCancel,
   confirmBtn: dialogConfirm,
 });
+const { openFormDialog, openTextDialog } = dialogApi;
 
 let applyDocData;
 let buildStarterDoc;
@@ -522,6 +525,7 @@ const docStore = createDocStoreManager({
   addElement,
   createElement,
   deleteImageAssetsForItems,
+  openFormDialog,
   openTextDialog,
 });
 

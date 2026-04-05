@@ -13,8 +13,22 @@ export function createDocStoreManager({
   addElement,
   createElement,
   deleteImageAssetsForItems,
+  openFormDialog,
   openTextDialog,
 }) {
+  function monthYearLabel(value = new Date()) {
+    const date = value instanceof Date ? value : new Date(value);
+    const months = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."];
+    return `[${months[date.getMonth()]} ${date.getFullYear()}]`;
+  }
+
+  function isoMonthValue(value = new Date()) {
+    const date = value instanceof Date ? value : new Date(value);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    return `${year}-${month}`;
+  }
+
   function captureCurrentDocData() {
     return {
       state: {
@@ -93,7 +107,9 @@ export function createDocStoreManager({
     state.suppressHistory = false;
   }
 
-  function buildStarterDoc(doc) {
+  function buildStarterDoc(doc, starter = {}) {
+    const headerTitle = starter.headerTitle?.trim() || "Prayer";
+    const headerMeta = starter.headerMeta?.trim() || monthYearLabel();
     if (!state.docs.find((entry) => entry.id === doc.id)) {
       state.docs.push(doc);
     }
@@ -102,8 +118,8 @@ export function createDocStoreManager({
     addElement(
       createElement("header", {
         content: {
-          title: "Prayer",
-          meta: "[Aug. 2020]",
+          title: headerTitle,
+          meta: headerMeta,
         },
         spacingBefore: "normal",
         style: { fontSize: 62, color: "#1f1f22", radius: 0, fontFamily: "fangzheng" },
@@ -182,17 +198,48 @@ export function createDocStoreManager({
 
   async function createNewDocument() {
     await flushSaveSession();
-    const name = await openTextDialog({
-      title: "New document",
-      message: "Create a new plog file.",
-      initialValue: `Plog ${state.docs.length + 1}`,
+    const defaults = {
+      name: `Plog ${state.docs.length + 1}`,
+      headerTitle: "Prayer",
+      headerMonth: isoMonthValue(),
+    };
+    const result = await openFormDialog({
+      title: "New plog",
+      message: "These are optional starter values. You can change them later in the canvas.",
       confirmLabel: "Create",
+      fields: [
+        {
+          id: "name",
+          label: "Plog name",
+          initialValue: defaults.name,
+          hint: "Suggested automatically. You can rename it later.",
+        },
+        {
+          id: "headerTitle",
+          label: "Header title",
+          initialValue: defaults.headerTitle,
+          hint: "Optional. This fills the left side of the starter header.",
+        },
+        {
+          id: "headerMonth",
+          label: "Header date",
+          type: "month",
+          initialValue: defaults.headerMonth,
+          hint: "Optional. Defaults to the current month.",
+        },
+      ],
     });
-    if (!name) return;
-    const doc = createDocRecord(name.trim() || `Plog ${state.docs.length + 1}`);
+    if (!result) return;
+    const name = result.name?.trim() || defaults.name;
+    const headerTitle = result.headerTitle?.trim() || defaults.headerTitle;
+    const headerMeta = result.headerMonth ? monthYearLabel(`${result.headerMonth}-01`) : monthYearLabel();
+    const doc = createDocRecord(name);
     state.docs.push(doc);
     refreshDocSelect();
-    buildStarterDoc(doc);
+    buildStarterDoc(doc, {
+      headerTitle,
+      headerMeta,
+    });
   }
 
   async function renameCurrentDocument() {
