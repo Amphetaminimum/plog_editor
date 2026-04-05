@@ -164,6 +164,16 @@ body.theme-dark .toolbar-group {
   min-width: 220px;
 }
 
+.toolbar-menu[open] summary.btn {
+  border-color: #b89e75;
+  background: #f6ede0;
+}
+
+body.theme-dark .toolbar-menu[open] summary.btn {
+  background: #31261d;
+  border-color: #80664f;
+}
+
 .menu-btn {
   width: 100%;
   margin: 0;
@@ -235,6 +245,22 @@ body.theme-dark .toolbar-group {
   margin-top: 20px;
   border-top: 1px dashed var(--line);
   padding-top: 14px;
+}
+
+.inspector-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.inspector-actions-compact {
+  grid-template-columns: 64px 64px minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.inspector-btn {
+  margin-bottom: 0;
 }
 
 label {

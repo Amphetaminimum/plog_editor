@@ -91,6 +91,7 @@ const propContrast = document.getElementById("prop-contrast");
 const propGrayscale = document.getElementById("prop-grayscale");
 const propFrame = document.getElementById("prop-frame");
 const imageControls = document.getElementById("image-controls");
+const textFormattingControls = document.getElementById("text-formatting-controls");
 const btnMobileElements = document.getElementById("btn-mobile-elements");
 const btnMobileSettings = document.getElementById("btn-mobile-settings");
 const mobilePanelBackdrop = document.getElementById("mobile-panel-backdrop");
@@ -100,6 +101,7 @@ const dialogMessage = document.getElementById("dialog-message");
 const dialogInput = document.getElementById("dialog-input");
 const dialogCancel = document.getElementById("dialog-cancel");
 const dialogConfirm = document.getElementById("dialog-confirm");
+const toolbarMenus = [...document.querySelectorAll(".toolbar-menu")];
 
 function docName() {
   const doc = state.docs.find((entry) => entry.id === state.currentDocId);
@@ -151,6 +153,12 @@ function createAssetId() {
 
 function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
+}
+
+function closeToolbarMenus({ except = null } = {}) {
+  toolbarMenus.forEach((menu) => {
+    if (menu !== except) menu.removeAttribute("open");
+  });
 }
 
 function authoredCanvasWidth() {
@@ -480,6 +488,7 @@ const docStore = createDocStoreManager({
     propRotation,
     propSpacingBefore,
     propType,
+    textFormattingControls,
   },
   getElement,
   getElementNode,
@@ -595,6 +604,26 @@ function syncRestoredHistoryState() {
   applyThemeMode(state.themeMode);
   flushRender();
 }
+
+toolbarMenus.forEach((menu) => {
+  menu.addEventListener("toggle", () => {
+    if (menu.open) closeToolbarMenus({ except: menu });
+  });
+  menu.addEventListener("click", (ev) => {
+    const target = ev.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (target.closest("button")) {
+      menu.removeAttribute("open");
+    }
+  });
+});
+
+document.addEventListener("pointerdown", (ev) => {
+  const target = ev.target;
+  if (!(target instanceof Node)) return;
+  if (toolbarMenus.some((menu) => menu.contains(target))) return;
+  closeToolbarMenus();
+});
 
 function cycleThemeMode() {
   const index = THEME_SEQUENCE.indexOf(state.themeMode);
@@ -1062,12 +1091,6 @@ document.getElementById("btn-delete").addEventListener("click", () => {
   commitAndSave();
 });
 
-document.getElementById("btn-auto-stack").addEventListener("click", () => {
-  reflowFrom(0);
-  render();
-  commitAndSave();
-});
-
 function wireInspectorNumber(input, updater) {
   input.addEventListener("input", () => {
     const selected = getElement(state.selectedId);
@@ -1249,7 +1272,10 @@ btnThemeMode.addEventListener("click", () => {
 });
 
 bindShellEvents({
-  onEscape: closeMobilePanels,
+  onEscape: () => {
+    closeToolbarMenus();
+    closeMobilePanels();
+  },
   onOpenMobileElements: () => {
     const nextOpen = !document.body.classList.contains("mobile-panel-left-open");
     if (!nextOpen) {

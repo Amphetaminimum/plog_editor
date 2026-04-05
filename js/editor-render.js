@@ -18,6 +18,7 @@ export function createEditorRenderManager({
     if (!selected) {
       controls.elNoSelection.classList.remove("hidden");
       controls.inspector.classList.add("hidden");
+      controls.textFormattingControls.classList.add("hidden");
       return;
     }
 
@@ -38,6 +39,7 @@ export function createEditorRenderManager({
     controls.imageControls.classList.toggle("hidden", selected.type !== "image");
 
     const textLike = selected.type === "text" || selected.type === "header" || selected.type === "quote" || selected.type === "card";
+    controls.textFormattingControls.classList.toggle("hidden", !textLike);
     controls.propFontSize.disabled = !textLike;
     controls.propFontSizePreset.disabled = !textLike;
     controls.propFontFamily.disabled = !textLike;

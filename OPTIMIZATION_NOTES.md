@@ -13,13 +13,16 @@ This repo is already functional as a local-first static editor, but it is still 
 - [x] Move uploaded images to Blob-based asset storage
 - [x] Add IndexedDB connection reuse
 - [x] Start mobile / weird canvas size support
-- [~] Split `app.js` into modules
+- [~] Clean up topbar options and menu-dismiss behavior
+- [~] Move text-only formatting actions into contextual settings UI
+- [ ] Redesign document management into a drawer-style flow
 - [ ] Replace snapshot-based undo/redo with operation-based history
 - [ ] Finish storage layer normalization
 - [ ] Decouple rich text editing from `execCommand`
 - [ ] Sanitize `contenteditable` HTML before persistence/export
 - [ ] Replace CSS `zoom` with a more controlled scaling model
 - [ ] Add tests
+- [~] Split `app.js` into modules
 
 ### Completed in the first two optimization rounds
 
@@ -83,6 +86,24 @@ Current benefit:
 
 ### Still to do
 
+#### Current product priority: simplify top-level UI before deeper architecture work
+
+The next round should prioritize product cleanup and interaction clarity over further internal refactors.
+
+The current top-level shell still exposes controls that feel prototype-ish:
+
+- the `Options` menu mixes export settings with editor actions
+- the `Options` dropdown currently depends on re-clicking the trigger instead of dismissing naturally on outside click
+- text formatting actions (`Undo`, `Redo`, `Bold`, `Italic`, `Clear`) live in the global top bar even though they only matter while editing text content
+- document management is visually prominent but still reads like a raw control cluster instead of a designed workflow
+
+This changes the short-term priority order:
+
+1. simplify the topbar and remove or relocate controls that do not need permanent global presence
+2. make menus and contextual editing affordances behave more naturally
+3. improve document browsing / switching UX
+4. continue architecture cleanup after the interaction model is clearer
+
 #### In progress: Split `app.js` into modules
 
 Status:
@@ -111,6 +132,56 @@ Recent dependency cleanup:
 - `doc-store` no longer pushes history or drives UI sync directly
 - `app.js` now acts more clearly as the orchestration layer after doc restore / doc switch / history restore
 - display scaling now uses `transform: scale(...)` instead of CSS `zoom`
+
+Priority note:
+
+- this is now a background refactor, not the immediate next milestone
+- further extraction should follow the upcoming UI decisions so we do not move code twice
+
+#### Not done yet: Clean up topbar options and menu-dismiss behavior
+
+Status:
+
+- `Layout Locked` still has real behavior: it controls whether flow re-layout runs automatically and whether block dragging is allowed
+- `Fit To Frame` still has real behavior: it reapplies fit zoom for the current stage width
+- `Auto Layout` has now been removed from the topbar because it overlapped with the existing locked-flow model
+- the `details`-based menus now dismiss on outside click and on `Escape`
+- export settings and editor actions are mixed inside one `Options` entry and should likely be separated
+
+Desired next step:
+
+- audit every topbar control for whether it belongs in the topbar, settings panel, or nowhere
+- continue separating export concerns from view / editor concerns
+- remove any remaining redundant actions once the intended editing model is confirmed
+
+#### Not done yet: Move text-only formatting actions into contextual settings UI
+
+Status:
+
+- `Undo`, `Redo`, `Bold`, `Italic`, and `Clear` have been moved out of the global top bar into the right-side inspector
+- in practice these actions are most relevant only when a text-like block is selected or actively being edited
+- the controls now only appear for text-like selections, which better matches the "select block -> edit in settings" model
+- we still need to decide whether `Undo` / `Redo` should remain contextual only or also have a stronger global affordance
+
+Desired direction:
+
+- keep the top bar focused on document-level and canvas-level actions
+- decide whether `Undo` / `Redo` remain globally accessible via shortcuts only, via contextual buttons, or both
+
+#### Not done yet: Redesign document management into a drawer-style flow
+
+Status:
+
+- document switching and management currently sit prominently in the top bar and look more utilitarian than productized
+- the current model is functional but visually heavy
+- a drawer or sidebar entry point would better fit a multi-document workflow
+
+Desired direction:
+
+- move document browsing behind a left-side drawer or similar compact entry point
+- explore richer document list items with title, preview text, and possibly lightweight thumbnails
+- keep IndexedDB pressure in mind and prefer derived or lightweight preview metadata over large duplicated payloads
+- separate "switch document" from "manage document lifecycle" so the workflow feels less like a raw form control
 
 #### Not done yet: Replace snapshot-based undo/redo with operation-based history
 
@@ -210,41 +281,74 @@ Round 2:
 - canvas sizing model improvements
 - mobile-first groundwork
 
-## Highest Priority
+## Priority Order
 
-### 1. Split `app.js` into modules
+### 1. Simplify the topbar and `Options` menu
 
-`app.js` currently mixes:
+The current top bar still looks and behaves like a prototype shell.
 
-- app state
-- DOM lookups
-- render logic
-- input handling
-- document management
-- export logic
-- persistence logic
+Main issues:
 
-Suggested split:
+- global controls include actions that are only meaningful in narrow editing contexts
+- `Options` mixes export settings and editor actions
+- dropdown menus do not dismiss on outside click
+- some controls may be redundant now that mobile fit zoom and locked flow behavior exist
+
+Immediate targets:
+
+- review whether `Layout Locked`, `Fit To Frame`, and `Auto Layout` all need persistent UI
+- keep export controls grouped together as export concerns
+- make menus dismiss when clicking elsewhere
+- reduce visual weight in the top-level shell
+
+### 2. Move text-editing actions into contextual settings UI
+
+The formatting button group should follow the selected element model instead of living permanently at the app level.
+
+Why:
+
+- these actions only apply to text-capable content
+- contextual controls will make the settings panel feel more purposeful
+- this reduces clutter in the top bar and clarifies which actions affect the current selection
+
+Relevant areas:
+
+- `index.html`
+- `app.js`
+- `js/editor-render.js`
+
+### 3. Redesign document management UX
+
+The current document controls are functional but visually blunt.
+
+Goals:
+
+- move doc browsing out of the top-level toolbar into a drawer-like interaction
+- make document switching feel like navigation rather than form filling
+- consider title, preview text, and optional thumbnail support without inflating IndexedDB usage
+
+Relevant areas:
+
+- `index.html`
+- `styles.css`
+- `app.js`
+- `js/doc-store.js`
+
+### 4. Replace snapshot-based undo/redo with operation-based history
+
+History is still too expensive for larger documents and will become more limiting as the product UI improves.
+
+### 5. Split `app.js` into modules after the UI model stabilizes
+
+`app.js` still mixes app state, DOM wiring, interactions, persistence, and formatting flow, but the extraction plan should follow the next UI pass rather than lead it.
+
+Suggested split after the UI decisions are settled:
 
 - `editor-state.js`
 - `editor-render.js`
 - `editor-interactions.js`
-- `editor-export.js`
+- `editor-formatting.js`
 - `editor-docs.js`
-
-Why:
-
-- reduces change risk
-- makes features easier to add
-- makes testing possible
-
-Relevant areas:
-
-- `app.js:18`
-- `app.js:693`
-- `app.js:1732`
-
-### 2. Reduce render cost and render frequency
 
 Many interactions call a full `render()` immediately:
 

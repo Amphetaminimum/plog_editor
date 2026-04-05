@@ -37,14 +37,6 @@
             </details>
           </div>
 
-          <div class="toolbar-group toolbar-edit">
-            <button id="btn-undo" class="btn">Undo</button>
-            <button id="btn-redo" class="btn">Redo</button>
-            <button id="btn-bold" class="btn tool-icon">B</button>
-            <button id="btn-italic" class="btn tool-icon">I</button>
-            <button id="btn-clear-format" class="btn">Clear</button>
-          </div>
-
           <div class="toolbar-group toolbar-view">
             <button id="btn-theme-mode" class="btn">Theme: Night</button>
             <label class="export-scale-label compact-label">
@@ -66,7 +58,6 @@
               <div class="menu-panel menu-panel-wide">
                 <button id="btn-toggle-lock" class="btn menu-btn">Layout Locked</button>
                 <button id="btn-fit-frame" class="btn menu-btn">Fit To Frame</button>
-                <button id="btn-auto-stack" class="btn menu-btn">Auto Layout</button>
                 <label class="export-scale-label menu-field">
                   Scale
                   <select id="export-scale">
@@ -196,6 +187,18 @@
               </select>
             </label>
             <p class="hint">This controls the whole text box. `Ctrl+B` only affects selected text.</p>
+            <div id="text-formatting-controls" class="group hidden">
+              <h3>Text Editing</h3>
+              <div class="inspector-actions">
+                <button id="btn-undo" class="btn inspector-btn" type="button">Undo</button>
+                <button id="btn-redo" class="btn inspector-btn" type="button">Redo</button>
+              </div>
+              <div class="inspector-actions inspector-actions-compact">
+                <button id="btn-bold" class="btn inspector-btn tool-icon" type="button">B</button>
+                <button id="btn-italic" class="btn inspector-btn tool-icon" type="button">I</button>
+                <button id="btn-clear-format" class="btn inspector-btn" type="button">Clear</button>
+              </div>
+            </div>
             <label>
               Spacing Before
               <select id="prop-spacing-before">
