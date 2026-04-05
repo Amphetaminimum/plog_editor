@@ -199,6 +199,21 @@ function previewTextFromDoc(doc) {
   return "No preview yet";
 }
 
+function elementsForDoc(doc) {
+  return doc.id === state.currentDocId
+    ? state.elements
+    : Array.isArray(doc.data?.state?.elements) ? doc.data.state.elements : [];
+}
+
+function headerSummaryFromDoc(doc) {
+  const elements = elementsForDoc(doc);
+  const header = elements.find((item) => item?.type === "header");
+  return {
+    title: header?.content?.title?.trim() || doc.name,
+    meta: header?.content?.meta?.trim() || "Starter header",
+  };
+}
+
 function renderDocDrawer() {
   if (!docDrawerList) return;
   docDrawerList.innerHTML = "";
@@ -209,10 +224,27 @@ function renderDocDrawer() {
     if (doc.id === state.currentDocId) item.classList.add("is-active");
     item.dataset.docId = doc.id;
 
-    const elementCount = doc.id === state.currentDocId
-      ? state.elements.length
-      : Array.isArray(doc.data?.state?.elements) ? doc.data.state.elements.length : 0;
+    const elements = elementsForDoc(doc);
+    const elementCount = elements.length;
+    const headerSummary = headerSummaryFromDoc(doc);
     const preview = previewTextFromDoc(doc).slice(0, 120);
+
+    const visual = document.createElement("div");
+    visual.className = "doc-card-visual";
+
+    const visualTitle = document.createElement("div");
+    visualTitle.className = "doc-card-visual-title";
+    visualTitle.textContent = headerSummary.title;
+
+    const visualMeta = document.createElement("div");
+    visualMeta.className = "doc-card-visual-meta";
+    visualMeta.textContent = headerSummary.meta;
+
+    const visualExcerpt = document.createElement("div");
+    visualExcerpt.className = "doc-card-visual-excerpt";
+    visualExcerpt.textContent = preview;
+
+    visual.append(visualTitle, visualMeta, visualExcerpt);
 
     const titleRow = document.createElement("div");
     titleRow.className = "doc-card-title-row";
@@ -237,7 +269,7 @@ function renderDocDrawer() {
     previewNode.className = "doc-card-preview";
     previewNode.textContent = preview;
 
-    item.append(titleRow, meta, previewNode);
+    item.append(visual, titleRow, meta, previewNode);
     docDrawerList.appendChild(item);
   });
 }

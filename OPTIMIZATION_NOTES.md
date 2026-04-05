@@ -175,9 +175,9 @@ Desired direction:
 Status:
 
 - document switching has been moved out of the top bar and into a dedicated left-side drawer entry point
-- the drawer now supports browsing current documents with title and lightweight preview text
+- the drawer now supports browsing current documents with title, lightweight preview text, and a stronger card-style visual hierarchy
 - create / rename / delete actions now live inside the drawer instead of the global toolbar
-- the current model is still a first pass and does not yet include thumbnails or richer document metadata cards
+- the current model still uses derived previews rather than persisted thumbnails, which keeps storage simple but leaves room for richer cards later
 
 Desired direction:
 
