@@ -166,11 +166,13 @@ function closeToolbarMenus({ except = null } = {}) {
 }
 
 function openDocDrawer() {
+  if (!docDrawerBackdrop) return;
   document.body.classList.add("doc-drawer-open");
   docDrawerBackdrop.classList.remove("hidden");
 }
 
 function closeDocDrawer() {
+  if (!docDrawerBackdrop) return;
   document.body.classList.remove("doc-drawer-open");
   docDrawerBackdrop.classList.add("hidden");
 }
@@ -197,6 +199,7 @@ function previewTextFromDoc(doc) {
 }
 
 function renderDocDrawer() {
+  if (!docDrawerList) return;
   docDrawerList.innerHTML = "";
   state.docs.forEach((doc) => {
     const item = document.createElement("button");
@@ -704,32 +707,43 @@ document.addEventListener("pointerdown", (ev) => {
   closeToolbarMenus();
 });
 
-docDrawerBackdrop.addEventListener("click", closeDocDrawer);
-btnDocDrawer.addEventListener("click", () => {
-  const nextOpen = !document.body.classList.contains("doc-drawer-open");
-  closeMobilePanels();
-  if (!nextOpen) {
+if (docDrawerBackdrop) {
+  docDrawerBackdrop.addEventListener("click", closeDocDrawer);
+}
+
+if (btnDocDrawer) {
+  btnDocDrawer.addEventListener("click", () => {
+    const nextOpen = !document.body.classList.contains("doc-drawer-open");
+    closeMobilePanels();
+    if (!nextOpen) {
+      closeDocDrawer();
+      return;
+    }
+    closeToolbarMenus();
+    openDocDrawer();
+  });
+}
+
+if (btnDocDrawerClose) {
+  btnDocDrawerClose.addEventListener("click", closeDocDrawer);
+}
+
+if (docDrawerList) {
+  docDrawerList.addEventListener("click", async (ev) => {
+    const target = ev.target;
+    if (!(target instanceof HTMLElement)) return;
+    const item = target.closest(".doc-card");
+    if (!item) return;
+    const { docId } = item.dataset;
+    if (!docId || docId === state.currentDocId) {
+      closeDocDrawer();
+      return;
+    }
+    await switchDocument(docId);
+    syncAppliedDocState({ hydrate: true, pushInitialHistory: true });
     closeDocDrawer();
-    return;
-  }
-  closeToolbarMenus();
-  openDocDrawer();
-});
-btnDocDrawerClose.addEventListener("click", closeDocDrawer);
-docDrawerList.addEventListener("click", async (ev) => {
-  const target = ev.target;
-  if (!(target instanceof HTMLElement)) return;
-  const item = target.closest(".doc-card");
-  if (!item) return;
-  const { docId } = item.dataset;
-  if (!docId || docId === state.currentDocId) {
-    closeDocDrawer();
-    return;
-  }
-  await switchDocument(docId);
-  syncAppliedDocState({ hydrate: true, pushInitialHistory: true });
-  closeDocDrawer();
-});
+  });
+}
 
 function cycleThemeMode() {
   const index = THEME_SEQUENCE.indexOf(state.themeMode);
