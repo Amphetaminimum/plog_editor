@@ -487,6 +487,15 @@ body.theme-dark .btn-primary {
   border-color: #f0c8be;
 }
 
+.topbar > .shell-icon-btn,
+.doc-drawer-header .shell-icon-btn {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  padding: 0;
+}
+
 body.theme-dark .btn-danger {
   background: #ffb59f;
   color: #2c120d;

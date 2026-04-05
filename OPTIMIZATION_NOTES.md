@@ -146,12 +146,13 @@ Status:
 - `Fit To Frame` still has real behavior: it reapplies fit zoom for the current stage width
 - `Auto Layout` has now been removed from the topbar because it overlapped with the existing locked-flow model
 - the `details`-based menus now dismiss on outside click and on `Escape`
-- export settings and editor actions are mixed inside one `Options` entry and should likely be separated
+- the old generic `Options` entry has been split so canvas actions and export settings are no longer mixed together
+- the top bar is cleaner, but it still needs another pass to reduce visual density and decide what should remain permanently visible
 
 Desired next step:
 
 - audit every topbar control for whether it belongs in the topbar, settings panel, or nowhere
-- continue separating export concerns from view / editor concerns
+- keep export concerns and canvas/view concerns separate
 - remove any remaining redundant actions once the intended editing model is confirmed
 
 #### Not done yet: Move text-only formatting actions into contextual settings UI
