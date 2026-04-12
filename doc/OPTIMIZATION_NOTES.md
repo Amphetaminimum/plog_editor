@@ -200,7 +200,8 @@ Status:
 Desired next step:
 
 - use the new mutation kinds to identify which actions can move to operation-based history first
-- move `structure` and `layout` operations away from full snapshots first
+- `structure.insert` and `structure.delete` have now started using operation entries in a mixed-mode history model
+- move `layout` operations away from full snapshots next
 - start with `structure` and `layout` operations before touching rich-text content mutations
 
 #### Not done yet: Finish storage layer normalization

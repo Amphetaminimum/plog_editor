@@ -720,8 +720,8 @@ function syncAppliedDocState({ hydrate = true, pushInitialHistory = false } = {}
   }
 }
 
-function commitAndSave(kind = "unknown") {
-  commitMutation(kind);
+function commitAndSave(kind = "unknown", payload = null) {
+  commitMutation(kind, payload);
   saveSession();
 }
 
@@ -983,17 +983,23 @@ async function deleteImageAssetsForItems(items) {
 }
 
 function addElement(item) {
+  let insertedIndex = state.elements.length;
   const anchor = getInsertionAnchor();
   if (anchor) {
     const anchorIndex = state.elements.findIndex((entry) => entry.id === anchor.id);
-    state.elements.splice(anchorIndex + 1, 0, item);
+    insertedIndex = anchorIndex + 1;
+    state.elements.splice(insertedIndex, 0, item);
   } else {
+    insertedIndex = state.elements.length;
     state.elements.push(item);
   }
   state.selectedId = item.id;
   if (state.layoutLocked) reflowFrom(0);
   render();
-  commitAndSave("structure.insert");
+  commitAndSave("structure.insert", {
+    index: insertedIndex,
+    item,
+  });
 }
 
 function snapX(value) {
@@ -1132,10 +1138,15 @@ document.addEventListener("keydown", (ev) => {
 
   if ((ev.key === "Delete" || ev.key === "Backspace") && !isEditing) {
     if (!selected) return;
+    const deletedIndex = state.elements.findIndex((item) => item.id === selected.id);
+    const deletedItem = deletedIndex >= 0 ? state.elements[deletedIndex] : null;
     state.elements = state.elements.filter((item) => item.id !== selected.id);
     state.selectedId = null;
     render();
-    commitAndSave("structure.delete");
+    commitAndSave("structure.delete", deletedItem ? {
+      index: deletedIndex,
+      item: deletedItem,
+    } : null);
     ev.preventDefault();
     return;
   }
@@ -1252,10 +1263,15 @@ document.getElementById("input-image").addEventListener("change", async (ev) => 
 
 document.getElementById("btn-delete").addEventListener("click", () => {
   if (!state.selectedId) return;
+  const deletedIndex = state.elements.findIndex((item) => item.id === state.selectedId);
+  const deletedItem = deletedIndex >= 0 ? state.elements[deletedIndex] : null;
   state.elements = state.elements.filter((item) => item.id !== state.selectedId);
   state.selectedId = null;
   render();
-  commitAndSave("structure.delete");
+  commitAndSave("structure.delete", deletedItem ? {
+    index: deletedIndex,
+    item: deletedItem,
+  } : null);
 });
 
 function wireInspectorNumber(input, updater) {

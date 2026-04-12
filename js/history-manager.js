@@ -1,5 +1,9 @@
 const MAX_HISTORY_ENTRIES = 120;
 
+function cloneForHistory(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
 export function createHistoryManager({
   state,
   controls,
@@ -7,8 +11,9 @@ export function createHistoryManager({
   setLayoutLocked,
 }) {
   function cloneStateForHistory(kind = "unknown") {
-    return JSON.parse(
-      JSON.stringify({
+    return cloneForHistory({
+      type: "snapshot",
+      snapshot: {
         elements: state.elements,
         selectedId: state.selectedId,
         seq: state.seq,
@@ -28,29 +33,43 @@ export function createHistoryManager({
           zoomMode: state.zoomMode,
           themeMode: state.themeMode,
         },
-      }),
-    );
+      },
+    });
   }
 
-  function pushHistory(kind = "unknown") {
+  function createOperationHistory(kind, payload) {
+    return cloneForHistory({
+      type: "operation",
+      operation: {
+        kind,
+        ...payload,
+      },
+    });
+  }
+
+  function trimHistory() {
+    if (state.history.length <= MAX_HISTORY_ENTRIES) return;
+    const overflow = state.history.length - MAX_HISTORY_ENTRIES;
+    state.history.splice(0, overflow);
+  }
+
+  function pushHistory(kind = "unknown", payload = null) {
     if (state.suppressHistory) return;
-    const snapshot = cloneStateForHistory(kind);
+    const entry = payload ? createOperationHistory(kind, payload) : cloneStateForHistory(kind);
     const current = state.history[state.historyIndex];
-    if (current && JSON.stringify(current) === JSON.stringify(snapshot)) return;
+    if (!payload && current && JSON.stringify(current) === JSON.stringify(entry)) return;
     state.history = state.history.slice(0, state.historyIndex + 1);
-    state.history.push(snapshot);
-    if (state.history.length > MAX_HISTORY_ENTRIES) {
-      const overflow = state.history.length - MAX_HISTORY_ENTRIES;
-      state.history.splice(0, overflow);
-    }
+    state.history.push(entry);
+    trimHistory();
     state.historyIndex = state.history.length - 1;
   }
 
-  function commitMutation(kind = "unknown") {
-    pushHistory(kind);
+  function commitMutation(kind = "unknown", payload = null) {
+    pushHistory(kind, payload);
   }
 
-  function restoreHistorySnapshot(snapshot) {
+  function restoreHistorySnapshot(snapshotEntry) {
+    const snapshot = snapshotEntry.snapshot || snapshotEntry;
     state.suppressHistory = true;
     state.elements = snapshot.elements || [];
     state.selectedId = snapshot.selectedId || null;
@@ -74,16 +93,54 @@ export function createHistoryManager({
     return true;
   }
 
+  function applyOperation(operation, direction) {
+    state.suppressHistory = true;
+    if (operation.kind === "structure.insert") {
+      if (direction === "undo") {
+        state.elements = state.elements.filter((item) => item.id !== operation.item.id);
+        state.selectedId = null;
+      } else {
+        state.elements.splice(operation.index, 0, cloneForHistory(operation.item));
+        state.selectedId = operation.item.id;
+      }
+      state.suppressHistory = false;
+      return true;
+    }
+
+    if (operation.kind === "structure.delete") {
+      if (direction === "undo") {
+        state.elements.splice(operation.index, 0, cloneForHistory(operation.item));
+        state.selectedId = operation.item.id;
+      } else {
+        state.elements = state.elements.filter((item) => item.id !== operation.item.id);
+        state.selectedId = null;
+      }
+      state.suppressHistory = false;
+      return true;
+    }
+
+    state.suppressHistory = false;
+    return false;
+  }
+
   function undoHistory() {
     if (state.historyIndex <= 0) return;
     state.historyIndex -= 1;
+    const entry = state.history[state.historyIndex + 1];
+    if (entry?.type === "operation") {
+      return applyOperation(entry.operation, "undo");
+    }
     return restoreHistorySnapshot(state.history[state.historyIndex]);
   }
 
   function redoHistory() {
     if (state.historyIndex >= state.history.length - 1) return;
     state.historyIndex += 1;
-    return restoreHistorySnapshot(state.history[state.historyIndex]);
+    const entry = state.history[state.historyIndex];
+    if (entry?.type === "operation") {
+      return applyOperation(entry.operation, "redo");
+    }
+    return restoreHistorySnapshot(entry);
   }
 
   return {
