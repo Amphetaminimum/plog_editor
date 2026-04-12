@@ -6,9 +6,44 @@ export function createStateRenderer({
   resolveTextColor,
 }) {
   function plainTextFromHtml(html) {
-    const temp = document.createElement("div");
-    temp.innerHTML = html || "";
-    return temp.innerText || "";
+    const doc = new DOMParser().parseFromString(html || "", "text/html");
+    return extractTextWithBreaks(doc.body);
+  }
+
+  function extractTextWithBreaks(root) {
+    const BLOCK = new Set(["div", "p", "br", "li", "tr", "blockquote", "h1", "h2", "h3", "h4", "h5", "h6"]);
+    const parts = [];
+    let lastWasBlock = false;
+
+    function walk(node) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent || "";
+        if (text) {
+          parts.push(text);
+          lastWasBlock = false;
+        }
+        return;
+      }
+      if (node.nodeType !== Node.ELEMENT_NODE) return;
+      const tag = node.tagName.toLowerCase();
+      if (tag === "br") {
+        parts.push("\n");
+        lastWasBlock = true;
+        return;
+      }
+      const isBlock = BLOCK.has(tag);
+      if (isBlock && parts.length && !lastWasBlock) {
+        parts.push("\n");
+      }
+      for (const child of node.childNodes) walk(child);
+      if (isBlock && parts.length && !lastWasBlock) {
+        parts.push("\n");
+        lastWasBlock = true;
+      }
+    }
+
+    walk(root);
+    return parts.join("").replace(/\n{3,}/g, "\n\n").trim();
   }
 
   function drawRoundedImage(ctx, img, x, y, w, h, r) {
@@ -154,8 +189,8 @@ export function createStateRenderer({
   }
 
   function htmlToRichTokens(html, style) {
-    const root = document.createElement("div");
-    root.innerHTML = html || "";
+    const doc = new DOMParser().parseFromString(html || "", "text/html");
+    const root = doc.body;
     const tokens = [];
     const base = {
       weight: Number(style.fontWeight ?? 300),
