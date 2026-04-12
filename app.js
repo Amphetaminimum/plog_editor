@@ -179,9 +179,7 @@ function closeDocDrawer() {
 }
 
 function previewTextFromDoc(doc) {
-  const elements = doc.id === state.currentDocId
-    ? state.elements
-    : Array.isArray(doc.data?.state?.elements) ? doc.data.state.elements : [];
+  const elements = elementsForDoc(doc);
   for (const item of elements) {
     if (item?.type === "text" || item?.type === "quote") {
       const text = String(item.content || "").replace(/\s+/g, " ").trim();
@@ -362,6 +360,10 @@ function createElement(type, patch = {}) {
 
   if (type === "header") {
     base.height = 104;
+    base.content = {
+      title: "",
+      meta: "",
+    };
     base.style.fontSize = 62;
     base.style.fontWeight = 500;
   }
