@@ -968,6 +968,14 @@ function setLayoutLocked(next) {
   btnToggleLock.textContent = state.layoutLocked ? "Layout Locked" : "Layout Unlocked";
 }
 
+function sortElementsByPosition() {
+  state.elements.sort((a, b) => {
+    if (a.y !== b.y) return a.y - b.y;
+    if (a.x !== b.x) return a.x - b.x;
+    return 0;
+  });
+}
+
 async function deleteImageAssetForItem(item) {
   if (!item?.assetId) return;
   revokeAssetUrl(item.assetId);
@@ -1061,17 +1069,24 @@ document.addEventListener("mousemove", (ev) => {
     const rawX = ev.clientX - state.drag.canvasLeft - state.drag.offsetX;
     const rawY = ev.clientY - state.drag.canvasTop - state.drag.offsetY;
     const freeX = clamp(rawX, 0, canvas.clientWidth - selected.width);
-    selected.x = ev.shiftKey ? snapX(freeX) : canvasLayout().contentX;
-    let y = clamp(stickyY(rawY, selected.id), 0, 100000);
-    if (selected.spacingBefore === "section") {
-      const above = state.elements
-        .filter((item) => item.id !== selected.id && item.y <= y)
-        .sort((a, b) => b.y - a.y)[0];
-      if (above) {
-        y = Math.max(y, above.y + above.height + SPACING_MAP.section - 6);
+    if (state.layoutLocked) {
+      selected.x = ev.shiftKey ? snapX(freeX) : canvasLayout().contentX;
+      let y = clamp(stickyY(rawY, selected.id), 0, 100000);
+      if (selected.spacingBefore === "section") {
+        const above = state.elements
+          .filter((item) => item.id !== selected.id && item.y <= y)
+          .sort((a, b) => b.y - a.y)[0];
+        if (above) {
+          y = Math.max(y, above.y + above.height + SPACING_MAP.section - 6);
+        }
       }
+      selected.y = y;
+    } else {
+      selected.x = ev.shiftKey ? snapX(freeX) : freeX;
+      selected.y = ev.shiftKey
+        ? clamp(stickyY(rawY, selected.id), 0, 100000)
+        : clamp(rawY, 0, 100000);
     }
-    selected.y = y;
     render();
     return;
   }
@@ -1112,6 +1127,9 @@ document.addEventListener("mouseup", () => {
   state.drag = null;
   state.resize = null;
   if (!interaction) return;
+  if (!state.layoutLocked && interactionKind === "layout.move") {
+    sortElementsByPosition();
+  }
   if (activeId) reflowAfterElement(activeId);
   render();
   const selectedAfter = activeId ? getElement(activeId) : null;
@@ -1441,6 +1459,7 @@ document.getElementById("btn-export-html").addEventListener("click", () => {
 btnToggleLock.addEventListener("click", () => {
   setLayoutLocked(!state.layoutLocked);
   if (state.layoutLocked) {
+    sortElementsByPosition();
     reflowFrom(0);
     render();
   } else {
