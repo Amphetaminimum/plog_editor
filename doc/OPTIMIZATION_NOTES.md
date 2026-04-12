@@ -194,11 +194,13 @@ Status:
 - history still stores large snapshots
 - image pressure is lower now because images moved to assets
 - but the history model is still more expensive than it should be
+- snapshot history is now capped to a fixed number of entries so it cannot grow without bound during long editing sessions
 - mutation write points are now explicitly classified by kind (`structure`, `layout`, `style`) at commit time, which gives the next refactor a clearer boundary map
 
 Desired next step:
 
 - use the new mutation kinds to identify which actions can move to operation-based history first
+- move `structure` and `layout` operations away from full snapshots first
 - start with `structure` and `layout` operations before touching rich-text content mutations
 
 #### Not done yet: Finish storage layer normalization

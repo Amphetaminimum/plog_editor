@@ -1,3 +1,5 @@
+const MAX_HISTORY_ENTRIES = 120;
+
 export function createHistoryManager({
   state,
   controls,
@@ -37,6 +39,10 @@ export function createHistoryManager({
     if (current && JSON.stringify(current) === JSON.stringify(snapshot)) return;
     state.history = state.history.slice(0, state.historyIndex + 1);
     state.history.push(snapshot);
+    if (state.history.length > MAX_HISTORY_ENTRIES) {
+      const overflow = state.history.length - MAX_HISTORY_ENTRIES;
+      state.history.splice(0, overflow);
+    }
     state.historyIndex = state.history.length - 1;
   }
 
@@ -82,6 +88,7 @@ export function createHistoryManager({
 
   return {
     commitMutation,
+    maxHistoryEntries: MAX_HISTORY_ENTRIES,
     pushHistory,
     redoHistory,
     undoHistory,
