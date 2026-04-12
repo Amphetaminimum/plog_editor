@@ -269,7 +269,7 @@ Main code areas:
 - `app.js`
 - `index.html`
 - `styles.css`
-- `OPTIMIZATION_NOTES.md`
+- `doc/OPTIMIZATION_NOTES.md`
 
 ### Current interpretation of commit scope
 

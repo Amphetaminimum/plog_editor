@@ -21,14 +21,17 @@ Open [http://localhost:5173](http://localhost:5173).
 
 ```text
 .
+├── doc/
+│   ├── OPTIMIZATION_NOTES.md
+│   ├── PRD.long-canvas-plog-editor.md
+│   └── archi.mermaid
 ├── index.html
 ├── styles.css
 ├── app.js
 ├── js/
 │   ├── dialog.js
 │   └── storage.js
-├── favicon.svg
-└── PRD.long-canvas-plog-editor.md
+└── favicon.svg
 ```
 
 ## Current Architecture
