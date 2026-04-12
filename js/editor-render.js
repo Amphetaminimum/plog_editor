@@ -1,3 +1,5 @@
+import { sanitizeEditableHtml } from "./html-sanitize.js";
+
 export function createEditorRenderManager({
   state,
   canvas,
@@ -56,25 +58,29 @@ export function createEditorRenderManager({
       const host = editable.closest(".el");
       const current = host ? getElement(host.dataset.id) : null;
       if (!current) return;
+      const cleanHtml = sanitizeEditableHtml(editable.innerHTML || "");
+      if (editable.innerHTML !== cleanHtml) {
+        editable.innerHTML = cleanHtml;
+      }
 
       if (editable.classList.contains("content")) {
-        current.html = editable.innerHTML || "";
+        current.html = cleanHtml;
         current.content = editable.innerText || "";
       } else if (editable.classList.contains("quote-content")) {
-        current.html = editable.innerHTML || "";
+        current.html = cleanHtml;
         current.content = editable.innerText || "";
       } else if (editable.classList.contains("header-title")) {
         current.content.title = editable.innerText || "";
-        current.content.titleHtml = editable.innerHTML || "";
+        current.content.titleHtml = cleanHtml;
       } else if (editable.classList.contains("header-meta")) {
         current.content.meta = editable.innerText || "";
-        current.content.metaHtml = editable.innerHTML || "";
+        current.content.metaHtml = cleanHtml;
       } else if (editable.classList.contains("card-title")) {
         current.content.title = editable.innerText || "";
-        current.content.titleHtml = editable.innerHTML || "";
+        current.content.titleHtml = cleanHtml;
       } else if (editable.classList.contains("card-body")) {
         current.content.body = editable.innerText || "";
-        current.content.bodyHtml = editable.innerHTML || "";
+        current.content.bodyHtml = cleanHtml;
       }
 
       reflowAfterElement(current.id);
@@ -171,7 +177,8 @@ export function createEditorRenderManager({
 
       if (item.type === "text") {
         const content = node.querySelector(".content");
-        const desiredHtml = item.html || "";
+        const desiredHtml = sanitizeEditableHtml(item.html || "");
+        item.html = desiredHtml;
         if (content.innerHTML !== desiredHtml) {
           content.innerHTML = desiredHtml;
         }
@@ -205,8 +212,10 @@ export function createEditorRenderManager({
             metaHtml: "[Aug. 2020]",
           };
         }
-        const desiredTitleHtml = item.content.titleHtml || item.content.title || "";
-        const desiredMetaHtml = item.content.metaHtml || item.content.meta || "";
+        const desiredTitleHtml = sanitizeEditableHtml(item.content.titleHtml || item.content.title || "");
+        const desiredMetaHtml = sanitizeEditableHtml(item.content.metaHtml || item.content.meta || "");
+        item.content.titleHtml = desiredTitleHtml;
+        item.content.metaHtml = desiredMetaHtml;
         if (document.activeElement !== title && title.innerHTML !== desiredTitleHtml) {
           title.innerHTML = desiredTitleHtml;
         }
@@ -228,7 +237,8 @@ export function createEditorRenderManager({
 
       if (item.type === "quote") {
         const quote = node.querySelector(".quote-content");
-        const desiredHtml = item.html || "";
+        const desiredHtml = sanitizeEditableHtml(item.html || "");
+        item.html = desiredHtml;
         if (quote.innerHTML !== desiredHtml) quote.innerHTML = desiredHtml;
         quote.dataset.placeholder = item.placeholder || "Quote...";
         quote.style.fontFamily = familyCss(item);
@@ -244,8 +254,10 @@ export function createEditorRenderManager({
         if (!item.content || typeof item.content !== "object") {
           item.content = { title: "", body: "", titleHtml: "", bodyHtml: "" };
         }
-        if (cardTitle.innerHTML !== (item.content.titleHtml || "")) cardTitle.innerHTML = item.content.titleHtml || "";
-        if (cardBody.innerHTML !== (item.content.bodyHtml || "")) cardBody.innerHTML = item.content.bodyHtml || "";
+        item.content.titleHtml = sanitizeEditableHtml(item.content.titleHtml || item.content.title || "");
+        item.content.bodyHtml = sanitizeEditableHtml(item.content.bodyHtml || item.content.body || "");
+        if (cardTitle.innerHTML !== item.content.titleHtml) cardTitle.innerHTML = item.content.titleHtml;
+        if (cardBody.innerHTML !== item.content.bodyHtml) cardBody.innerHTML = item.content.bodyHtml;
         cardTitle.style.fontFamily = familyCss(item);
         cardTitle.style.fontWeight = "500";
         cardBody.style.fontFamily = familyCss(item);
