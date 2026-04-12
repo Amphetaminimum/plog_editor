@@ -14,7 +14,7 @@
     <div class="app-shell">
       <header class="topbar">
         <div class="topbar-main">
-          <button id="btn-doc-drawer" class="btn shell-icon-btn" type="button" aria-label="Open documents">≡</button>
+          <button id="btn-doc-drawer" class="btn shell-icon-btn" type="button" aria-label="Open documents"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="1" y1="1" x2="17" y2="1"/><line x1="1" y1="7" x2="17" y2="7"/><line x1="1" y1="13" x2="17" y2="13"/></svg></button>
           <div class="brand">
             <h1>Plog Editor</h1>
           </div>
@@ -110,16 +110,18 @@
       <main class="workspace">
         <aside class="panel left-panel">
           <h2>Elements</h2>
-          <button id="btn-add-text" class="btn">+ Text</button>
-          <button id="btn-add-text-section" class="btn">+ New Paragraph</button>
-          <label class="file-btn">
-            + Image
-            <input id="input-image" type="file" accept="image/*" />
-          </label>
-          <button id="btn-add-divider" class="btn">+ Divider</button>
-          <button id="btn-add-header" class="btn">+ Header</button>
-          <button id="btn-add-quote" class="btn">+ Quote</button>
-          <button id="btn-add-card" class="btn">+ Card</button>
+          <div class="element-grid">
+            <button id="btn-add-text" class="btn">📝 Text</button>
+            <button id="btn-add-text-section" class="btn">¶ Paragraph</button>
+            <label class="file-btn">
+              🖼 Image
+              <input id="input-image" type="file" accept="image/*" />
+            </label>
+            <button id="btn-add-divider" class="btn">➖ Divider</button>
+            <button id="btn-add-header" class="btn">📄 Header</button>
+            <button id="btn-add-quote" class="btn">💬 Quote</button>
+            <button id="btn-add-card" class="btn">🃏 Card</button>
+          </div>
 
           <div class="group">
             <h3>Canvas</h3>
