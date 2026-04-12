@@ -108,6 +108,12 @@ const dialogCancel = document.getElementById("dialog-cancel");
 const dialogConfirm = document.getElementById("dialog-confirm");
 const toolbarMenus = [...document.querySelectorAll(".toolbar-menu")];
 
+propFontSize.dataset.historyKind = "style.fontSize";
+propRotation.dataset.historyKind = "style.imageRotation";
+propBrightness.dataset.historyKind = "style.imageBrightness";
+propContrast.dataset.historyKind = "style.imageContrast";
+propGrayscale.dataset.historyKind = "style.imageGrayscale";
+
 function docName() {
   const doc = state.docs.find((entry) => entry.id === state.currentDocId);
   return doc?.name || "Untitled Plog";
@@ -714,8 +720,8 @@ function syncAppliedDocState({ hydrate = true, pushInitialHistory = false } = {}
   }
 }
 
-function commitAndSave() {
-  commitMutation();
+function commitAndSave(kind = "unknown") {
+  commitMutation(kind);
   saveSession();
 }
 
@@ -940,7 +946,7 @@ function applyInlineFormat(command, value = null) {
   updateCanvasHeight();
   updateViewportMetrics();
   syncInspector();
-  commitAndSave();
+  commitAndSave("content.richTextFormat");
   return true;
 }
 
@@ -987,7 +993,7 @@ function addElement(item) {
   state.selectedId = item.id;
   if (state.layoutLocked) reflowFrom(0);
   render();
-  commitAndSave();
+  commitAndSave("structure.insert");
 }
 
 function snapX(value) {
@@ -1080,12 +1086,13 @@ document.addEventListener("mousemove", (ev) => {
 document.addEventListener("mouseup", () => {
   const interaction = state.drag || state.resize;
   const activeId = state.drag?.id || state.resize?.id || null;
+  const interactionKind = state.drag ? "layout.move" : state.resize ? "layout.resize" : "unknown";
   state.drag = null;
   state.resize = null;
   if (!interaction) return;
   if (activeId) reflowAfterElement(activeId);
   render();
-  commitAndSave();
+  commitAndSave(interactionKind);
 });
 
 document.addEventListener("selectionchange", () => {
@@ -1128,7 +1135,7 @@ document.addEventListener("keydown", (ev) => {
     state.elements = state.elements.filter((item) => item.id !== selected.id);
     state.selectedId = null;
     render();
-    commitAndSave();
+    commitAndSave("structure.delete");
     ev.preventDefault();
     return;
   }
@@ -1143,7 +1150,7 @@ document.addEventListener("keydown", (ev) => {
     const current = Number(selected.style.fontWeight || 300);
     selected.style.fontWeight = current >= 500 ? 300 : 500;
     render();
-    commitAndSave();
+    commitAndSave("style.fontWeightToggle");
     ev.preventDefault();
   }
 
@@ -1248,7 +1255,7 @@ document.getElementById("btn-delete").addEventListener("click", () => {
   state.elements = state.elements.filter((item) => item.id !== state.selectedId);
   state.selectedId = null;
   render();
-  commitAndSave();
+  commitAndSave("structure.delete");
 });
 
 function wireInspectorNumber(input, updater) {
@@ -1257,7 +1264,7 @@ function wireInspectorNumber(input, updater) {
     if (!selected) return;
     updater(selected, Number(input.value));
     render();
-    commitAndSave();
+    commitAndSave(input.dataset.historyKind || "style.numeric");
   });
 }
 
@@ -1289,7 +1296,7 @@ propFontSizePreset.addEventListener("change", () => {
   selected.style.fontSize = clamp(Number(propFontSizePreset.value), 12, 128);
   propFontSize.value = String(selected.style.fontSize);
   render();
-  commitAndSave();
+  commitAndSave("style.fontSizePreset");
 });
 
 propFontFamily.addEventListener("change", () => {
@@ -1297,7 +1304,7 @@ propFontFamily.addEventListener("change", () => {
   if (!selected) return;
   selected.style.fontFamily = propFontFamily.value;
   render();
-  commitAndSave();
+  commitAndSave("style.fontFamily");
 });
 
 propFontWeight.addEventListener("change", () => {
@@ -1305,7 +1312,7 @@ propFontWeight.addEventListener("change", () => {
   if (!selected) return;
   selected.style.fontWeight = clamp(Number(propFontWeight.value) || 300, 200, 700);
   render();
-  commitAndSave();
+  commitAndSave("style.fontWeight");
 });
 
 propSpacingBefore.addEventListener("change", () => {
@@ -1314,7 +1321,7 @@ propSpacingBefore.addEventListener("change", () => {
   selected.spacingBefore = propSpacingBefore.value;
   if (state.layoutLocked) reflowFrom(0);
   render();
-  commitAndSave();
+  commitAndSave("layout.spacingBefore");
 });
 
 propColor.addEventListener("input", () => {
@@ -1322,7 +1329,7 @@ propColor.addEventListener("input", () => {
   if (!selected) return;
   selected.style.color = propColor.value;
   render();
-  commitAndSave();
+  commitAndSave("style.color");
 });
 
 propFrame.addEventListener("change", () => {
@@ -1330,7 +1337,7 @@ propFrame.addEventListener("change", () => {
   if (!selected) return;
   selected.style.frame = propFrame.value;
   render();
-  commitAndSave();
+  commitAndSave("style.imageFrame");
 });
 
 function applyCanvasWidth() {
@@ -1361,11 +1368,11 @@ function applyCanvasWidth() {
 
 widthSelect.addEventListener("change", () => {
   applyCanvasWidth();
-  commitAndSave();
+  commitAndSave("layout.canvasWidth");
 });
 customWidth.addEventListener("input", () => {
   applyCanvasWidth();
-  commitAndSave();
+  commitAndSave("layout.canvasWidth");
 });
 
 document.getElementById("canvas-bg").addEventListener("input", (ev) => {
@@ -1393,7 +1400,7 @@ btnToggleLock.addEventListener("click", () => {
   } else {
     render();
   }
-  commitAndSave();
+  commitAndSave("layout.lockToggle");
 });
 
 btnUndo.addEventListener("click", () => {

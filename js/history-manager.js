@@ -4,7 +4,7 @@ export function createHistoryManager({
   setCanvasBackground,
   setLayoutLocked,
 }) {
-  function cloneStateForHistory() {
+  function cloneStateForHistory(kind = "unknown") {
     return JSON.parse(
       JSON.stringify({
         elements: state.elements,
@@ -12,6 +12,9 @@ export function createHistoryManager({
         seq: state.seq,
         layoutLocked: state.layoutLocked,
         zoom: state.zoom,
+        meta: {
+          kind,
+        },
         ui: {
           widthSelect: controls.widthSelect.value,
           customWidth: controls.customWidth.value,
@@ -27,9 +30,9 @@ export function createHistoryManager({
     );
   }
 
-  function pushHistory() {
+  function pushHistory(kind = "unknown") {
     if (state.suppressHistory) return;
-    const snapshot = cloneStateForHistory();
+    const snapshot = cloneStateForHistory(kind);
     const current = state.history[state.historyIndex];
     if (current && JSON.stringify(current) === JSON.stringify(snapshot)) return;
     state.history = state.history.slice(0, state.historyIndex + 1);
@@ -37,8 +40,8 @@ export function createHistoryManager({
     state.historyIndex = state.history.length - 1;
   }
 
-  function commitMutation() {
-    pushHistory();
+  function commitMutation(kind = "unknown") {
+    pushHistory(kind);
   }
 
   function restoreHistorySnapshot(snapshot) {

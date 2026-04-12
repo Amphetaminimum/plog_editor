@@ -19,7 +19,7 @@ This repo is already functional as a local-first static editor, but it is still 
 - [ ] Replace snapshot-based undo/redo with operation-based history
 - [ ] Finish storage layer normalization
 - [ ] Decouple rich text editing from `execCommand`
-- [ ] Sanitize `contenteditable` HTML before persistence/export
+- [~] Sanitize `contenteditable` HTML before persistence/export
 - [ ] Replace CSS `zoom` with a more controlled scaling model
 - [ ] Add tests
 - [~] Split `app.js` into modules
@@ -194,6 +194,12 @@ Status:
 - history still stores large snapshots
 - image pressure is lower now because images moved to assets
 - but the history model is still more expensive than it should be
+- mutation write points are now explicitly classified by kind (`structure`, `layout`, `style`) at commit time, which gives the next refactor a clearer boundary map
+
+Desired next step:
+
+- use the new mutation kinds to identify which actions can move to operation-based history first
+- start with `structure` and `layout` operations before touching rich-text content mutations
 
 #### Not done yet: Finish storage layer normalization
 
@@ -208,11 +214,20 @@ Status:
 
 - current text formatting still depends on legacy browser editing commands
 
-#### Not done yet: Sanitize `contenteditable` HTML before persistence/export
+#### In progress: Sanitize `contenteditable` HTML before persistence/export
 
 Status:
 
-- pasted markup can still carry structure we do not fully control
+- editable HTML now passes through a shared sanitizer before render/write-back
+- paste handling now sanitizes clipboard HTML before insertion
+- exported HTML now escapes the document title
+- this substantially reduces uncontrolled markup persistence, but the rich-text command model still depends on legacy browser behavior
+
+Desired next step:
+
+- verify sanitized paste behavior across text, header, quote, and card blocks
+- confirm state-render fallback preserves expected line-break semantics
+- keep this work aligned with the later removal of `execCommand`
 
 #### Not done yet: Replace CSS `zoom`
 
