@@ -408,7 +408,7 @@ function getElementIndex(id) {
 function getElementNode(id) {
   const cached = elementNodeCache.get(id);
   if (cached?.isConnected) return cached;
-  const node = canvas.querySelector(`[data-id="${id}"]`);
+  const node = canvas.querySelector(`[data-id="${CSS.escape(id)}"]`);
   if (node) elementNodeCache.set(id, node);
   return node || null;
 }

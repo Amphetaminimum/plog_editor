@@ -76,3 +76,20 @@ export function plainTextFromEditableHtml(html) {
   clean.innerHTML = sanitizeEditableHtml(html);
   return clean.innerText || "";
 }
+
+export function sanitizePastedHtml(html) {
+  const doc = new DOMParser().parseFromString(html || "", "text/html");
+  const clean = document.createElement("div");
+  Array.from(doc.body.childNodes).forEach((node) => sanitizeNodeInto(clean, node));
+  normalizeBreaks(clean);
+  return clean.innerHTML;
+}
+
+export function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}

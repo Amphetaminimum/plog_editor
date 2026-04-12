@@ -1,4 +1,4 @@
-import { sanitizeEditableHtml } from "./html-sanitize.js";
+import { sanitizeEditableHtml, sanitizePastedHtml } from "./html-sanitize.js";
 
 export function createEditorRenderManager({
   state,
@@ -88,28 +88,47 @@ export function createEditorRenderManager({
       saveSession();
     };
 
+    const handlePaste = (editable) => (ev) => {
+      ev.preventDefault();
+      const html = ev.clipboardData?.getData("text/html");
+      if (html) {
+        const clean = sanitizePastedHtml(html);
+        document.execCommand("insertHTML", false, clean);
+      } else {
+        const text = ev.clipboardData?.getData("text/plain") || "";
+        document.execCommand("insertText", false, text);
+      }
+      syncEditableItem(editable);
+    };
+
     const content = node.querySelector(".content");
     if (content) {
       content.addEventListener("input", () => syncEditableItem(content));
+      content.addEventListener("paste", handlePaste(content));
     }
 
     if (node.dataset.type === "header") {
       const title = node.querySelector(".header-title");
       const meta = node.querySelector(".header-meta");
       title.addEventListener("input", () => syncEditableItem(title));
+      title.addEventListener("paste", handlePaste(title));
       meta.addEventListener("input", () => syncEditableItem(meta));
+      meta.addEventListener("paste", handlePaste(meta));
     }
 
     if (node.dataset.type === "quote") {
       const quote = node.querySelector(".quote-content");
       quote.addEventListener("input", () => syncEditableItem(quote));
+      quote.addEventListener("paste", handlePaste(quote));
     }
 
     if (node.dataset.type === "card") {
       const cardTitle = node.querySelector(".card-title");
       const cardBody = node.querySelector(".card-body");
       cardTitle.addEventListener("input", () => syncEditableItem(cardTitle));
+      cardTitle.addEventListener("paste", handlePaste(cardTitle));
       cardBody.addEventListener("input", () => syncEditableItem(cardBody));
+      cardBody.addEventListener("paste", handlePaste(cardBody));
     }
   }
 

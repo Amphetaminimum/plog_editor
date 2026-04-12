@@ -1,3 +1,5 @@
+import { escapeHtml } from "./html-sanitize.js";
+
 export function createExportManager({
   canvas,
   flushRender,
@@ -136,7 +138,7 @@ export function createExportManager({
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${docName()}</title>
+  <title>${escapeHtml(docName())}</title>
   <style>${css}</style>
 </head>
 <body class="${appearance === "dark" ? "theme-dark" : ""}" style="margin:0;background:${exportPalette().background};display:flex;justify-content:center;padding:24px;">
