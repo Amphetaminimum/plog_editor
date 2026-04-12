@@ -149,6 +149,8 @@ export function createEditorRenderManager({
           id: item.id,
           originX: ev.clientX,
           originY: ev.clientY,
+          baseX: item.x,
+          baseY: item.y,
           baseWidth: item.width,
           baseHeight: item.height,
         };
@@ -164,6 +166,10 @@ export function createEditorRenderManager({
         id: item.id,
         offsetX: ev.clientX - rect.left,
         offsetY: ev.clientY - rect.top,
+        baseX: item.x,
+        baseY: item.y,
+        baseWidth: item.width,
+        baseHeight: item.height,
         canvasLeft: canvasRect.left,
         canvasTop: canvasRect.top,
       };

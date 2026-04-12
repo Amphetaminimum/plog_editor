@@ -119,6 +119,22 @@ export function createHistoryManager({
       return true;
     }
 
+    if (operation.kind === "layout.move" || operation.kind === "layout.resize") {
+      const target = state.elements.find((item) => item.id === operation.id);
+      if (!target) {
+        state.suppressHistory = false;
+        return false;
+      }
+      const geometry = direction === "undo" ? operation.before : operation.after;
+      target.x = geometry.x;
+      target.y = geometry.y;
+      target.width = geometry.width;
+      target.height = geometry.height;
+      state.selectedId = target.id;
+      state.suppressHistory = false;
+      return true;
+    }
+
     state.suppressHistory = false;
     return false;
   }

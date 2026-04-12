@@ -1093,12 +1093,42 @@ document.addEventListener("mouseup", () => {
   const interaction = state.drag || state.resize;
   const activeId = state.drag?.id || state.resize?.id || null;
   const interactionKind = state.drag ? "layout.move" : state.resize ? "layout.resize" : "unknown";
+  const interactionBefore = state.drag
+    ? {
+        x: state.drag.baseX,
+        y: state.drag.baseY,
+        width: state.drag.baseWidth,
+        height: state.drag.baseHeight,
+      }
+    : state.resize
+      ? {
+          x: state.resize.baseX,
+          y: state.resize.baseY,
+          width: state.resize.baseWidth,
+          height: state.resize.baseHeight,
+        }
+      : null;
+  const selectedBeforeRelease = activeId ? getElement(activeId) : null;
   state.drag = null;
   state.resize = null;
   if (!interaction) return;
   if (activeId) reflowAfterElement(activeId);
   render();
-  commitAndSave(interactionKind);
+  const selectedAfter = activeId ? getElement(activeId) : null;
+  if (!selectedBeforeRelease || !selectedAfter || !interactionBefore) {
+    commitAndSave(interactionKind);
+    return;
+  }
+  commitAndSave(interactionKind, {
+    id: activeId,
+    before: interactionBefore,
+    after: {
+      x: selectedAfter.x,
+      y: selectedAfter.y,
+      width: selectedAfter.width,
+      height: selectedAfter.height,
+    },
+  });
 });
 
 document.addEventListener("selectionchange", () => {
