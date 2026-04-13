@@ -10,6 +10,28 @@ export function createHistoryManager({
   setCanvasBackground,
   setLayoutLocked,
 }) {
+  function applyLayoutState(layoutState = []) {
+    const order = new Map(layoutState.map((entry, index) => [entry.id, index]));
+    state.elements.sort((a, b) => {
+      const aIndex = order.get(a.id);
+      const bIndex = order.get(b.id);
+      if (aIndex == null && bIndex == null) return 0;
+      if (aIndex == null) return 1;
+      if (bIndex == null) return -1;
+      return aIndex - bIndex;
+    });
+
+    layoutState.forEach((entry) => {
+      const target = state.elements.find((item) => item.id === entry.id);
+      if (!target) return;
+      target.x = entry.x;
+      target.y = entry.y;
+      target.width = entry.width;
+      target.height = entry.height;
+      if (entry.spacingBefore) target.spacingBefore = entry.spacingBefore;
+    });
+  }
+
   function cloneStateForHistory(kind = "unknown") {
     return cloneForHistory({
       type: "snapshot",
@@ -131,6 +153,36 @@ export function createHistoryManager({
       target.width = geometry.width;
       target.height = geometry.height;
       state.selectedId = target.id;
+      state.suppressHistory = false;
+      return true;
+    }
+
+    if (operation.kind === "layout.spacingBefore") {
+      const target = state.elements.find((item) => item.id === operation.id);
+      if (!target) {
+        state.suppressHistory = false;
+        return false;
+      }
+      target.spacingBefore = direction === "undo" ? operation.beforeSpacing : operation.afterSpacing;
+      applyLayoutState(direction === "undo" ? operation.beforeLayout : operation.afterLayout);
+      state.selectedId = target.id;
+      state.suppressHistory = false;
+      return true;
+    }
+
+    if (operation.kind === "layout.canvasWidth") {
+      const ui = direction === "undo" ? operation.beforeUi : operation.afterUi;
+      controls.widthSelect.value = ui.widthSelect;
+      controls.customWidth.value = ui.customWidth;
+      applyLayoutState(direction === "undo" ? operation.beforeLayout : operation.afterLayout);
+      state.suppressHistory = false;
+      return true;
+    }
+
+    if (operation.kind === "layout.lockToggle") {
+      const nextLocked = direction === "undo" ? operation.beforeLocked : operation.afterLocked;
+      setLayoutLocked(nextLocked);
+      applyLayoutState(direction === "undo" ? operation.beforeLayout : operation.afterLayout);
       state.suppressHistory = false;
       return true;
     }

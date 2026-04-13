@@ -976,6 +976,24 @@ function sortElementsByPosition() {
   });
 }
 
+function captureElementLayoutState() {
+  return state.elements.map((item) => ({
+    id: item.id,
+    x: item.x,
+    y: item.y,
+    width: item.width,
+    height: item.height,
+    spacingBefore: item.spacingBefore || "normal",
+  }));
+}
+
+function captureCanvasWidthUiState() {
+  return {
+    widthSelect: widthSelect.value,
+    customWidth: customWidth.value,
+  };
+}
+
 async function deleteImageAssetForItem(item) {
   if (!item?.assetId) return;
   revokeAssetUrl(item.assetId);
@@ -1412,10 +1430,18 @@ propFontWeight.addEventListener("change", () => {
 propSpacingBefore.addEventListener("change", () => {
   const selected = getElement(state.selectedId);
   if (!selected) return;
+  const beforeLayout = captureElementLayoutState();
+  const beforeSpacing = selected.spacingBefore || "normal";
   selected.spacingBefore = propSpacingBefore.value;
   if (state.layoutLocked) reflowFrom(0);
   render();
-  commitAndSave("layout.spacingBefore");
+  commitAndSave("layout.spacingBefore", {
+    id: selected.id,
+    beforeSpacing,
+    afterSpacing: selected.spacingBefore,
+    beforeLayout,
+    afterLayout: captureElementLayoutState(),
+  });
 });
 
 propColor.addEventListener("input", () => {
@@ -1461,12 +1487,26 @@ function applyCanvasWidth() {
 }
 
 widthSelect.addEventListener("change", () => {
+  const beforeLayout = captureElementLayoutState();
+  const beforeUi = captureCanvasWidthUiState();
   applyCanvasWidth();
-  commitAndSave("layout.canvasWidth");
+  commitAndSave("layout.canvasWidth", {
+    beforeUi,
+    afterUi: captureCanvasWidthUiState(),
+    beforeLayout,
+    afterLayout: captureElementLayoutState(),
+  });
 });
 customWidth.addEventListener("input", () => {
+  const beforeLayout = captureElementLayoutState();
+  const beforeUi = captureCanvasWidthUiState();
   applyCanvasWidth();
-  commitAndSave("layout.canvasWidth");
+  commitAndSave("layout.canvasWidth", {
+    beforeUi,
+    afterUi: captureCanvasWidthUiState(),
+    beforeLayout,
+    afterLayout: captureElementLayoutState(),
+  });
 });
 
 document.getElementById("canvas-bg").addEventListener("input", (ev) => {
@@ -1487,6 +1527,8 @@ document.getElementById("btn-export-html").addEventListener("click", () => {
 });
 
 btnToggleLock.addEventListener("click", () => {
+  const beforeLayout = captureElementLayoutState();
+  const beforeLocked = state.layoutLocked;
   setLayoutLocked(!state.layoutLocked);
   if (state.layoutLocked) {
     sortElementsByPosition();
@@ -1495,7 +1537,12 @@ btnToggleLock.addEventListener("click", () => {
   } else {
     render();
   }
-  commitAndSave("layout.lockToggle");
+  commitAndSave("layout.lockToggle", {
+    beforeLocked,
+    afterLocked: state.layoutLocked,
+    beforeLayout,
+    afterLayout: captureElementLayoutState(),
+  });
 });
 
 btnUndo.addEventListener("click", () => {

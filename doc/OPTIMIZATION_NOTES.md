@@ -203,6 +203,7 @@ Desired next step:
 - `structure.insert` and `structure.delete` have now started using operation entries in a mixed-mode history model
 - `layout.move` and `layout.resize` now also use operation entries in the mixed-mode model
 - unlocked block dragging now stays on the vertical flow axis and reorders blocks in-place instead of allowing free horizontal drift
+- `layout.spacingBefore`, `layout.canvasWidth`, and `layout.lockToggle` now also use operation entries with before/after layout state
 - keep the remaining layout and style mutations on snapshots until the mixed-mode path is proven stable
 - start with `structure` and `layout` operations before touching rich-text content mutations
 
