@@ -720,6 +720,14 @@ body.theme-dark .el-quote {
   border: 2px solid transparent;
 }
 
+.drag-reordering .el {
+  transition: top 0.18s ease, left 0.18s ease;
+}
+
+.drag-reordering .el.selected {
+  transition: none;
+}
+
 .el.selected {
   border-color: #3a6a8d;
   background: rgba(73, 122, 157, 0.05);

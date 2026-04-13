@@ -1060,32 +1060,61 @@ function reflowFrom(startIndex) {
   }
 }
 
+function targetIndexForDraggedCenter(draggedId, centerY) {
+  const others = state.elements.filter((item) => item.id !== draggedId);
+  for (let i = 0; i < others.length; i += 1) {
+    const midpoint = others[i].y + others[i].height / 2;
+    if (centerY < midpoint) return i;
+  }
+  return others.length;
+}
+
+function reorderElementInFlow(id, nextIndex) {
+  const currentIndex = state.elements.findIndex((item) => item.id === id);
+  if (currentIndex < 0 || currentIndex === nextIndex) return;
+  const [item] = state.elements.splice(currentIndex, 1);
+  state.elements.splice(nextIndex, 0, item);
+}
+
+function reflowAroundDragged(draggedId, draggedY) {
+  const layout = canvasLayout();
+  let currentY = layout.topPad;
+  for (let i = 0; i < state.elements.length; i += 1) {
+    const item = state.elements[i];
+    item.x = layout.contentX;
+    if (item.width >= layout.contentWidth - 60) {
+      item.width = layout.contentWidth;
+      if (item.type === "image" && item.aspectRatio) {
+        item.height = Math.max(120, Math.floor(item.width / item.aspectRatio));
+      }
+    }
+    if (i > 0) {
+      currentY += SPACING_MAP[item.spacingBefore || "normal"] || SPACING_MAP.normal;
+    }
+    if (item.id === draggedId) {
+      item.y = draggedY;
+    } else {
+      item.y = currentY;
+    }
+    currentY = item.y + item.height;
+  }
+}
+
 document.addEventListener("mousemove", (ev) => {
   if (!state.drag && !state.resize) return;
   const selected = getElement(state.drag?.id || state.resize?.id);
   if (!selected) return;
 
   if (state.drag) {
-    const rawX = ev.clientX - state.drag.canvasLeft - state.drag.offsetX;
     const rawY = ev.clientY - state.drag.canvasTop - state.drag.offsetY;
-    const freeX = clamp(rawX, 0, canvas.clientWidth - selected.width);
+    selected.x = canvasLayout().contentX;
     if (state.layoutLocked) {
-      selected.x = ev.shiftKey ? snapX(freeX) : canvasLayout().contentX;
-      let y = clamp(stickyY(rawY, selected.id), 0, 100000);
-      if (selected.spacingBefore === "section") {
-        const above = state.elements
-          .filter((item) => item.id !== selected.id && item.y <= y)
-          .sort((a, b) => b.y - a.y)[0];
-        if (above) {
-          y = Math.max(y, above.y + above.height + SPACING_MAP.section - 6);
-        }
-      }
-      selected.y = y;
+      selected.y = clamp(stickyY(rawY, selected.id), 0, 100000);
     } else {
-      selected.x = ev.shiftKey ? snapX(freeX) : freeX;
-      selected.y = ev.shiftKey
-        ? clamp(stickyY(rawY, selected.id), 0, 100000)
-        : clamp(rawY, 0, 100000);
+      selected.y = clamp(rawY, 0, 100000);
+      const nextIndex = targetIndexForDraggedCenter(selected.id, selected.y + selected.height / 2);
+      reorderElementInFlow(selected.id, nextIndex);
+      reflowAroundDragged(selected.id, selected.y);
     }
     render();
     return;
@@ -1126,6 +1155,7 @@ document.addEventListener("mouseup", () => {
   const selectedBeforeRelease = activeId ? getElement(activeId) : null;
   state.drag = null;
   state.resize = null;
+  document.body.classList.remove("drag-reordering");
   if (!interaction) return;
   if (!state.layoutLocked && interactionKind === "layout.move") {
     sortElementsByPosition();

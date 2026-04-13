@@ -173,6 +173,7 @@ export function createEditorRenderManager({
         canvasLeft: canvasRect.left,
         canvasTop: canvasRect.top,
       };
+      document.body.classList.add("drag-reordering");
       ev.preventDefault();
     });
   }
