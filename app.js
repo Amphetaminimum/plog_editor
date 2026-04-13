@@ -955,7 +955,6 @@ function applyInlineFormat(command, value = null) {
   restoreSelectionFromMarkers(startMarker, endMarker);
   updateEditableStateFromDom(active);
   syncSelectionSnapshot();
-  const host = active.closest(".el");
   const current = host ? getElement(host.dataset.id) : null;
   if (current && host) {
     if (current.type === "text") {
