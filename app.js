@@ -1078,20 +1078,25 @@ function reflowFrom(startIndex) {
   }
 }
 
-function targetIndexForDraggedCenter(draggedId, centerY) {
-  const others = state.elements.filter((item) => item.id !== draggedId);
-  for (let i = 0; i < others.length; i += 1) {
-    const midpoint = others[i].y + others[i].height / 2;
-    if (centerY < midpoint) return i;
-  }
-  return others.length;
-}
+function reorderDraggedByThreshold(id, draggedY) {
+  let currentIndex = state.elements.findIndex((item) => item.id === id);
+  if (currentIndex < 0) return;
 
-function reorderElementInFlow(id, nextIndex) {
-  const currentIndex = state.elements.findIndex((item) => item.id === id);
-  if (currentIndex < 0 || currentIndex === nextIndex) return;
-  const [item] = state.elements.splice(currentIndex, 1);
-  state.elements.splice(nextIndex, 0, item);
+  while (currentIndex > 0) {
+    const previous = state.elements[currentIndex - 1];
+    const moveUpThreshold = previous.y + previous.height / 2;
+    if (draggedY >= moveUpThreshold) break;
+    [state.elements[currentIndex - 1], state.elements[currentIndex]] = [state.elements[currentIndex], state.elements[currentIndex - 1]];
+    currentIndex -= 1;
+  }
+
+  while (currentIndex < state.elements.length - 1) {
+    const next = state.elements[currentIndex + 1];
+    const moveDownThreshold = next.y;
+    if (draggedY <= moveDownThreshold) break;
+    [state.elements[currentIndex], state.elements[currentIndex + 1]] = [state.elements[currentIndex + 1], state.elements[currentIndex]];
+    currentIndex += 1;
+  }
 }
 
 function reflowAroundDragged(draggedId, draggedY) {
@@ -1130,8 +1135,7 @@ document.addEventListener("mousemove", (ev) => {
       selected.y = clamp(stickyY(rawY, selected.id), 0, 100000);
     } else {
       selected.y = clamp(rawY, 0, 100000);
-      const nextIndex = targetIndexForDraggedCenter(selected.id, selected.y + selected.height / 2);
-      reorderElementInFlow(selected.id, nextIndex);
+      reorderDraggedByThreshold(selected.id, selected.y);
       reflowAroundDragged(selected.id, selected.y);
     }
     render();
