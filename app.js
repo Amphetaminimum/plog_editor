@@ -937,6 +937,62 @@ function clearFormattingInRange(range) {
   return true;
 }
 
+function nonWhitespaceTextNodes(root) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  let current = walker.nextNode();
+  while (current) {
+    if (current.textContent?.trim()) nodes.push(current);
+    current = walker.nextNode();
+  }
+  return nodes;
+}
+
+function fragmentTextIsFullyWrapped(fragment, tagNames) {
+  const textNodes = nonWhitespaceTextNodes(fragment);
+  if (!textNodes.length) return false;
+  return textNodes.every((node) => {
+    let current = node.parentNode;
+    while (current && current !== fragment) {
+      if (current.nodeType === Node.ELEMENT_NODE && tagNames.has(current.tagName)) return true;
+      current = current.parentNode;
+    }
+    return false;
+  });
+}
+
+function unwrapFormattingTags(fragment, tagNames) {
+  const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_ELEMENT);
+  const elements = [];
+  let current = walker.nextNode();
+  while (current) {
+    elements.push(current);
+    current = walker.nextNode();
+  }
+  elements.reverse().forEach((element) => {
+    if (tagNames.has(element.tagName)) {
+      unwrapNode(element);
+    }
+  });
+}
+
+function toggleFormattingInRange(range, wrapperTagName, tagNames) {
+  const fragment = range.extractContents();
+  if (!nonWhitespaceTextNodes(fragment).length) {
+    range.insertNode(fragment);
+    return false;
+  }
+  if (fragmentTextIsFullyWrapped(fragment, tagNames)) {
+    unwrapFormattingTags(fragment, tagNames);
+    range.insertNode(fragment);
+    return true;
+  }
+  const wrapper = document.createElement(wrapperTagName);
+  wrapper.appendChild(fragment);
+  range.insertNode(wrapper);
+  return true;
+}
+
 function applyInlineFormat(command, value = null) {
   let active = document.activeElement;
   let range = null;
@@ -963,6 +1019,10 @@ function applyInlineFormat(command, value = null) {
   let applied = false;
   if (command === "removeFormat") {
     applied = clearFormattingInRange(commandRange);
+  } else if (command === "bold") {
+    applied = toggleFormattingInRange(commandRange, "strong", new Set(["B", "STRONG"]));
+  } else if (command === "italic") {
+    applied = toggleFormattingInRange(commandRange, "em", new Set(["I", "EM"]));
   } else {
     try {
       document.execCommand("styleWithCSS", false, "false");
