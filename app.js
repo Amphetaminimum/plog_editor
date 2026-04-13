@@ -107,6 +107,19 @@ const dialogFields = document.getElementById("dialog-fields");
 const dialogCancel = document.getElementById("dialog-cancel");
 const dialogConfirm = document.getElementById("dialog-confirm");
 const toolbarMenus = [...document.querySelectorAll(".toolbar-menu")];
+const STYLE_PROPERTY_BY_KIND = {
+  "style.color": "color",
+  "style.fontFamily": "fontFamily",
+  "style.fontSize": "fontSize",
+  "style.fontSizePreset": "fontSize",
+  "style.fontWeight": "fontWeight",
+  "style.fontWeightToggle": "fontWeight",
+  "style.imageBrightness": "brightness",
+  "style.imageContrast": "contrast",
+  "style.imageFrame": "frame",
+  "style.imageGrayscale": "grayscale",
+  "style.imageRotation": "rotation",
+};
 
 propFontSize.dataset.historyKind = "style.fontSize";
 propRotation.dataset.historyKind = "style.imageRotation";
@@ -725,6 +738,20 @@ function commitAndSave(kind = "unknown", payload = null) {
   saveSession();
 }
 
+function commitStyleChange(selected, kind, beforeValue, afterValue) {
+  const property = STYLE_PROPERTY_BY_KIND[kind];
+  if (!selected || !property) {
+    commitAndSave(kind);
+    return;
+  }
+  commitAndSave(kind, {
+    id: selected.id,
+    property,
+    beforeValue,
+    afterValue,
+  });
+}
+
 function syncRestoredHistoryState() {
   applyCanvasWidth();
   applyZoom(state.zoomMode === "fit" ? "fit" : state.zoom, { mode: state.zoomMode, persist: false });
@@ -1259,9 +1286,10 @@ document.addEventListener("keydown", (ev) => {
     }
     if (!selected) return;
     const current = Number(selected.style.fontWeight || 300);
+    const beforeValue = selected.style.fontWeight;
     selected.style.fontWeight = current >= 500 ? 300 : 500;
     render();
-    commitAndSave("style.fontWeightToggle");
+    commitStyleChange(selected, "style.fontWeightToggle", beforeValue, selected.style.fontWeight);
     ev.preventDefault();
   }
 
@@ -1378,9 +1406,13 @@ function wireInspectorNumber(input, updater) {
   input.addEventListener("input", () => {
     const selected = getElement(state.selectedId);
     if (!selected) return;
+    const kind = input.dataset.historyKind || "style.numeric";
+    const property = STYLE_PROPERTY_BY_KIND[kind];
+    const beforeValue = property ? selected.style[property] : null;
     updater(selected, Number(input.value));
     render();
-    commitAndSave(input.dataset.historyKind || "style.numeric");
+    const afterValue = property ? selected.style[property] : null;
+    commitStyleChange(selected, kind, beforeValue, afterValue);
   });
 }
 
@@ -1409,26 +1441,29 @@ propFontSizePreset.addEventListener("change", () => {
   const selected = getElement(state.selectedId);
   if (!selected) return;
   if (!propFontSizePreset.value) return;
+  const beforeValue = selected.style.fontSize;
   selected.style.fontSize = clamp(Number(propFontSizePreset.value), 12, 128);
   propFontSize.value = String(selected.style.fontSize);
   render();
-  commitAndSave("style.fontSizePreset");
+  commitStyleChange(selected, "style.fontSizePreset", beforeValue, selected.style.fontSize);
 });
 
 propFontFamily.addEventListener("change", () => {
   const selected = getElement(state.selectedId);
   if (!selected) return;
+  const beforeValue = selected.style.fontFamily;
   selected.style.fontFamily = propFontFamily.value;
   render();
-  commitAndSave("style.fontFamily");
+  commitStyleChange(selected, "style.fontFamily", beforeValue, selected.style.fontFamily);
 });
 
 propFontWeight.addEventListener("change", () => {
   const selected = getElement(state.selectedId);
   if (!selected) return;
+  const beforeValue = selected.style.fontWeight;
   selected.style.fontWeight = clamp(Number(propFontWeight.value) || 300, 200, 700);
   render();
-  commitAndSave("style.fontWeight");
+  commitStyleChange(selected, "style.fontWeight", beforeValue, selected.style.fontWeight);
 });
 
 propSpacingBefore.addEventListener("change", () => {
@@ -1451,17 +1486,19 @@ propSpacingBefore.addEventListener("change", () => {
 propColor.addEventListener("input", () => {
   const selected = getElement(state.selectedId);
   if (!selected) return;
+  const beforeValue = selected.style.color;
   selected.style.color = propColor.value;
   render();
-  commitAndSave("style.color");
+  commitStyleChange(selected, "style.color", beforeValue, selected.style.color);
 });
 
 propFrame.addEventListener("change", () => {
   const selected = getElement(state.selectedId);
   if (!selected) return;
+  const beforeValue = selected.style.frame;
   selected.style.frame = propFrame.value;
   render();
-  commitAndSave("style.imageFrame");
+  commitStyleChange(selected, "style.imageFrame", beforeValue, selected.style.frame);
 });
 
 function applyCanvasWidth() {

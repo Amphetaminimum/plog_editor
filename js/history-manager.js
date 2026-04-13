@@ -187,6 +187,18 @@ export function createHistoryManager({
       return true;
     }
 
+    if (operation.kind.startsWith("style.") && operation.property) {
+      const target = state.elements.find((item) => item.id === operation.id);
+      if (!target) {
+        state.suppressHistory = false;
+        return false;
+      }
+      target.style[operation.property] = direction === "undo" ? operation.beforeValue : operation.afterValue;
+      state.selectedId = target.id;
+      state.suppressHistory = false;
+      return true;
+    }
+
     state.suppressHistory = false;
     return false;
   }
