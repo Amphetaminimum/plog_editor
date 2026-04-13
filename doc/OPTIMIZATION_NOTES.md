@@ -223,6 +223,7 @@ Status:
 Status:
 
 - current text formatting still depends on legacy browser editing commands
+- `clear format` no longer depends on `execCommand`; `bold` and `italic` still do
 
 #### In progress: Sanitize `contenteditable` HTML before persistence/export
 

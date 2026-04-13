@@ -899,6 +899,44 @@ function restoreSelectionFromMarkers(startMarker, endMarker) {
   return true;
 }
 
+function unwrapNode(node) {
+  const parent = node?.parentNode;
+  if (!parent) return;
+  while (node.firstChild) {
+    parent.insertBefore(node.firstChild, node);
+  }
+  parent.removeChild(node);
+}
+
+function stripFormattingFromFragment(fragment) {
+  const formattingTags = new Set(["B", "STRONG", "I", "EM", "U", "S", "STRIKE", "MARK", "FONT", "SPAN", "SUB", "SUP", "CODE", "SMALL"]);
+  const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_ELEMENT);
+  const elements = [];
+  let current = walker.nextNode();
+  while (current) {
+    elements.push(current);
+    current = walker.nextNode();
+  }
+
+  elements.forEach((element) => {
+    element.removeAttribute("style");
+    element.removeAttribute("class");
+  });
+
+  elements.reverse().forEach((element) => {
+    if (formattingTags.has(element.tagName)) {
+      unwrapNode(element);
+    }
+  });
+}
+
+function clearFormattingInRange(range) {
+  const fragment = range.extractContents();
+  stripFormattingFromFragment(fragment);
+  range.insertNode(fragment);
+  return true;
+}
+
 function applyInlineFormat(command, value = null) {
   let active = document.activeElement;
   let range = null;
@@ -922,10 +960,15 @@ function applyInlineFormat(command, value = null) {
   const beforeLayout = captureElementLayoutState();
   const { startMarker, endMarker, commandRange } = placeSelectionMarkers(range);
   if (!restoreSavedSelection(active, commandRange)) return false;
-  try {
-    document.execCommand("styleWithCSS", false, "false");
-  } catch {}
-  const applied = document.execCommand(command, false, value);
+  let applied = false;
+  if (command === "removeFormat") {
+    applied = clearFormattingInRange(commandRange);
+  } else {
+    try {
+      document.execCommand("styleWithCSS", false, "false");
+    } catch {}
+    applied = document.execCommand(command, false, value);
+  }
   if (!applied) {
     startMarker.remove();
     endMarker.remove();
