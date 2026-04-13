@@ -17,7 +17,7 @@ This repo is already functional as a local-first static editor, but it is still 
 - [~] Move text-only formatting actions into contextual settings UI
 - [~] Redesign document management into a drawer-style flow
 - [~] Replace snapshot-based undo/redo with operation-based history
-- [ ] Finish storage layer normalization
+- [~] Finish storage layer normalization
 - [ ] Decouple rich text editing from `execCommand`
 - [~] Sanitize `contenteditable` HTML before persistence/export
 - [ ] Replace CSS `zoom` with a more controlled scaling model
@@ -216,6 +216,7 @@ Status:
 
 - `assets` store exists
 - but storage is not yet a fully normalized data layer with explicit schema strategy and clearer document/metadata separation
+- document records now carry lightweight `meta` alongside full `data`, so drawer previews no longer have to derive title/meta/preview text from every stored document on demand
 
 #### Not done yet: Decouple rich text editing from `execCommand`
 

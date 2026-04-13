@@ -162,6 +162,13 @@ function createDocRecord(name = "Untitled Plog") {
   return {
     id: uid("doc"),
     name,
+    meta: {
+      headerTitle: name,
+      headerMeta: "Starter header",
+      preview: "No preview yet",
+      elementCount: 0,
+      updatedAt: Date.now(),
+    },
     data: createDefaultDocData(),
   };
 }
@@ -198,37 +205,10 @@ function closeDocDrawer() {
   docDrawerBackdrop.classList.add("hidden");
 }
 
-function previewTextFromDoc(doc) {
-  const elements = elementsForDoc(doc);
-  for (const item of elements) {
-    if (item?.type === "text" || item?.type === "quote") {
-      const text = String(item.content || "").replace(/\s+/g, " ").trim();
-      if (text) return text;
-    }
-    if (item?.type === "header") {
-      const text = [item.content?.title, item.content?.meta].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
-      if (text) return text;
-    }
-    if (item?.type === "card") {
-      const text = [item.content?.title, item.content?.body].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
-      if (text) return text;
-    }
-  }
-  return "No preview yet";
-}
-
-function elementsForDoc(doc) {
-  return doc.id === state.currentDocId
-    ? state.elements
-    : Array.isArray(doc.data?.state?.elements) ? doc.data.state.elements : [];
-}
-
 function headerSummaryFromDoc(doc) {
-  const elements = elementsForDoc(doc);
-  const header = elements.find((item) => item?.type === "header");
   return {
-    title: header?.content?.title?.trim() || doc.name,
-    meta: header?.content?.meta?.trim() || "Starter header",
+    title: doc.meta?.headerTitle?.trim() || doc.name,
+    meta: doc.meta?.headerMeta?.trim() || "Starter header",
   };
 }
 
@@ -242,10 +222,9 @@ function renderDocDrawer() {
     if (doc.id === state.currentDocId) item.classList.add("is-active");
     item.dataset.docId = doc.id;
 
-    const elements = elementsForDoc(doc);
-    const elementCount = elements.length;
     const headerSummary = headerSummaryFromDoc(doc);
-    const preview = previewTextFromDoc(doc).slice(0, 120);
+    const preview = (doc.meta?.preview || "No preview yet").slice(0, 120);
+    const elementCount = Number(doc.meta?.elementCount) || 0;
 
     const visual = document.createElement("div");
     visual.className = "doc-card-visual";

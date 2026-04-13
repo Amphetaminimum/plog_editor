@@ -16,6 +16,70 @@ export function createDocStoreManager({
   openFormDialog,
   openTextDialog,
 }) {
+  function normalizePreviewText(value = "") {
+    return String(value).replace(/\s+/g, " ").trim();
+  }
+
+  function deriveDocMeta(doc, data = doc?.data || createDefaultDocData()) {
+    const elements = Array.isArray(data.state?.elements) ? data.state.elements : [];
+    let headerTitle = doc?.name || "Untitled Plog";
+    let headerMeta = "Starter header";
+    let preview = "No preview yet";
+
+    const header = elements.find((item) => item?.type === "header");
+    if (header) {
+      headerTitle = header.content?.title?.trim() || headerTitle;
+      headerMeta = header.content?.meta?.trim() || headerMeta;
+    }
+
+    for (const item of elements) {
+      if (item?.type === "text" || item?.type === "quote") {
+        const text = normalizePreviewText(item.content);
+        if (text) {
+          preview = text;
+          break;
+        }
+      }
+      if (item?.type === "header") {
+        const text = normalizePreviewText([item.content?.title, item.content?.meta].filter(Boolean).join(" "));
+        if (text) {
+          preview = text;
+          break;
+        }
+      }
+      if (item?.type === "card") {
+        const text = normalizePreviewText([item.content?.title, item.content?.body].filter(Boolean).join(" "));
+        if (text) {
+          preview = text;
+          break;
+        }
+      }
+    }
+
+    return {
+      headerTitle,
+      headerMeta,
+      preview,
+      elementCount: elements.length,
+      updatedAt: Date.now(),
+    };
+  }
+
+  function normalizeDocRecord(doc) {
+    const data = doc?.data || createDefaultDocData();
+    const derivedMeta = deriveDocMeta(doc, data);
+    return {
+      id: doc?.id,
+      name: doc?.name || "Untitled Plog",
+      meta: {
+        ...(doc?.meta || {}),
+        ...derivedMeta,
+        updatedAt: doc?.meta?.updatedAt || derivedMeta.updatedAt,
+      },
+      data,
+    };
+  }
+
   function monthYearLabel(value = new Date()) {
     const date = value instanceof Date ? value : new Date(value);
     const months = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."];
@@ -56,7 +120,10 @@ export function createDocStoreManager({
   async function persistDocStore() {
     if (!state.currentDocId) return;
     const current = state.docs.find((entry) => entry.id === state.currentDocId);
-    if (current) current.data = captureCurrentDocData();
+    if (current) {
+      current.data = captureCurrentDocData();
+      current.meta = deriveDocMeta(current, current.data);
+    }
     const payload = {
       currentDocId: state.currentDocId,
       docs: state.docs,
@@ -126,6 +193,7 @@ export function createDocStoreManager({
       }),
     );
     addElement(createElement("text", { content: "", placeholder: "Paragraph", spacingBefore: "section" }));
+    doc.meta = deriveDocMeta(doc, captureCurrentDocData());
     refreshDocSelect();
     void persistDocStore();
   }
@@ -139,7 +207,7 @@ export function createDocStoreManager({
     }
     if (docsPayload) {
       try {
-        state.docs = Array.isArray(docsPayload.docs) ? docsPayload.docs : [];
+        state.docs = Array.isArray(docsPayload.docs) ? docsPayload.docs.map((doc) => normalizeDocRecord(doc)) : [];
         state.currentDocId = docsPayload.currentDocId || state.docs[0]?.id || null;
         if (!state.docs.length) throw new Error("Empty docs");
         refreshDocSelect();
@@ -158,6 +226,7 @@ export function createDocStoreManager({
         const parsed = JSON.parse(raw);
         const doc = createDocRecord("Untitled Plog");
         doc.data = parsed;
+        doc.meta = deriveDocMeta(doc, doc.data);
         state.docs = [doc];
         state.currentDocId = doc.id;
         refreshDocSelect();
@@ -234,6 +303,7 @@ export function createDocStoreManager({
     const headerTitle = result.headerTitle?.trim() || defaults.headerTitle;
     const headerMeta = result.headerMonth ? monthYearLabel(`${result.headerMonth}-01`) : monthYearLabel();
     const doc = createDocRecord(name);
+    doc.meta = deriveDocMeta(doc, doc.data);
     state.docs.push(doc);
     refreshDocSelect();
     buildStarterDoc(doc, {
