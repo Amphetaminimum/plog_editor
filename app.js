@@ -33,6 +33,7 @@ const state = {
   history: [],
   historyIndex: -1,
   suppressHistory: false,
+  editSession: null,
   savedSelection: null,
   savedSelectionElementId: null,
   savedSelectionTarget: null,
@@ -634,6 +635,8 @@ const docStore = createDocStoreManager({
   templateFor,
   canvasLayout,
   familyCss,
+  onEditableBlur: (editable) => finishEditableSession(editable),
+  onEditableFocus: (editable) => beginEditableSession(editable),
   reflowAfterElement,
   saveSession: (...args) => saveSession(...args),
   updateCanvasHeight,
@@ -932,7 +935,12 @@ function applyInlineFormat(command, value = null) {
     }
   }
   if (!active || !range) return false;
+  finishEditableSession(active);
   if (!restoreSavedSelection(active, range)) return false;
+  const host = active.closest(".el");
+  const currentBefore = host ? getElement(host.dataset.id) : null;
+  const beforeContentState = captureElementContentState(currentBefore);
+  const beforeLayout = captureElementLayoutState();
   const { startMarker, endMarker, commandRange } = placeSelectionMarkers(range);
   if (!restoreSavedSelection(active, commandRange)) return false;
   try {
@@ -973,7 +981,14 @@ function applyInlineFormat(command, value = null) {
   updateCanvasHeight();
   updateViewportMetrics();
   syncInspector();
-  commitAndSave("content.richTextFormat");
+  commitAndSave("content.richTextFormat", current ? {
+    id: current.id,
+    beforeContentState,
+    afterContentState: captureElementContentState(current),
+    beforeLayout,
+    afterLayout: captureElementLayoutState(),
+  } : null);
+  beginEditableSession(active);
   return true;
 }
 
@@ -1019,6 +1034,82 @@ function captureCanvasWidthUiState() {
     widthSelect: widthSelect.value,
     customWidth: customWidth.value,
   };
+}
+
+function captureElementContentState(item) {
+  if (!item) return null;
+  if (item.type === "text" || item.type === "quote") {
+    return {
+      html: item.html || "",
+      content: item.content || "",
+      height: item.height,
+    };
+  }
+  if (item.type === "header" || item.type === "card") {
+    return {
+      content: structuredClone(item.content || {}),
+      height: item.height,
+    };
+  }
+  return null;
+}
+
+function contentStateEqual(a, b) {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+function editableTargetSelector(editable) {
+  if (!editable?.classList) return null;
+  if (editable.classList.contains("content")) return ".content";
+  if (editable.classList.contains("quote-content")) return ".quote-content";
+  if (editable.classList.contains("card-title")) return ".card-title";
+  if (editable.classList.contains("card-body")) return ".card-body";
+  if (editable.classList.contains("header-title")) return ".header-title";
+  if (editable.classList.contains("header-meta")) return ".header-meta";
+  return null;
+}
+
+function beginEditableSession(editable) {
+  const host = editable?.closest?.(".el");
+  const current = host ? getElement(host.dataset.id) : null;
+  const selector = editableTargetSelector(editable);
+  if (!current || !selector) return;
+  if (state.editSession?.id === current.id && state.editSession?.selector === selector) return;
+  state.editSession = {
+    id: current.id,
+    selector,
+    beforeContentState: captureElementContentState(current),
+    beforeLayout: captureElementLayoutState(),
+  };
+}
+
+function finishEditableSession(editable, { restart = false } = {}) {
+  const host = editable?.closest?.(".el");
+  const current = host ? getElement(host.dataset.id) : null;
+  const selector = editableTargetSelector(editable);
+  const session = state.editSession;
+  if (!current || !selector || !session) return false;
+  if (session.id !== current.id || session.selector !== selector) return false;
+
+  const afterContentState = captureElementContentState(current);
+  const changed = !contentStateEqual(session.beforeContentState, afterContentState);
+  if (changed) {
+    commitAndSave("content.edit", {
+      id: current.id,
+      beforeContentState: session.beforeContentState,
+      afterContentState,
+      beforeLayout: session.beforeLayout,
+      afterLayout: captureElementLayoutState(),
+    });
+  }
+
+  state.editSession = restart ? {
+    id: current.id,
+    selector,
+    beforeContentState: captureElementContentState(current),
+    beforeLayout: captureElementLayoutState(),
+  } : null;
+  return changed;
 }
 
 async function deleteImageAssetForItem(item) {

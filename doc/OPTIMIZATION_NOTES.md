@@ -16,7 +16,7 @@ This repo is already functional as a local-first static editor, but it is still 
 - [~] Clean up topbar options and menu-dismiss behavior
 - [~] Move text-only formatting actions into contextual settings UI
 - [~] Redesign document management into a drawer-style flow
-- [ ] Replace snapshot-based undo/redo with operation-based history
+- [~] Replace snapshot-based undo/redo with operation-based history
 - [ ] Finish storage layer normalization
 - [ ] Decouple rich text editing from `execCommand`
 - [~] Sanitize `contenteditable` HTML before persistence/export
@@ -205,6 +205,8 @@ Desired next step:
 - unlocked block dragging now stays on the vertical flow axis and reorders blocks in-place instead of allowing free horizontal drift
 - `layout.spacingBefore`, `layout.canvasWidth`, and `layout.lockToggle` now also use operation entries with before/after layout state
 - direct single-property style edits now use operation entries as well (`fontSize`, `fontFamily`, `fontWeight`, `color`, image adjustments, and frame style)
+- explicit rich-text formatting actions (`bold`, `italic`, `clear format`) now use per-block operation entries instead of full-document snapshots
+- text input now records one `content.edit` operation per editing session instead of taking full snapshots on every change
 - keep the remaining layout and style mutations on snapshots until the mixed-mode path is proven stable
 - start with `structure` and `layout` operations before touching rich-text content mutations
 

@@ -10,6 +10,8 @@ export function createEditorRenderManager({
   templateFor,
   canvasLayout,
   familyCss,
+  onEditableBlur,
+  onEditableFocus,
   reflowAfterElement,
   saveSession,
   updateCanvasHeight,
@@ -103,6 +105,11 @@ export function createEditorRenderManager({
 
     const content = node.querySelector(".content");
     if (content) {
+      content.addEventListener("focus", () => onEditableFocus?.(content));
+      content.addEventListener("blur", () => {
+        syncEditableItem(content);
+        onEditableBlur?.(content);
+      });
       content.addEventListener("input", () => syncEditableItem(content));
       content.addEventListener("paste", handlePaste(content));
     }
@@ -110,14 +117,29 @@ export function createEditorRenderManager({
     if (node.dataset.type === "header") {
       const title = node.querySelector(".header-title");
       const meta = node.querySelector(".header-meta");
+      title.addEventListener("focus", () => onEditableFocus?.(title));
+      title.addEventListener("blur", () => {
+        syncEditableItem(title);
+        onEditableBlur?.(title);
+      });
       title.addEventListener("input", () => syncEditableItem(title));
       title.addEventListener("paste", handlePaste(title));
+      meta.addEventListener("focus", () => onEditableFocus?.(meta));
+      meta.addEventListener("blur", () => {
+        syncEditableItem(meta);
+        onEditableBlur?.(meta);
+      });
       meta.addEventListener("input", () => syncEditableItem(meta));
       meta.addEventListener("paste", handlePaste(meta));
     }
 
     if (node.dataset.type === "quote") {
       const quote = node.querySelector(".quote-content");
+      quote.addEventListener("focus", () => onEditableFocus?.(quote));
+      quote.addEventListener("blur", () => {
+        syncEditableItem(quote);
+        onEditableBlur?.(quote);
+      });
       quote.addEventListener("input", () => syncEditableItem(quote));
       quote.addEventListener("paste", handlePaste(quote));
     }
@@ -125,8 +147,18 @@ export function createEditorRenderManager({
     if (node.dataset.type === "card") {
       const cardTitle = node.querySelector(".card-title");
       const cardBody = node.querySelector(".card-body");
+      cardTitle.addEventListener("focus", () => onEditableFocus?.(cardTitle));
+      cardTitle.addEventListener("blur", () => {
+        syncEditableItem(cardTitle);
+        onEditableBlur?.(cardTitle);
+      });
       cardTitle.addEventListener("input", () => syncEditableItem(cardTitle));
       cardTitle.addEventListener("paste", handlePaste(cardTitle));
+      cardBody.addEventListener("focus", () => onEditableFocus?.(cardBody));
+      cardBody.addEventListener("blur", () => {
+        syncEditableItem(cardBody);
+        onEditableBlur?.(cardBody);
+      });
       cardBody.addEventListener("input", () => syncEditableItem(cardBody));
       cardBody.addEventListener("paste", handlePaste(cardBody));
     }

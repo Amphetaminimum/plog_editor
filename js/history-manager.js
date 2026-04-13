@@ -32,6 +32,20 @@ export function createHistoryManager({
     });
   }
 
+  function applyContentState(target, contentState) {
+    if (!target || !contentState) return;
+    if (target.type === "text" || target.type === "quote") {
+      target.html = contentState.html || "";
+      target.content = contentState.content || "";
+      target.height = contentState.height || target.height;
+      return;
+    }
+    if (target.type === "header" || target.type === "card") {
+      target.content = cloneForHistory(contentState.content || {});
+      target.height = contentState.height || target.height;
+    }
+  }
+
   function cloneStateForHistory(kind = "unknown") {
     return cloneForHistory({
       type: "snapshot",
@@ -96,6 +110,7 @@ export function createHistoryManager({
     state.elements = snapshot.elements || [];
     state.selectedId = snapshot.selectedId || null;
     state.seq = snapshot.seq || 1;
+    state.editSession = null;
     state.savedSelection = null;
     state.savedSelectionElementId = null;
     state.savedSelectionTarget = null;
@@ -117,6 +132,7 @@ export function createHistoryManager({
 
   function applyOperation(operation, direction) {
     state.suppressHistory = true;
+    state.editSession = null;
     if (operation.kind === "structure.insert") {
       if (direction === "undo") {
         state.elements = state.elements.filter((item) => item.id !== operation.item.id);
@@ -183,6 +199,19 @@ export function createHistoryManager({
       const nextLocked = direction === "undo" ? operation.beforeLocked : operation.afterLocked;
       setLayoutLocked(nextLocked);
       applyLayoutState(direction === "undo" ? operation.beforeLayout : operation.afterLayout);
+      state.suppressHistory = false;
+      return true;
+    }
+
+    if (operation.kind === "content.edit" || operation.kind === "content.richTextFormat") {
+      const target = state.elements.find((item) => item.id === operation.id);
+      if (!target) {
+        state.suppressHistory = false;
+        return false;
+      }
+      applyContentState(target, direction === "undo" ? operation.beforeContentState : operation.afterContentState);
+      applyLayoutState(direction === "undo" ? operation.beforeLayout : operation.afterLayout);
+      state.selectedId = target.id;
       state.suppressHistory = false;
       return true;
     }
