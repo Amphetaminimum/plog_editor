@@ -20,7 +20,7 @@ This repo is already functional as a local-first static editor, but it is still 
 - [~] Finish storage layer normalization
 - [ ] Decouple rich text editing from `execCommand`
 - [~] Sanitize `contenteditable` HTML before persistence/export
-- [ ] Replace CSS `zoom` with a more controlled scaling model
+- [~] Replace CSS `zoom` with a more controlled scaling model
 - [ ] Add tests
 - [~] Split `app.js` into modules
 
@@ -246,6 +246,14 @@ Status:
 
 - display scaling still relies on `style.zoom`
 - this remains a portability and layout math issue
+
+#### In progress: Replace CSS `zoom` with a more controlled scaling model
+
+Status:
+
+- the main shell now scales the authored canvas through `transform: scale(...)` on the dedicated viewport wrapper
+- the remaining `style.zoom` fallback path has been removed from `shell-manager`
+- zoom persistence and fit/manual mode switching still exist, but this area still needs browser regression testing before being called done
 
 #### Not done yet: Add tests
 
