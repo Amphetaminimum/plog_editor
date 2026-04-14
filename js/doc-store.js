@@ -164,6 +164,10 @@ export function createDocStoreManager({
     setLayoutLocked(payload.state?.layoutLocked !== false);
     controls.widthSelect.value = payload.ui?.widthSelect || "1200";
     controls.customWidth.value = payload.ui?.customWidth || "1200";
+    state.lastCanvasWidthUi = {
+      widthSelect: controls.widthSelect.value,
+      customWidth: controls.customWidth.value,
+    };
     setCanvasBackground(payload.ui?.canvasBg || "#ffffff");
     controls.exportScale.value = payload.ui?.exportScale || "2";
     controls.exportFormat.value = payload.ui?.exportFormat || "png";

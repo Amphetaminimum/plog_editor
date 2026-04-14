@@ -204,6 +204,7 @@ Desired next step:
 - `layout.move` and `layout.resize` now also use operation entries in the mixed-mode model
 - unlocked block dragging now stays on the vertical flow axis and reorders blocks in-place instead of allowing free horizontal drift
 - `layout.spacingBefore`, `layout.canvasWidth`, and `layout.lockToggle` now also use operation entries with before/after layout state
+- canvas width undo/redo now restores both the actual layout and the width control state from a tracked last-applied UI snapshot
 - direct single-property style edits now use operation entries as well (`fontSize`, `fontFamily`, `fontWeight`, `color`, image adjustments, and frame style)
 - explicit rich-text formatting actions (`bold`, `italic`, `clear format`) now use per-block operation entries instead of full-document snapshots
 - text input now records one `content.edit` operation per editing session instead of taking full snapshots on every change

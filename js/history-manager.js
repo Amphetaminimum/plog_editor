@@ -118,6 +118,10 @@ export function createHistoryManager({
     state.zoom = snapshot.zoom || 1;
     controls.widthSelect.value = snapshot.ui?.widthSelect || controls.widthSelect.value;
     controls.customWidth.value = snapshot.ui?.customWidth || controls.customWidth.value;
+    state.lastCanvasWidthUi = {
+      widthSelect: controls.widthSelect.value,
+      customWidth: controls.customWidth.value,
+    };
     setCanvasBackground(snapshot.ui?.canvasBg || "#ffffff");
     controls.exportScale.value = snapshot.ui?.exportScale || controls.exportScale.value;
     controls.exportFormat.value = snapshot.ui?.exportFormat || controls.exportFormat.value;
@@ -190,6 +194,10 @@ export function createHistoryManager({
       const ui = direction === "undo" ? operation.beforeUi : operation.afterUi;
       controls.widthSelect.value = ui.widthSelect;
       controls.customWidth.value = ui.customWidth;
+      state.lastCanvasWidthUi = {
+        widthSelect: controls.widthSelect.value,
+        customWidth: controls.customWidth.value,
+      };
       applyLayoutState(direction === "undo" ? operation.beforeLayout : operation.afterLayout);
       state.suppressHistory = false;
       return true;

@@ -40,6 +40,10 @@ const state = {
   themeMode: "night",
   docs: [],
   currentDocId: null,
+  lastCanvasWidthUi: {
+    widthSelect: "1200",
+    customWidth: "1200",
+  },
   saveTimer: null,
   renderFrame: 0,
   renderScheduled: false,
@@ -1117,6 +1121,10 @@ function captureCanvasWidthUiState() {
   };
 }
 
+function syncLastCanvasWidthUiState() {
+  state.lastCanvasWidthUi = { ...captureCanvasWidthUiState() };
+}
+
 function captureElementContentState(item) {
   if (!item) return null;
   if (item.type === "text" || item.type === "quote") {
@@ -1696,12 +1704,13 @@ function applyCanvasWidth() {
   if (state.zoomMode === "fit") {
     applyZoom("fit", { mode: "fit", persist: false });
   }
+  syncLastCanvasWidthUiState();
   render();
 }
 
 widthSelect.addEventListener("change", () => {
   const beforeLayout = captureElementLayoutState();
-  const beforeUi = captureCanvasWidthUiState();
+  const beforeUi = { ...state.lastCanvasWidthUi };
   applyCanvasWidth();
   commitAndSave("layout.canvasWidth", {
     beforeUi,
@@ -1712,7 +1721,7 @@ widthSelect.addEventListener("change", () => {
 });
 customWidth.addEventListener("input", () => {
   const beforeLayout = captureElementLayoutState();
-  const beforeUi = captureCanvasWidthUiState();
+  const beforeUi = { ...state.lastCanvasWidthUi };
   applyCanvasWidth();
   commitAndSave("layout.canvasWidth", {
     beforeUi,
