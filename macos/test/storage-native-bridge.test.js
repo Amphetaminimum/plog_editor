@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-const storageModuleUrl = new URL("../js/storage.js", import.meta.url);
+const storageModuleUrl = new URL("../../js/storage.js", import.meta.url);
 
 async function importFreshStorage() {
   return await import(`${storageModuleUrl.href}?case=${Date.now()}-${Math.random()}`);

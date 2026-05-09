@@ -6,20 +6,21 @@ APP_NAME="Plog"
 BUNDLE_ID="local.plog.editor"
 MIN_SYSTEM_VERSION="14.0"
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DIST_DIR="$ROOT_DIR/dist"
+MACOS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$MACOS_DIR/.." && pwd)"
+DIST_DIR="$MACOS_DIR/dist"
 APP_BUNDLE="$DIST_DIR/$APP_NAME.app"
 APP_CONTENTS="$APP_BUNDLE/Contents"
 APP_MACOS="$APP_CONTENTS/MacOS"
 APP_RESOURCES="$APP_CONTENTS/Resources"
 APP_BINARY="$APP_MACOS/$APP_NAME"
 INFO_PLIST="$APP_CONTENTS/Info.plist"
-APP_ICON="$ROOT_DIR/.build/AppIcon.icns"
+APP_ICON="$MACOS_DIR/.build/AppIcon.icns"
 
-cd "$ROOT_DIR"
-mkdir -p "$ROOT_DIR/.build/cache" "$ROOT_DIR/.build/clang-module-cache"
-export XDG_CACHE_HOME="$ROOT_DIR/.build/cache"
-export CLANG_MODULE_CACHE_PATH="$ROOT_DIR/.build/clang-module-cache"
+cd "$MACOS_DIR"
+mkdir -p "$MACOS_DIR/.build/cache" "$MACOS_DIR/.build/clang-module-cache"
+export XDG_CACHE_HOME="$MACOS_DIR/.build/cache"
+export CLANG_MODULE_CACHE_PATH="$MACOS_DIR/.build/clang-module-cache"
 
 pkill -x "$APP_NAME" >/dev/null 2>&1 || true
 
@@ -31,8 +32,8 @@ mkdir -p "$APP_MACOS" "$APP_RESOURCES"
 cp "$BUILD_BINARY" "$APP_BINARY"
 chmod +x "$APP_BINARY"
 
-node "$ROOT_DIR/script/build_web_bundle.mjs" --root "$ROOT_DIR" --out "$APP_RESOURCES/Web"
-"$ROOT_DIR/script/build_app_icon.sh" "$ROOT_DIR/favicon.svg" "$APP_ICON"
+node "$MACOS_DIR/script/build_web_bundle.mjs" --root "$REPO_ROOT" --out "$APP_RESOURCES/Web"
+"$MACOS_DIR/script/build_app_icon.sh" "$REPO_ROOT/favicon.svg" "$APP_ICON"
 cp "$APP_ICON" "$APP_RESOURCES/AppIcon.icns"
 
 cat >"$INFO_PLIST" <<PLIST

@@ -8,13 +8,14 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const macosRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const repoRoot = path.resolve(macosRoot, "..");
 
 test("build_web_bundle creates a classic script entrypoint for WKWebView file loading", async () => {
   const outDir = await mkdtemp(path.join(tmpdir(), "plog-web-bundle-"));
   try {
     await execFileAsync("node", [
-      path.join(repoRoot, "script/build_web_bundle.mjs"),
+      path.join(macosRoot, "script/build_web_bundle.mjs"),
       "--root",
       repoRoot,
       "--out",
