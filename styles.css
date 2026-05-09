@@ -110,17 +110,6 @@ body.theme-dark .topbar {
   min-width: 0;
 }
 
-.topbar-meta {
-  display: flex;
-  gap: 12px;
-  margin-top: 8px;
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 .shell-icon-btn {
   width: auto;
   min-width: 40px;
@@ -165,35 +154,6 @@ body.theme-dark .topbar {
   max-width: min(1180px, 100%);
 }
 
-.topbar-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 10px;
-  min-height: 38px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: rgba(255, 250, 242, 0.62);
-  color: var(--muted);
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-body.theme-dark .topbar-status {
-  background: rgba(255, 248, 239, 0.04);
-}
-
-.topbar-status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: var(--accent);
-  box-shadow: 0 0 0 5px rgba(237, 111, 92, 0.08);
-}
-
 .toolbar-actions {
   gap: 8px;
 }
@@ -229,7 +189,7 @@ body.theme-dark .topbar-status {
   gap: 6px;
   padding: 4px;
   border: 1px solid var(--line);
-  border-radius: var(--radius-md);
+  border-radius: 999px;
   background: rgba(255, 252, 247, 0.52);
 }
 
@@ -693,7 +653,7 @@ body.theme-dark select {
   align-items: center;
   width: 100%;
   border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
+  border-radius: 999px;
   background: rgba(255, 252, 246, 0.88);
   color: var(--ink);
   padding: 10px 12px;
@@ -795,7 +755,7 @@ body.theme-dark .btn-danger:hover {
   min-height: 54px;
   font-size: 13px;
   padding: 12px 12px;
-  border-radius: 16px;
+  border-radius: 999px;
 }
 
 .canvas-wrap {
@@ -1806,10 +1766,6 @@ body.theme-dark #no-selection {
     justify-content: flex-start;
   }
 
-  .topbar-status {
-    order: -1;
-  }
-
   .workspace {
     grid-template-columns: 1fr;
   }
@@ -1892,11 +1848,6 @@ body.theme-dark #no-selection {
 
   .brand h1 {
     font-size: 20px;
-  }
-
-  .topbar-meta,
-  .topbar-status {
-    display: none;
   }
 
   .element-grid {
