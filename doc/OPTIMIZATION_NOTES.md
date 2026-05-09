@@ -21,7 +21,7 @@ This repo is already functional as a local-first static editor, but it is still 
 - [ ] Decouple rich text editing from `execCommand`
 - [~] Sanitize `contenteditable` HTML before persistence/export
 - [~] Replace CSS `zoom` with a more controlled scaling model
-- [ ] Add tests
+- [~] Add tests
 - [~] Split `app.js` into modules
 
 ### Completed in the first two optimization rounds
@@ -260,7 +260,9 @@ Status:
 
 Status:
 
-- no automated regression coverage yet
+- a minimal `node:test` harness now exists and can run via `node --test`
+- current automated coverage includes `canvas-layout` helpers and mixed-mode history behavior for `structure.insert/delete`, `layout.canvasWidth`, `layout.lockToggle`, `content.edit`, and `content.richTextFormat`
+- broader UI interaction and persistence regression coverage still needs to be added
 
 ## Commit Map
 
