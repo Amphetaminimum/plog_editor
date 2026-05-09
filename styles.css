@@ -752,9 +752,11 @@ body.theme-dark .btn-danger:hover {
 .element-grid .file-btn {
   margin-bottom: 0;
   justify-content: flex-start;
-  min-height: 54px;
-  font-size: 13px;
-  padding: 12px 12px;
+  min-height: 50px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  padding: 11px 14px;
   border-radius: 999px;
 }
 
