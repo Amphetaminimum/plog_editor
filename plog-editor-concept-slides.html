@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Plog Editor Concept Slides</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Cormorant+Garamond:wght@500;600&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* ===========================================
+         CSS CUSTOM PROPERTIES (THEME)
+         =========================================== */
+      :root {
+        --bg-primary: #121212;
+        --bg-secondary: #1b1d22;
+        --bg-tertiary: #0f1014;
+        --bg-gradient: linear-gradient(135deg, #111111 0%, #1b1d22 55%, #0f1014 100%);
+        --card-bg: #ff6a3d;
+        --card-bg-soft: #ff946b;
+        --card-bg-muted: rgba(255, 106, 61, 0.12);
+        --text-primary: #ffffff;
+        --text-secondary: rgba(255, 255, 255, 0.72);
+        --text-muted: rgba(255, 255, 255, 0.5);
+        --text-on-card: #101010;
+        --line: rgba(255, 255, 255, 0.12);
+        --line-strong: rgba(255, 255, 255, 0.22);
+        --shadow-strong: 0 32px 80px rgba(0, 0, 0, 0.28);
+        --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+        --duration-normal: 0.7s;
+        --font-display: "Archivo Black", sans-serif;
+        --font-body: "Space Grotesk", sans-serif;
+        --font-editorial: "Cormorant Garamond", serif;
+      }
+
+      /* ===========================================
+         BASE STYLES
+         =========================================== */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      /* ===========================================
+         VIEWPORT FITTING: MANDATORY BASE STYLES
+         Include this ENTIRE file in every presentation.
+         These styles ensure slides fit exactly in the viewport.
+         =========================================== */
+
+      /* 1. Lock html/body to viewport */
+      html,
+      body {
+        height: 100%;
+        overflow-x: hidden;
+      }
+
+      html {
+        scroll-snap-type: y mandatory;
+        scroll-behavior: smooth;
+      }
+
+      /* 2. Each slide = exact viewport height */
+      .slide {
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh; /* Dynamic viewport height for mobile browsers */
+        overflow: hidden; /* CRITICAL: Prevent ANY overflow */
+        scroll-snap-align: start;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+
+      /* 3. Content container with flex for centering */
+      .slide-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        max-height: 100%;
+        overflow: hidden; /* Double-protection against overflow */
+        padding: var(--slide-padding);
+      }
+
+      /* 4. ALL typography uses clamp() for responsive scaling */
+      :root {
+        /* Titles scale from mobile to desktop */
+        --title-size: clamp(1.5rem, 5vw, 4rem);
+        --h2-size: clamp(1.25rem, 3.5vw, 2.5rem);
+        --h3-size: clamp(1rem, 2.5vw, 1.75rem);
+
+        /* Body text */
+        --body-size: clamp(0.75rem, 1.5vw, 1.125rem);
+        --small-size: clamp(0.65rem, 1vw, 0.875rem);
+
+        /* Spacing scales with viewport */
+        --slide-padding: clamp(1rem, 4vw, 4rem);
+        --content-gap: clamp(0.5rem, 2vw, 2rem);
+        --element-gap: clamp(0.25rem, 1vw, 1rem);
+      }
+
+      /* 5. Cards/containers use viewport-relative max sizes */
+      .card,
+      .container,
+      .content-box {
+        max-width: min(90vw, 1000px);
+        max-height: min(80vh, 700px);
+      }
+
+      /* 6. Lists auto-scale with viewport */
+      .feature-list,
+      .bullet-list {
+        gap: clamp(0.4rem, 1vh, 1rem);
+      }
+
+      .feature-list li,
+      .bullet-list li {
+        font-size: var(--body-size);
+        line-height: 1.4;
+      }
+
+      /* 7. Grids adapt to available space */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+        gap: clamp(0.5rem, 1.5vw, 1rem);
+      }
+
+      /* 8. Images constrained to viewport */
+      img,
+      .image-container {
+        max-width: 100%;
+        max-height: min(50vh, 400px);
+        object-fit: contain;
+      }
+
+      /* ===========================================
+         RESPONSIVE BREAKPOINTS
+         Aggressive scaling for smaller viewports
+         =========================================== */
+
+      /* Short viewports (< 700px height) */
+      @media (max-height: 700px) {
+        :root {
+          --slide-padding: clamp(0.75rem, 3vw, 2rem);
+          --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+          --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+          --h2-size: clamp(1rem, 3vw, 1.75rem);
+        }
+      }
+
+      /* Very short viewports (< 600px height) */
+      @media (max-height: 600px) {
+        :root {
+          --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+          --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+          --title-size: clamp(1.1rem, 4vw, 2rem);
+          --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+        }
+
+        /* Hide non-essential elements */
+        .nav-dots,
+        .keyboard-hint,
+        .decorative {
+          display: none;
+        }
+      }
+
+      /* Extremely short (landscape phones, < 500px height) */
+      @media (max-height: 500px) {
+        :root {
+          --slide-padding: clamp(0.4rem, 2vw, 1rem);
+          --title-size: clamp(1rem, 3.5vw, 1.5rem);
+          --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+          --body-size: clamp(0.65rem, 1vw, 0.85rem);
+        }
+      }
+
+      /* Narrow viewports (< 600px width) */
+      @media (max-width: 600px) {
+        :root {
+          --title-size: clamp(1.25rem, 7vw, 2.5rem);
+        }
+
+        /* Stack grids vertically */
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* ===========================================
+         REDUCED MOTION
+         Respect user preferences
+         =========================================== */
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.2s !important;
+        }
+
+        html {
+          scroll-behavior: auto;
+        }
+      }
+
+      body {
+        background: var(--bg-gradient);
+        color: var(--text-primary);
+        font-family: var(--font-body);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(circle at 85% 15%, rgba(255, 106, 61, 0.18), transparent 22%),
+          radial-gradient(circle at 12% 82%, rgba(255, 255, 255, 0.05), transparent 24%);
+        pointer-events: none;
+        z-index: -2;
+      }
+
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 42px 42px;
+        mask-image: radial-gradient(circle at center, black 35%, transparent 82%);
+        opacity: 0.35;
+        pointer-events: none;
+        z-index: -1;
+      }
+
+      /* ===========================================
+         GLOBAL PRESENTATION CHROME
+         =========================================== */
+      .progress-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 4px;
+        width: 100%;
+        transform-origin: left center;
+        transform: scaleX(0);
+        background: linear-gradient(90deg, var(--card-bg) 0%, var(--card-bg-soft) 100%);
+        z-index: 1000;
+      }
+
+      .nav-dots {
+        position: fixed;
+        top: 50%;
+        right: clamp(0.65rem, 1.6vw, 1.4rem);
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+        z-index: 900;
+      }
+
+      .nav-dot {
+        width: 0.85rem;
+        height: 0.85rem;
+        border-radius: 999px;
+        border: 1px solid var(--line-strong);
+        background: rgba(255, 255, 255, 0.06);
+        cursor: pointer;
+        transition:
+          transform 0.25s ease,
+          background 0.25s ease,
+          border-color 0.25s ease;
+      }
+
+      .nav-dot.active {
+        background: var(--card-bg);
+        border-color: var(--card-bg);
+        transform: scale(1.15);
+      }
+
+      .deck-meta {
+        position: absolute;
+        top: clamp(1rem, 2vw, 1.8rem);
+        left: clamp(1rem, 2vw, 1.8rem);
+        right: clamp(1rem, 2vw, 1.8rem);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        font-size: var(--small-size);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        z-index: 3;
+      }
+
+      .deck-meta strong {
+        color: var(--text-primary);
+        font-weight: 500;
+      }
+
+      .kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 0.48rem 0.82rem;
+        font-size: var(--small-size);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        width: fit-content;
+      }
+
+      .kicker::before {
+        content: "";
+        width: 0.55rem;
+        height: 0.55rem;
+        border-radius: 999px;
+        background: var(--card-bg);
+        box-shadow: 0 0 18px rgba(255, 106, 61, 0.6);
+      }
+
+      .section-number {
+        position: absolute;
+        top: clamp(0.9rem, 2vw, 1.5rem);
+        right: clamp(1.1rem, 2.5vw, 2rem);
+        font-family: var(--font-display);
+        font-size: clamp(2.2rem, 5vw, 4.6rem);
+        line-height: 1;
+        color: rgba(255, 255, 255, 0.08);
+        pointer-events: none;
+      }
+
+      /* ===========================================
+         ANIMATIONS
+         =========================================== */
+      .reveal {
+        opacity: 0;
+        transform: translateY(28px);
+        transition:
+          opacity var(--duration-normal) var(--ease-out-expo),
+          transform var(--duration-normal) var(--ease-out-expo);
+      }
+
+      .reveal-left {
+        opacity: 0;
+        transform: translateX(-36px);
+        transition:
+          opacity var(--duration-normal) var(--ease-out-expo),
+          transform var(--duration-normal) var(--ease-out-expo);
+      }
+
+      .reveal-scale {
+        opacity: 0;
+        transform: scale(0.94);
+        transition:
+          opacity var(--duration-normal) var(--ease-out-expo),
+          transform var(--duration-normal) var(--ease-out-expo);
+      }
+
+      .slide.visible .reveal,
+      .slide.visible .reveal-left,
+      .slide.visible .reveal-scale {
+        opacity: 1;
+        transform: none;
+      }
+
+      .stagger-1 {
+        transition-delay: 0.1s;
+      }
+
+      .stagger-2 {
+        transition-delay: 0.18s;
+      }
+
+      .stagger-3 {
+        transition-delay: 0.26s;
+      }
+
+      .stagger-4 {
+        transition-delay: 0.34s;
+      }
+
+      .stagger-5 {
+        transition-delay: 0.42s;
+      }
+
+      /* ===========================================
+         SHARED LAYOUT UTILITIES
+         =========================================== */
+      h1,
+      h2,
+      h3 {
+        letter-spacing: -0.04em;
+      }
+
+      h1 {
+        font-family: var(--font-display);
+        font-size: clamp(2.2rem, 7vw, 6.2rem);
+        line-height: 0.92;
+      }
+
+      h2 {
+        font-family: var(--font-display);
+        font-size: clamp(1.6rem, 4vw, 3.2rem);
+        line-height: 0.96;
+        max-width: 12ch;
+      }
+
+      h3 {
+        font-size: clamp(1rem, 2vw, 1.35rem);
+        font-weight: 500;
+      }
+
+      p,
+      li {
+        font-size: clamp(0.92rem, 1.45vw, 1.18rem);
+      }
+
+      .eyebrow {
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-size: var(--small-size);
+      }
+
+      .lede {
+        color: var(--text-secondary);
+        line-height: 1.55;
+        max-width: 54ch;
+      }
+
+      .quote-line {
+        font-family: var(--font-editorial);
+        font-size: clamp(1.4rem, 3vw, 2.7rem);
+        line-height: 1.05;
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(10px);
+        border-radius: clamp(1rem, 2vw, 1.8rem);
+        box-shadow: var(--shadow-strong);
+      }
+
+      .accent-panel {
+        background: linear-gradient(180deg, var(--card-bg-soft) 0%, var(--card-bg) 100%);
+        color: var(--text-on-card);
+        border: none;
+      }
+
+      .bullet-list {
+        list-style: none;
+        display: grid;
+      }
+
+      .bullet-list li {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        align-items: start;
+        line-height: 1.45;
+        color: var(--text-secondary);
+      }
+
+      .bullet-list li::before {
+        content: "•";
+        color: var(--card-bg);
+        font-size: 1.1em;
+        line-height: 1.2;
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: clamp(0.8rem, 1.4vw, 1.2rem);
+        margin-top: clamp(1rem, 2vh, 1.8rem);
+      }
+
+      .feature-card {
+        padding: clamp(1rem, 2vw, 1.4rem);
+        min-height: min(24vh, 13rem);
+        display: grid;
+        gap: 0.6rem;
+        align-content: start;
+      }
+
+      .feature-card strong,
+      .mini-card strong,
+      .stack-card strong {
+        font-size: clamp(1rem, 1.45vw, 1.2rem);
+        line-height: 1.15;
+      }
+
+      .feature-card p,
+      .mini-card p,
+      .stack-card p {
+        font-size: clamp(0.82rem, 1.08vw, 0.98rem);
+        line-height: 1.5;
+        color: inherit;
+      }
+
+      .mini-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: clamp(0.8rem, 1.4vw, 1.2rem);
+      }
+
+      .mini-card {
+        padding: clamp(1rem, 2vw, 1.4rem);
+        display: grid;
+        gap: 0.55rem;
+      }
+
+      .metric-card {
+        padding: clamp(1rem, 2vw, 1.6rem);
+        display: grid;
+        gap: 0.6rem;
+        min-height: min(22vh, 12rem);
+      }
+
+      .metric-card strong {
+        font-family: var(--font-display);
+        font-size: clamp(2rem, 5vw, 4rem);
+        line-height: 0.95;
+      }
+
+      .metric-card span {
+        font-size: var(--small-size);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+
+      .stack-grid {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: clamp(1rem, 2vw, 1.6rem);
+        align-items: stretch;
+      }
+
+      .stack-card {
+        padding: clamp(1rem, 2vw, 1.5rem);
+        display: grid;
+        gap: 0.7rem;
+      }
+
+      /* ===========================================
+         TITLE SLIDE
+         =========================================== */
+      .title-slide .slide-content {
+        padding-top: clamp(4rem, 10vh, 7rem);
+      }
+
+      .title-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.12fr) minmax(18rem, 27vw);
+        gap: clamp(1rem, 3vw, 3rem);
+        align-items: end;
+        height: 100%;
+      }
+
+      .title-slide h1 {
+        max-width: 8.8ch;
+      }
+
+      .title-slide .lede {
+        margin-top: clamp(1rem, 2vh, 1.6rem);
+      }
+
+      .title-card {
+        min-height: min(44vh, 25rem);
+        padding: clamp(1rem, 2.4vw, 2rem);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .title-card .big-number {
+        font-family: var(--font-display);
+        font-size: clamp(2.6rem, 6vw, 5rem);
+        line-height: 1;
+      }
+
+      .tag-stack {
+        display: grid;
+        gap: 0.55rem;
+        font-size: clamp(0.82rem, 1.08vw, 0.98rem);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+      }
+
+      /* ===========================================
+         CONTENT-SPECIFIC LAYOUTS
+         =========================================== */
+      .two-column {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: clamp(1rem, 2vw, 1.8rem);
+        align-items: stretch;
+      }
+
+      .left-copy {
+        display: grid;
+        align-content: center;
+        gap: clamp(0.85rem, 1.5vh, 1.2rem);
+      }
+
+      .canvas-diagram {
+        position: relative;
+        min-height: min(56vh, 31rem);
+        padding: clamp(1rem, 2vw, 1.6rem);
+        overflow: hidden;
+      }
+
+      .canvas-stage {
+        position: absolute;
+        inset: clamp(1.1rem, 2vw, 1.4rem);
+        border-radius: clamp(1rem, 2vw, 1.4rem);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01)),
+          rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: clamp(0.7rem, 1.2vw, 1rem);
+      }
+
+      .canvas-strip {
+        width: clamp(12rem, 24vw, 18rem);
+        height: min(44vh, 25rem);
+        margin: 0 auto;
+        border-radius: 1.2rem;
+        background: linear-gradient(180deg, #f8f6f2 0%, #efe8e0 100%);
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 24px 46px rgba(0, 0, 0, 0.22);
+      }
+
+      .canvas-strip::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+        background-size: 24px 24px;
+        opacity: 0.25;
+      }
+
+      .mock-header,
+      .mock-text,
+      .mock-image,
+      .mock-divider {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        border-radius: 0.8rem;
+      }
+
+      .mock-header {
+        top: 7%;
+        width: 78%;
+        height: 13%;
+        background: #141414;
+      }
+
+      .mock-text {
+        top: 25%;
+        width: 64%;
+        height: 12%;
+        background: rgba(17, 17, 17, 0.16);
+      }
+
+      .mock-image {
+        top: 42%;
+        width: 82%;
+        height: 28%;
+        background: linear-gradient(135deg, #ff946b 0%, #ff6a3d 100%);
+      }
+
+      .mock-divider {
+        top: 75%;
+        width: 48%;
+        height: 1.5%;
+        background: rgba(17, 17, 17, 0.18);
+      }
+
+      .canvas-note {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 0.45rem 0.75rem;
+        color: var(--text-primary);
+        font-size: var(--small-size);
+        backdrop-filter: blur(8px);
+      }
+
+      .note-a {
+        top: 18%;
+        right: 8%;
+      }
+
+      .note-b {
+        left: 9%;
+        top: 49%;
+      }
+
+      .note-c {
+        right: 12%;
+        bottom: 9%;
+      }
+
+      .code-block {
+        padding: clamp(1rem, 2vw, 1.4rem);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: clamp(0.75rem, 1vw, 0.92rem);
+        line-height: 1.5;
+        color: rgba(255, 255, 255, 0.86);
+        background: rgba(0, 0, 0, 0.32);
+        min-height: min(28vh, 16rem);
+        white-space: pre-wrap;
+      }
+
+      .path-list {
+        display: grid;
+        gap: 0.7rem;
+      }
+
+      .path-item {
+        display: grid;
+        grid-template-columns: minmax(8rem, 12rem) 1fr;
+        gap: 0.9rem;
+        padding: 0.9rem 1rem;
+        border-radius: 1rem;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--line);
+        font-size: clamp(0.78rem, 1.04vw, 0.95rem);
+      }
+
+      .path-item code {
+        color: #ffc3ad;
+      }
+
+      .closing-slide .quote-line {
+        max-width: 14ch;
+      }
+
+      .closing-slide .feature-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      /* ===========================================
+         INLINE EDITING UI
+         =========================================== */
+      .edit-hotzone {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 80px;
+        height: 80px;
+        z-index: 10000;
+        cursor: pointer;
+      }
+
+      .edit-toggle,
+      .save-button {
+        position: fixed;
+        left: 1rem;
+        padding: 0.75rem 0.9rem;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(16, 16, 16, 0.88);
+        color: var(--text-primary);
+        font: inherit;
+        font-size: var(--small-size);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        z-index: 10001;
+      }
+
+      .edit-toggle {
+        top: 1rem;
+      }
+
+      .save-button {
+        top: 4.4rem;
+      }
+
+      .edit-toggle.show,
+      .edit-toggle.active,
+      .save-button.show,
+      .save-button.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      body.edit-mode [data-editable="true"] {
+        outline: 1px dashed rgba(255, 106, 61, 0.8);
+        outline-offset: 0.18rem;
+        cursor: text;
+      }
+
+      body.edit-mode [data-editable="true"]:focus {
+        outline: 2px solid rgba(255, 148, 107, 0.95);
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .keyboard-hint {
+        position: fixed;
+        bottom: 1rem;
+        left: 1rem;
+        font-size: var(--small-size);
+        color: var(--text-muted);
+        background: rgba(16, 16, 16, 0.75);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 0.55rem 0.8rem;
+        z-index: 900;
+      }
+
+      @media (max-width: 960px) {
+        .title-grid,
+        .two-column,
+        .stack-grid,
+        .feature-grid,
+        .closing-slide .feature-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .title-card,
+        .canvas-diagram,
+        .code-block {
+          min-height: auto;
+        }
+
+        .path-item {
+          grid-template-columns: 1fr;
+        }
+
+        .nav-dots {
+          right: 0.6rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="progress-bar" aria-hidden="true"></div>
+    <nav class="nav-dots" aria-label="Slide navigation"></nav>
+    <div class="edit-hotzone" aria-hidden="true"></div>
+    <button class="edit-toggle" id="editToggle" title="Edit mode (E)">Edit Mode</button>
+    <button class="save-button" id="saveButton" title="Save edits">Export HTML</button>
+    <div class="keyboard-hint">Arrows / Space navigate · Press E to edit</div>
+
+    <!-- ===========================================
+         SLIDE 1: TITLE
+         =========================================== -->
+    <section class="slide title-slide">
+      <div class="deck-meta">
+        <span><strong>Plog</strong> / Long Canvas Plog Editor</span>
+        <span>Concept Deck</span>
+      </div>
+      <div class="slide-content">
+        <div class="title-grid">
+          <div class="left-copy">
+            <div class="kicker reveal stagger-1" data-editable="true" contenteditable="false">
+              Visual blogging canvas
+            </div>
+            <h1 class="reveal stagger-2" data-editable="true" contenteditable="false">
+              Long Canvas Plog Editor
+            </h1>
+            <p class="lede reveal stagger-3" data-editable="true" contenteditable="false">
+              A local-first, browser-native editor for image-led stories: part Canva, part Notion,
+              part long-image generator, built as a static frontend with no build step.
+            </p>
+            <p class="quote-line reveal stagger-4" data-editable="true" contenteditable="false">
+              Layout as narrative infrastructure.
+            </p>
+          </div>
+          <aside class="title-card accent-panel panel reveal-scale stagger-4">
+            <div class="big-number" data-editable="true" contenteditable="false">01</div>
+            <div class="tag-stack">
+              <span data-editable="true" contenteditable="false">Static frontend</span>
+              <span data-editable="true" contenteditable="false">IndexedDB persistence</span>
+              <span data-editable="true" contenteditable="false">PNG / JPG / WebP / HTML export</span>
+              <span data-editable="true" contenteditable="false">Mobile rewrite possible later</span>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 2: PRODUCT POSITIONING
+         =========================================== -->
+    <section class="slide">
+      <div class="deck-meta">
+        <span>Positioning</span>
+        <span>What this repo is trying to make</span>
+      </div>
+      <div class="section-number">02</div>
+      <div class="slide-content">
+        <div class="two-column">
+          <div class="left-copy">
+            <span class="eyebrow reveal stagger-1" data-editable="true" contenteditable="false">Product thesis</span>
+            <h2 class="reveal stagger-2" data-editable="true" contenteditable="false">
+              Not a conventional CMS. A composition tool for long-form visual posts.
+            </h2>
+            <p class="lede reveal stagger-3" data-editable="true" contenteditable="false">
+              The core idea from the PRD is clear: give creators one long canvas where images,
+              headers, quotes, cards and text can be arranged freely, then export the result as
+              a polished long image or HTML page.
+            </p>
+          </div>
+          <div class="feature-grid">
+            <article class="feature-card panel reveal stagger-2">
+              <strong data-editable="true" contenteditable="false">Between tools</strong>
+              <p data-editable="true" contenteditable="false">
+                Positioned between Canva, Notion and long-image generators rather than copying any
+                single one.
+              </p>
+            </article>
+            <article class="feature-card panel reveal stagger-3">
+              <strong data-editable="true" contenteditable="false">Image-led</strong>
+              <p data-editable="true" contenteditable="false">
+                The product assumes photos and visual rhythm lead the story, with text playing a
+                supporting role.
+              </p>
+            </article>
+            <article class="feature-card accent-panel panel reveal stagger-4">
+              <strong data-editable="true" contenteditable="false">Local-first</strong>
+              <p data-editable="true" contenteditable="false">
+                Documents live in the browser through IndexedDB, so the app stays simple, fast and
+                private by default.
+              </p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 3: THE CANVAS EXPERIENCE
+         =========================================== -->
+    <section class="slide">
+      <div class="deck-meta">
+        <span>Experience</span>
+        <span>Why long canvas matters</span>
+      </div>
+      <div class="section-number">03</div>
+      <div class="slide-content">
+        <div class="two-column">
+          <div class="left-copy">
+            <div class="kicker reveal stagger-1" data-editable="true" contenteditable="false">Core interaction</div>
+            <h2 class="reveal stagger-2" data-editable="true" contenteditable="false">
+              One vertical surface, flexible width, auto-expanding height.
+            </h2>
+            <ul class="bullet-list reveal stagger-3">
+              <li data-editable="true" contenteditable="false">
+                Width presets like 1080px and 1200px target mobile sharing and blog reading.
+              </li>
+              <li data-editable="true" contenteditable="false">
+                Elements can be dragged and arranged like a visual essay instead of a rigid page builder.
+              </li>
+              <li data-editable="true" contenteditable="false">
+                The canvas becomes a pacing device for trips, coffee logs, photography journals and social posts.
+              </li>
+            </ul>
+          </div>
+          <div class="canvas-diagram panel reveal-scale stagger-4">
+            <div class="canvas-stage">
+              <div class="canvas-strip">
+                <div class="mock-header"></div>
+                <div class="mock-text"></div>
+                <div class="mock-image"></div>
+                <div class="mock-divider"></div>
+              </div>
+              <div class="canvas-note note-a" data-editable="true" contenteditable="false">Header zone</div>
+              <div class="canvas-note note-b" data-editable="true" contenteditable="false">Image-led body</div>
+              <div class="canvas-note note-c" data-editable="true" contenteditable="false">Narrative pacing</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 4: CAPABILITIES
+         =========================================== -->
+    <section class="slide">
+      <div class="deck-meta">
+        <span>Capabilities</span>
+        <span>Current scope in the repo</span>
+      </div>
+      <div class="section-number">04</div>
+      <div class="slide-content">
+        <div class="left-copy" style="margin-bottom: clamp(1rem, 2vh, 1.6rem);">
+          <span class="eyebrow reveal stagger-1" data-editable="true" contenteditable="false">Shipped direction</span>
+          <h2 class="reveal stagger-2" data-editable="true" contenteditable="false">
+            A focused editor surface with the right primitives already defined.
+          </h2>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card panel reveal stagger-2">
+            <strong data-editable="true" contenteditable="false">Element system</strong>
+            <p data-editable="true" contenteditable="false">
+              Text, image, divider, header, quote and card blocks form the current authoring vocabulary.
+            </p>
+          </article>
+          <article class="feature-card panel reveal stagger-3">
+            <strong data-editable="true" contenteditable="false">Typography controls</strong>
+            <p data-editable="true" contenteditable="false">
+              Font family, size, color, weight and spacing controls are part of the editing model.
+            </p>
+          </article>
+          <article class="feature-card panel reveal stagger-4">
+            <strong data-editable="true" contenteditable="false">Image treatment</strong>
+            <p data-editable="true" contenteditable="false">
+              Rotation, brightness, contrast, grayscale and frame styling show the app is designed for image work.
+            </p>
+          </article>
+          <article class="feature-card panel reveal stagger-3">
+            <strong data-editable="true" contenteditable="false">Export</strong>
+            <p data-editable="true" contenteditable="false">
+              PNG, JPG, WebP and HTML export make the output useful for social media and blog publishing.
+            </p>
+          </article>
+          <article class="feature-card accent-panel panel reveal stagger-4">
+            <strong data-editable="true" contenteditable="false">Document workflow</strong>
+            <p data-editable="true" contenteditable="false">
+              Multiple local docs, rename/delete flows and lightweight persistence all support actual use.
+            </p>
+          </article>
+          <article class="feature-card panel reveal stagger-5">
+            <strong data-editable="true" contenteditable="false">No-build simplicity</strong>
+            <p data-editable="true" contenteditable="false">
+              Static frontend architecture keeps iteration cheap and lowers the barrier for product experiments.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 5: ARCHITECTURE
+         =========================================== -->
+    <section class="slide">
+      <div class="deck-meta">
+        <span>Architecture</span>
+        <span>How the app is structured</span>
+      </div>
+      <div class="section-number">05</div>
+      <div class="slide-content">
+        <div class="stack-grid">
+          <div class="stack-card panel reveal-left stagger-2">
+            <span class="eyebrow" data-editable="true" contenteditable="false">Frontend modules</span>
+            <div class="path-list">
+              <div class="path-item">
+                <code>index.html</code>
+                <span data-editable="true" contenteditable="false">Main shell, templates, inspector and dialog mount.</span>
+              </div>
+              <div class="path-item">
+                <code>styles.css</code>
+                <span data-editable="true" contenteditable="false">Tokens, layout, editor surface and component styling.</span>
+              </div>
+              <div class="path-item">
+                <code>app.js</code>
+                <span data-editable="true" contenteditable="false">Editor state, render orchestration, events, export and UI coordination.</span>
+              </div>
+              <div class="path-item">
+                <code>js/storage.js</code>
+                <span data-editable="true" contenteditable="false">IndexedDB helpers for document data and binary assets.</span>
+              </div>
+            </div>
+          </div>
+          <div class="stack-card accent-panel panel reveal-scale stagger-3">
+            <span class="eyebrow" style="color: rgba(16,16,16,0.62);" data-editable="true" contenteditable="false">Persistence snapshot</span>
+            <div class="code-block">const DB_NAME = "plog_editor_db";
+const DB_STORE = "kv";
+const ASSET_STORE = "assets";
+
+indexedDB.open(DB_NAME, 1);
+
+idbSet(key, value);
+idbGet(key);
+idbSetAsset(key, value);
+idbGetAsset(key);</div>
+            <p data-editable="true" contenteditable="false">
+              This is the local-first contract in miniature: structured state in one store, heavier media
+              assets in another, no backend required to keep editing sessions alive.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 6: WHY IT'S INTERESTING
+         =========================================== -->
+    <section class="slide">
+      <div class="deck-meta">
+        <span>Potential</span>
+        <span>Why this repo is worth attention</span>
+      </div>
+      <div class="section-number">06</div>
+      <div class="slide-content">
+        <div class="mini-grid">
+          <article class="metric-card accent-panel panel reveal stagger-1">
+            <span data-editable="true" contenteditable="false">Product angle</span>
+            <strong data-editable="true" contenteditable="false">Niche but sharp</strong>
+            <p data-editable="true" contenteditable="false">
+              It targets creators who want polished long-form visuals, not generic document editing.
+            </p>
+          </article>
+          <article class="metric-card panel reveal stagger-2">
+            <span data-editable="true" contenteditable="false">Execution angle</span>
+            <strong data-editable="true" contenteditable="false">Low overhead</strong>
+            <p data-editable="true" contenteditable="false">
+              Static files and browser storage make it easy to prototype, test and iterate without platform friction.
+            </p>
+          </article>
+          <article class="metric-card panel reveal stagger-3">
+            <span data-editable="true" contenteditable="false">Design angle</span>
+            <strong data-editable="true" contenteditable="false">Format-native</strong>
+            <p data-editable="true" contenteditable="false">
+              The long canvas matches how travel logs, photo essays and social image posts are actually consumed.
+            </p>
+          </article>
+          <article class="metric-card panel reveal stagger-4">
+            <span data-editable="true" contenteditable="false">Expansion angle</span>
+            <strong data-editable="true" contenteditable="false">Replaceable UI</strong>
+            <p data-editable="true" contenteditable="false">
+              The repo already notes that the data model and layout rules could survive a future iOS rewrite.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 7: BOUNDARIES AND NEXT STEPS
+         =========================================== -->
+    <section class="slide">
+      <div class="deck-meta">
+        <span>Roadmap</span>
+        <span>What is unfinished but well-scoped</span>
+      </div>
+      <div class="section-number">07</div>
+      <div class="slide-content">
+        <div class="two-column">
+          <div class="stack-card panel reveal-left stagger-2">
+            <span class="eyebrow" data-editable="true" contenteditable="false">Current boundaries</span>
+            <ul class="bullet-list">
+              <li data-editable="true" contenteditable="false">Rich text modeling is not yet robust enough for production-grade editing.</li>
+              <li data-editable="true" contenteditable="false">Image crop and rotate handles still need more on-canvas precision.</li>
+              <li data-editable="true" contenteditable="false">Cloud sync, collaboration and batch export are explicitly out of scope for now.</li>
+            </ul>
+          </div>
+          <div class="stack-card accent-panel panel reveal-scale stagger-3">
+            <span class="eyebrow" style="color: rgba(16,16,16,0.62);" data-editable="true" contenteditable="false">Pragmatic next bets</span>
+            <ul class="bullet-list" style="color: rgba(16,16,16,0.82);">
+              <li data-editable="true" contenteditable="false">Strengthen the text model and editing affordances.</li>
+              <li data-editable="true" contenteditable="false">Improve image manipulation to match the product's visual-first promise.</li>
+              <li data-editable="true" contenteditable="false">Decide whether mobile means responsive web, WebView shell, or native rewrite.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 8: CLOSING
+         =========================================== -->
+    <section class="slide closing-slide">
+      <div class="deck-meta">
+        <span>Closing</span>
+        <span>What the concept says</span>
+      </div>
+      <div class="section-number">08</div>
+      <div class="slide-content">
+        <div class="left-copy" style="gap: clamp(1rem, 2vh, 1.6rem);">
+          <div class="kicker reveal stagger-1" data-editable="true" contenteditable="false">Closing argument</div>
+          <p class="quote-line reveal stagger-2" data-editable="true" contenteditable="false">
+            This repo is compelling because it picks a format, a user and a workflow, then stays disciplined.
+          </p>
+          <p class="lede reveal stagger-3" data-editable="true" contenteditable="false">
+            Instead of becoming a generic editor, it is trying to become the best place to compose
+            long, image-led stories. That constraint gives the product its identity.
+          </p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card panel reveal stagger-3">
+            <strong data-editable="true" contenteditable="false">Clear thesis</strong>
+            <p data-editable="true" contenteditable="false">Visual blogging deserves its own authoring surface.</p>
+          </article>
+          <article class="feature-card panel reveal stagger-4">
+            <strong data-editable="true" contenteditable="false">Viable stack</strong>
+            <p data-editable="true" contenteditable="false">HTML, CSS, JS and IndexedDB are enough for a convincing first product.</p>
+          </article>
+          <article class="feature-card accent-panel panel reveal stagger-5">
+            <strong data-editable="true" contenteditable="false">Portable future</strong>
+            <p data-editable="true" contenteditable="false">The model can evolve to mobile later without throwing away the idea.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <script>
+      /* ===========================================
+         SLIDE PRESENTATION CONTROLLER
+         =========================================== */
+      class SlidePresentation {
+        constructor() {
+          this.slides = [...document.querySelectorAll(".slide")];
+          this.progressBar = document.querySelector(".progress-bar");
+          this.navDotsContainer = document.querySelector(".nav-dots");
+          this.currentSlide = 0;
+          this.touchStartY = null;
+          this.touchLocked = false;
+          this.buildNavDots();
+          this.setupIntersectionObserver();
+          this.setupKeyboardNav();
+          this.setupTouchNav();
+          this.setupWheelNav();
+          this.setupProgressBar();
+          this.syncToClosestSlide();
+        }
+
+        buildNavDots() {
+          this.navDotsContainer.innerHTML = "";
+          this.slides.forEach((slide, index) => {
+            const dot = document.createElement("button");
+            dot.className = "nav-dot";
+            dot.type = "button";
+            dot.setAttribute("aria-label", `Go to slide ${index + 1}`);
+            dot.addEventListener("click", () => this.goToSlide(index));
+            this.navDotsContainer.appendChild(dot);
+          });
+        }
+
+        setupIntersectionObserver() {
+          const observer = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                  entry.target.classList.add("visible");
+                }
+              });
+              this.syncToClosestSlide();
+            },
+            { threshold: 0.55 }
+          );
+
+          this.slides.forEach((slide) => observer.observe(slide));
+          window.addEventListener("scroll", () => this.syncToClosestSlide(), { passive: true });
+        }
+
+        setupKeyboardNav() {
+          window.addEventListener("keydown", (event) => {
+            if (document.body.classList.contains("edit-mode")) return;
+            const blocked = ["INPUT", "TEXTAREA"];
+            if (blocked.includes(document.activeElement?.tagName)) return;
+
+            if (["ArrowDown", "PageDown", " "].includes(event.key)) {
+              event.preventDefault();
+              this.goToSlide(Math.min(this.currentSlide + 1, this.slides.length - 1));
+            }
+
+            if (["ArrowUp", "PageUp"].includes(event.key)) {
+              event.preventDefault();
+              this.goToSlide(Math.max(this.currentSlide - 1, 0));
+            }
+
+            if (event.key === "Home") {
+              event.preventDefault();
+              this.goToSlide(0);
+            }
+
+            if (event.key === "End") {
+              event.preventDefault();
+              this.goToSlide(this.slides.length - 1);
+            }
+          });
+        }
+
+        setupTouchNav() {
+          window.addEventListener(
+            "touchstart",
+            (event) => {
+              this.touchStartY = event.touches[0].clientY;
+            },
+            { passive: true }
+          );
+
+          window.addEventListener(
+            "touchend",
+            (event) => {
+              if (this.touchStartY == null || this.touchLocked) return;
+              const delta = this.touchStartY - event.changedTouches[0].clientY;
+              if (Math.abs(delta) < 48) return;
+              this.touchLocked = true;
+              this.goToSlide(
+                delta > 0
+                  ? Math.min(this.currentSlide + 1, this.slides.length - 1)
+                  : Math.max(this.currentSlide - 1, 0)
+              );
+              window.setTimeout(() => {
+                this.touchLocked = false;
+              }, 380);
+            },
+            { passive: true }
+          );
+        }
+
+        setupWheelNav() {
+          let wheelLocked = false;
+          window.addEventListener(
+            "wheel",
+            (event) => {
+              if (wheelLocked || document.body.classList.contains("edit-mode")) return;
+              if (Math.abs(event.deltaY) < 40) return;
+              wheelLocked = true;
+              this.goToSlide(
+                event.deltaY > 0
+                  ? Math.min(this.currentSlide + 1, this.slides.length - 1)
+                  : Math.max(this.currentSlide - 1, 0)
+              );
+              window.setTimeout(() => {
+                wheelLocked = false;
+              }, 520);
+            },
+            { passive: true }
+          );
+        }
+
+        setupProgressBar() {
+          const update = () => {
+            const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = maxScroll <= 0 ? 0 : window.scrollY / maxScroll;
+            this.progressBar.style.transform = `scaleX(${progress})`;
+          };
+
+          update();
+          window.addEventListener("scroll", update, { passive: true });
+          window.addEventListener("resize", update);
+        }
+
+        syncToClosestSlide() {
+          let bestIndex = 0;
+          let bestDistance = Number.POSITIVE_INFINITY;
+
+          this.slides.forEach((slide, index) => {
+            const distance = Math.abs(slide.getBoundingClientRect().top);
+            if (distance < bestDistance) {
+              bestDistance = distance;
+              bestIndex = index;
+            }
+          });
+
+          this.currentSlide = bestIndex;
+          [...this.navDotsContainer.children].forEach((dot, index) => {
+            dot.classList.toggle("active", index === bestIndex);
+          });
+        }
+
+        goToSlide(index) {
+          this.currentSlide = index;
+          this.slides[index].scrollIntoView({ behavior: "smooth", block: "start" });
+          this.syncToClosestSlide();
+        }
+      }
+
+      /* ===========================================
+         INLINE EDITOR
+         =========================================== */
+      class InlineDeckEditor {
+        constructor() {
+          this.isActive = false;
+          this.storageKey = "plog_editor_concept_slides_v1";
+          this.editToggle = document.getElementById("editToggle");
+          this.saveButton = document.getElementById("saveButton");
+          this.hotzone = document.querySelector(".edit-hotzone");
+          this.editables = [...document.querySelectorAll('[data-editable="true"]')];
+          this.hideTimeout = null;
+          this.restoreFromStorage();
+          this.setupInteractions();
+        }
+
+        setupInteractions() {
+          this.editToggle.addEventListener("click", () => this.toggleEditMode());
+          this.saveButton.addEventListener("click", () => this.exportHtml());
+
+          this.hotzone.addEventListener("mouseenter", () => {
+            window.clearTimeout(this.hideTimeout);
+            this.editToggle.classList.add("show");
+            this.saveButton.classList.add("show");
+          });
+
+          this.hotzone.addEventListener("mouseleave", () => {
+            this.deferHide();
+          });
+
+          [this.editToggle, this.saveButton].forEach((button) => {
+            button.addEventListener("mouseenter", () => {
+              window.clearTimeout(this.hideTimeout);
+            });
+            button.addEventListener("mouseleave", () => this.deferHide());
+          });
+
+          window.addEventListener("keydown", (event) => {
+            if (event.key.toLowerCase() === "e") {
+              if (["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName)) return;
+              event.preventDefault();
+              this.toggleEditMode();
+            }
+
+            if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s") {
+              if (!this.isActive) return;
+              event.preventDefault();
+              this.persist();
+            }
+          });
+
+          this.editables.forEach((element, index) => {
+            element.dataset.editId = `editable-${index}`;
+            element.addEventListener("input", () => this.persist());
+          });
+        }
+
+        deferHide() {
+          this.hideTimeout = window.setTimeout(() => {
+            if (!this.isActive) {
+              this.editToggle.classList.remove("show");
+              this.saveButton.classList.remove("show");
+            }
+          }, 400);
+        }
+
+        toggleEditMode() {
+          this.isActive = !this.isActive;
+          document.body.classList.toggle("edit-mode", this.isActive);
+          this.editToggle.classList.toggle("active", this.isActive);
+          this.saveButton.classList.toggle("active", this.isActive);
+
+          this.editables.forEach((element) => {
+            element.setAttribute("contenteditable", this.isActive ? "true" : "false");
+          });
+        }
+
+        persist() {
+          const payload = {};
+          this.editables.forEach((element) => {
+            payload[element.dataset.editId] = element.innerHTML;
+          });
+          window.localStorage.setItem(this.storageKey, JSON.stringify(payload));
+        }
+
+        restoreFromStorage() {
+          const raw = window.localStorage.getItem(this.storageKey);
+          if (!raw) return;
+          try {
+            const payload = JSON.parse(raw);
+            this.editables.forEach((element, index) => {
+              const key = `editable-${index}`;
+              if (payload[key]) element.innerHTML = payload[key];
+            });
+          } catch {
+            window.localStorage.removeItem(this.storageKey);
+          }
+        }
+
+        exportHtml() {
+          const clone = document.documentElement.cloneNode(true);
+          clone.querySelectorAll('[contenteditable="true"]').forEach((node) => {
+            node.setAttribute("contenteditable", "false");
+          });
+          const html = "<!DOCTYPE html>\n" + clone.outerHTML;
+          const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "plog-editor-concept-slides-edited.html";
+          link.click();
+          URL.revokeObjectURL(url);
+        }
+      }
+
+      const deck = new SlidePresentation();
+      const editor = new InlineDeckEditor();
+      window.deck = deck;
+      window.editor = editor;
+    </script>
+  </body>
+</html>

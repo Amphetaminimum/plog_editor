@@ -1,0 +1,176 @@
+<section class="module" id="module-2">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <div class="module-number">02</div>
+      <p class="module-subtitle">Every good system is a cast, not a blob.</p>
+      <h1 class="module-title">Meet the actors and what each one is responsible for</h1>
+    </header>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Think of the codebase like a small magazine studio</h2>
+      <p class="animate-in">The studio has a front desk, an editor-in-chief, a storage room, and specialists for export and layout. If you know who does what, you can tell AI exactly where new logic belongs.</p>
+      <div class="file-tree animate-in">
+        <div class="ft-file">
+          <span class="ft-name">index.html</span>
+          <span class="ft-desc">The visible shell: toolbar, canvas, inspector, dialogs, and templates.</span>
+        </div>
+        <div class="ft-file">
+          <span class="ft-name">app.js</span>
+          <span class="ft-desc">The conductor that wires state, events, managers, and user actions together.</span>
+        </div>
+        <div class="ft-folder open">
+          <span class="ft-name">js/</span>
+          <span class="ft-desc">Focused helper <span class="term" data-definition="A module is a self-contained file of code with one clear job. Splitting code into modules makes it easier to reason about, test, and change.">modules</span> instead of one giant file.</span>
+          <div class="ft-children">
+            <div class="ft-file"><span class="ft-name">doc-store.js</span><span class="ft-desc">Document library, metadata, restore and save behavior.</span></div>
+            <div class="ft-file"><span class="ft-name">editor-render.js</span><span class="ft-desc">Turns element data into live editable DOM nodes.</span></div>
+            <div class="ft-file"><span class="ft-name">history-manager.js</span><span class="ft-desc">Undo and redo snapshots plus operation history.</span></div>
+            <div class="ft-file"><span class="ft-name">export-manager.js</span><span class="ft-desc">Downloads raster images or standalone HTML.</span></div>
+            <div class="ft-file"><span class="ft-name">storage.js</span><span class="ft-desc">Browser database helpers for docs and image blobs.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">The system is split on purpose</h2>
+      <div class="pattern-cards stagger-children">
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-1)">
+          <div class="pattern-icon" style="background: var(--color-actor-1)">🎛️</div>
+          <h4 class="pattern-title">HTML shell</h4>
+          <p class="pattern-desc">Holds the controls and empty mounting points so JavaScript has somewhere to plug in.</p>
+        </div>
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+          <div class="pattern-icon" style="background: var(--color-actor-2)">🧠</div>
+          <h4 class="pattern-title">Central state</h4>
+          <p class="pattern-desc">Keeps the source of truth for elements, selection, docs, zoom, and mode.</p>
+        </div>
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-3)">
+          <div class="pattern-icon" style="background: var(--color-actor-3)">🧩</div>
+          <h4 class="pattern-title">Managers</h4>
+          <p class="pattern-desc">Each manager owns one slice of complexity instead of burying everything in one file.</p>
+        </div>
+      </div>
+      <div class="callout callout-info animate-in">
+        <div class="callout-icon">🧭</div>
+        <div class="callout-content">
+          <strong class="callout-title">Practical steering rule</strong>
+          <p>If you want a new behavior that changes only zoom and responsive shell behavior, ask AI to edit <code>shell-manager.js</code>, not random places in <code>app.js</code>.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">The opening of <code>app.js</code> tells you the architecture in one glance</h2>
+      <div class="translation-block animate-in">
+        <div class="translation-code">
+          <span class="translation-label">CODE</span>
+          <pre><code>
+<span class="code-line"><span class="code-keyword">import</span> &#123; createTextDialog &#125; <span class="code-keyword">from</span> <span class="code-string">"./js/dialog.js"</span>;</span>
+<span class="code-line"><span class="code-keyword">import</span> &#123; authoredCanvasWidthFromControls, canvasLayoutForWidth &#125; <span class="code-keyword">from</span> <span class="code-string">"./js/canvas-layout.js"</span>;</span>
+<span class="code-line"><span class="code-keyword">import</span> &#123; createDocStoreManager &#125; <span class="code-keyword">from</span> <span class="code-string">"./js/doc-store.js"</span>;</span>
+<span class="code-line"><span class="code-keyword">import</span> &#123; createEditorRenderManager &#125; <span class="code-keyword">from</span> <span class="code-string">"./js/editor-render.js"</span>;</span>
+<span class="code-line"><span class="code-keyword">import</span> &#123; createExportManager &#125; <span class="code-keyword">from</span> <span class="code-string">"./js/export-manager.js"</span>;</span>
+<span class="code-line"><span class="code-keyword">import</span> &#123; createHistoryManager &#125; <span class="code-keyword">from</span> <span class="code-string">"./js/history-manager.js"</span>;</span>
+<span class="code-line"><span class="code-keyword">import</span> &#123; createStateRenderer &#125; <span class="code-keyword">from</span> <span class="code-string">"./js/render-state.js"</span>;</span>
+<span class="code-line"><span class="code-keyword">import</span> &#123; createShellManager &#125; <span class="code-keyword">from</span> <span class="code-string">"./js/shell-manager.js"</span>;</span>
+<span class="code-line"><span class="code-keyword">import</span> &#123; idbDeleteAsset, idbGetAsset, idbSetAsset &#125; <span class="code-keyword">from</span> <span class="code-string">"./js/storage.js"</span>;</span>
+          </code></pre>
+        </div>
+        <div class="translation-english">
+          <span class="translation-label">PLAIN ENGLISH</span>
+          <div class="translation-lines">
+            <p class="tl">This file is not trying to do every job itself. It is importing specialists.</p>
+            <p class="tl">Each import name tells you the rough system map: layout, docs, rendering, history, shell, export, and storage.</p>
+            <p class="tl">That is a strong hint that the project has already moved away from “one giant script” thinking.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Group chat: how the actors talk to each other</h2>
+      <div class="chat-window animate-in" id="chat-module2">
+        <div class="chat-messages">
+          <div class="chat-message" data-msg="0" data-sender="actor-a" style="display:none">
+            <div class="chat-avatar" style="background: var(--color-actor-1)">H</div>
+            <div class="chat-bubble">
+              <span class="chat-sender" style="color: var(--color-actor-1)">HTML shell</span>
+              <p>The user clicked the New Plog button.</p>
+            </div>
+          </div>
+          <div class="chat-message" data-msg="1" data-sender="actor-b" style="display:none">
+            <div class="chat-avatar" style="background: var(--color-actor-2)">A</div>
+            <div class="chat-bubble">
+              <span class="chat-sender" style="color: var(--color-actor-2)">app.js</span>
+              <p>I will ask the doc store to create and restore the new document.</p>
+            </div>
+          </div>
+          <div class="chat-message" data-msg="2" data-sender="actor-c" style="display:none">
+            <div class="chat-avatar" style="background: var(--color-actor-3)">D</div>
+            <div class="chat-bubble">
+              <span class="chat-sender" style="color: var(--color-actor-3)">doc-store</span>
+              <p>I will write metadata, insert starter elements, and persist the new current doc ID.</p>
+            </div>
+          </div>
+          <div class="chat-message" data-msg="3" data-sender="actor-d" style="display:none">
+            <div class="chat-avatar" style="background: var(--color-actor-4)">R</div>
+            <div class="chat-bubble">
+              <span class="chat-sender" style="color: var(--color-actor-4)">render manager</span>
+              <p>Once the state is ready, I will make the new document visible in the canvas and drawer.</p>
+            </div>
+          </div>
+        </div>
+        <div class="chat-typing" id="chat-typing" style="display:none">
+          <div class="chat-avatar" id="chat-module2-typing-avatar">?</div>
+          <div class="chat-typing-dots">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          </div>
+        </div>
+        <div class="chat-controls">
+          <button class="btn chat-next-btn">Next Message</button>
+          <button class="btn chat-all-btn">Play All</button>
+          <button class="btn chat-reset-btn">Replay</button>
+          <span class="chat-progress"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Quiz: can you place the right responsibility?</h2>
+      <div class="quiz-container animate-in" id="quiz-module2">
+        <div class="quiz-question-block" data-correct="option-c" data-explanation-right="Exactly. The HTML shell is where controls and mounting points live." data-explanation-wrong="Not quite. The static toolbar buttons and panel layout belong to the shell in index.html.">
+          <h3 class="quiz-question">If you want to add a new button beside “Export PNG,” which file would you inspect first?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span><code>storage.js</code></span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span><code>render-state.js</code></span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span><code>index.html</code></span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <div class="quiz-question-block" data-correct="option-a" data-explanation-right="Yes. A new focused manager is usually the cleanest place for a self-contained responsibility." data-explanation-wrong="Not quite. If the feature has its own job, adding a focused manager often keeps the architecture clearer than bloating app.js further.">
+          <h3 class="quiz-question">Suppose you add a whole new subsystem for sharing plogs online. What architectural move best matches the style of this repo?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Create a focused manager/module for sharing and wire it into <code>app.js</code>.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Put all sharing code randomly across existing files.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Delete the current modules and move everything back into one file.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <div class="quiz-question-block" data-correct="option-b" data-explanation-right="Right — imports at the top of app.js give you a compact map of who the important players are." data-explanation-wrong="Close, but the quickest architecture summary is usually the import list at the top of the main orchestration file.">
+          <h3 class="quiz-question">What is the fastest place to skim if you want a rough architecture map of this app?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The favicon SVG.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The import section at the top of <code>app.js</code>.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The browser tab title.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <button class="quiz-check-btn" onclick="checkQuiz('quiz-module2')">Check Answers</button>
+        <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module2')">Try Again</button>
+      </div>
+    </div>
+  </div>
+</section>

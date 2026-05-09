@@ -1,0 +1,170 @@
+<section class="module" id="module-4">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <div class="module-number">04</div>
+      <p class="module-subtitle">This is where the app feels alive instead of static.</p>
+      <h1 class="module-title">How editing, rendering, zoom, and undo keep the canvas responsive</h1>
+    </header>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">The editor loop works like a theater stage crew</h2>
+      <div class="icon-rows stagger-children">
+        <div class="icon-row animate-in">
+          <div class="icon-circle" style="background: var(--color-actor-1)">✍️</div>
+          <div>
+            <strong>Editor render manager</strong>
+            <p>Connects real editable DOM nodes to the underlying data objects.</p>
+          </div>
+        </div>
+        <div class="icon-row animate-in">
+          <div class="icon-circle" style="background: var(--color-actor-2)">↩️</div>
+          <div>
+            <strong><span class="term" data-definition="An undo stack stores previous versions of state so the app can travel backward through recent changes.">History manager</span></strong>
+            <p>Keeps snapshots and operations so the user can step backward and forward safely.</p>
+          </div>
+        </div>
+        <div class="icon-row animate-in">
+          <div class="icon-circle" style="background: var(--color-actor-3)">🔍</div>
+          <div>
+            <strong>Shell manager</strong>
+            <p>Handles zoom, mobile panels, fit-to-frame behavior, and viewport metrics.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Real code: the app sanitizes and mirrors editable content back into state</h2>
+      <div class="translation-block animate-in">
+        <div class="translation-code">
+          <span class="translation-label">CODE</span>
+          <pre><code>
+<span class="code-line"><span class="code-keyword">function</span> <span class="code-function">setupNodeOnce</span>(node) &#123;</span>
+<span class="code-line">  <span class="code-keyword">const</span> syncEditableItem = (editable) =&gt; &#123;</span>
+<span class="code-line">    <span class="code-keyword">const</span> host = editable.closest(<span class="code-string">".el"</span>);</span>
+<span class="code-line">    <span class="code-keyword">const</span> current = host ? <span class="code-function">getElement</span>(host.dataset.id) : <span class="code-keyword">null</span>;</span>
+<span class="code-line">    <span class="code-keyword">if</span> (!current) <span class="code-keyword">return</span>;</span>
+<span class="code-line">    <span class="code-keyword">const</span> cleanHtml = <span class="code-function">sanitizeEditableHtml</span>(editable.innerHTML || <span class="code-string">""</span>);</span>
+<span class="code-line">    <span class="code-keyword">if</span> (editable.innerHTML !== cleanHtml) &#123;</span>
+<span class="code-line">      editable.innerHTML = cleanHtml;</span>
+<span class="code-line">    &#125;</span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="code-keyword">if</span> (editable.classList.contains(<span class="code-string">"content"</span>)) &#123;</span>
+<span class="code-line">      current.html = cleanHtml;</span>
+<span class="code-line">      current.content = editable.innerText || <span class="code-string">""</span>;</span>
+<span class="code-line">    &#125; <span class="code-keyword">else if</span> (editable.classList.contains(<span class="code-string">"quote-content"</span>)) &#123;</span>
+<span class="code-line">      current.html = cleanHtml;</span>
+<span class="code-line">      current.content = editable.innerText || <span class="code-string">""</span>;</span>
+<span class="code-line">    &#125;</span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="code-function">reflowAfterElement</span>(current.id);</span>
+<span class="code-line">    <span class="code-function">render</span>();</span>
+<span class="code-line">    <span class="code-function">saveSession</span>();</span>
+<span class="code-line">  &#125;;</span>
+          </code></pre>
+        </div>
+        <div class="translation-english">
+          <span class="translation-label">PLAIN ENGLISH</span>
+          <div class="translation-lines">
+            <p class="tl">When a user edits visible content, the code finds the matching element object underneath that DOM node.</p>
+            <p class="tl">Before saving anything, it cleans the HTML so pasted junk or unexpected formatting does not poison the state.</p>
+            <p class="tl">Then it updates the content, reflows the layout, redraws the view, and persists the session.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Three clever patterns worth stealing for your own AI projects</h2>
+      <div class="pattern-cards stagger-children">
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-1)">
+          <div class="pattern-icon" style="background: var(--color-actor-1)">🧼</div>
+          <h4 class="pattern-title">Sanitize on the way in</h4>
+          <p class="pattern-desc">User input is cleaned before it becomes trusted state. That prevents messy rich-text paste behavior from spreading.</p>
+        </div>
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+          <div class="pattern-icon" style="background: var(--color-actor-2)">📐</div>
+          <h4 class="pattern-title">Reflow after edits</h4>
+          <p class="pattern-desc">The app recalculates layout when text changes, so blocks keep stacking in a readable way.</p>
+        </div>
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-4)">
+          <div class="pattern-icon" style="background: var(--color-actor-4)">🔄</div>
+          <h4 class="pattern-title">Operation-aware undo</h4>
+          <p class="pattern-desc">The history manager remembers more than raw snapshots. It also understands specific moves like insert, delete, and resize.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Aha: zoom and width are treated as separate concerns</h2>
+      <div class="translation-block animate-in">
+        <div class="translation-code">
+          <span class="translation-label">CODE</span>
+          <pre><code>
+<span class="code-line"><span class="code-keyword">export function</span> <span class="code-function">authoredCanvasWidthFromControls</span>(widthMode, customWidthValue) &#123;</span>
+<span class="code-line">  <span class="code-keyword">if</span> (widthMode === <span class="code-string">"custom"</span>) &#123;</span>
+<span class="code-line">    <span class="code-keyword">return</span> clamp(Number(customWidthValue) || 1200, 480, 2400);</span>
+<span class="code-line">  &#125;</span>
+<span class="code-line">  <span class="code-keyword">return</span> clamp(Number(widthMode) || 1200, 480, 2400);</span>
+<span class="code-line">&#125;</span>
+<span class="code-line"></span>
+<span class="code-line"><span class="code-keyword">export function</span> <span class="code-function">fitZoomRatioForStage</span>(&#123; stageClientWidth, paddingLeft, paddingRight, authoredWidth &#125;) &#123;</span>
+<span class="code-line">  <span class="code-keyword">const</span> available = Math.max(180, stageClientWidth - paddingLeft - paddingRight - 8);</span>
+<span class="code-line">  <span class="code-keyword">return</span> clamp(available / Math.max(1, authoredWidth), 0.08, 1);</span>
+<span class="code-line">&#125;</span>
+          </code></pre>
+        </div>
+        <div class="translation-english">
+          <span class="translation-label">PLAIN ENGLISH</span>
+          <div class="translation-lines">
+            <p class="tl">First the app decides how wide the author wants the canvas to be in its own internal world.</p>
+            <p class="tl">Then it separately calculates how much that world should be scaled to fit the current screen.</p>
+            <p class="tl">That separation is why the app can support authored width choices and responsive zoom at the same time.</p>
+          </div>
+        </div>
+      </div>
+      <div class="callout callout-accent animate-in">
+        <div class="callout-icon">💡</div>
+        <div class="callout-content">
+          <strong class="callout-title">Universal engineering lesson</strong>
+          <p>Keep “what the content is” separate from “how it is currently displayed.” That single separation saves you from many responsive-layout bugs.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Quiz: where would you intervene when editing gets weird?</h2>
+      <div class="quiz-container animate-in" id="quiz-module4">
+        <div class="quiz-question-block" data-correct="option-a" data-explanation-right="Exactly. Sanitizing pasted or edited HTML is the first thing to inspect when formatting becomes chaotic." data-explanation-wrong="Not quite. The most likely first suspect is the sanitizing and sync path in the editor render manager.">
+          <h3 class="quiz-question">A pasted paragraph keeps bringing in ugly formatting from another app. Where would you inspect first?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The sanitizing and sync logic in <code>editor-render.js</code>.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The favicon SVG.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The docs README title.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <div class="quiz-question-block" data-correct="option-c" data-explanation-right="Yes. A history manager that understands operations gives you sharper undo behavior than naive full-page memory alone." data-explanation-wrong="Close, but the intent-aware history system is the key mechanism for making undo feel reliable.">
+          <h3 class="quiz-question">If undo feels unreliable after drag-resizing blocks, what system is most relevant?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The browser tab title.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The favicon loader.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The history manager that stores operations and snapshots.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <div class="quiz-question-block" data-correct="option-b" data-explanation-right="Right. Width is the authored document size; zoom is just the lens you are viewing it through." data-explanation-wrong="Not quite. The app deliberately treats document width and display zoom as different concepts.">
+          <h3 class="quiz-question">Why does the code separate authored canvas width from zoom ratio?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Because one controls the favicon and the other controls exports.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Because document size and viewing scale are different responsibilities.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Because JavaScript refuses to store two numbers in one file.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <button class="quiz-check-btn" onclick="checkQuiz('quiz-module4')">Check Answers</button>
+        <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module4')">Try Again</button>
+      </div>
+    </div>
+  </div>
+</section>

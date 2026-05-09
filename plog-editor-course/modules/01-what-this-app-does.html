@@ -1,0 +1,195 @@
+<section class="module" id="module-1">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <div class="module-number">01</div>
+      <p class="module-subtitle">Start from the thing you already understand: the product.</p>
+      <h1 class="module-title">What this app feels like from the inside</h1>
+    </header>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Plog Editor is a <span class="term" data-definition="Local-first means the app stores and works with your data on your own device first, instead of requiring a server round-trip for every action. This usually makes software feel faster and more private.">local-first</span> scrapbook machine</h2>
+      <p class="animate-in">You are not filling out a rigid blog form. You are placing text, photos, quotes, and cards onto one long visual strip that grows as your story grows.</p>
+      <div class="pattern-cards stagger-children">
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-1)">
+          <div class="pattern-icon" style="background: var(--color-actor-1)">🧾</div>
+          <h4 class="pattern-title">A single long canvas</h4>
+          <p class="pattern-desc">Instead of pages or slides, the app thinks in one continuous story surface.</p>
+        </div>
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+          <div class="pattern-icon" style="background: var(--color-actor-2)">🗂️</div>
+          <h4 class="pattern-title">Multiple plogs</h4>
+          <p class="pattern-desc">You can keep several documents and switch among them without needing an account.</p>
+        </div>
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-4)">
+          <div class="pattern-icon" style="background: var(--color-actor-4)">🖼️</div>
+          <h4 class="pattern-title">Image-first storytelling</h4>
+          <p class="pattern-desc">Photos are first-class citizens, not decorations hanging off a text editor.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">A user action is really a short relay race</h2>
+      <div class="step-cards stagger-children">
+        <div class="step-card animate-in">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>You click an element button</strong>
+            <p>The shell in <code>index.html</code> exposes buttons like Text, Image, Quote, and Card.</p>
+          </div>
+        </div>
+        <div class="step-card animate-in">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong><code>app.js</code> creates a new object</strong>
+            <p>The editor decides size, position, spacing, and default styles before anything appears on screen.</p>
+          </div>
+        </div>
+        <div class="step-card animate-in">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>The <span class="term" data-definition="The DOM, short for Document Object Model, is the browser's live tree of page elements. It is the structure JavaScript reads and changes when it updates what you see.">DOM</span> gets re-painted</strong>
+            <p>A render manager turns the data object into visible HTML nodes inside the long canvas.</p>
+          </div>
+        </div>
+        <div class="step-card animate-in">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <strong>The current document gets saved</strong>
+            <p>Your work is pushed into browser storage so refreshing the page does not wipe your progress.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Watch the message flow when you add something</h2>
+      <div class="flow-animation animate-in" data-steps='[
+        {"highlight":"flow-actor-1","label":"You press Paragraph"},
+        {"highlight":"flow-actor-2","label":"app.js creates an element object","packet":true,"from":"actor-1","to":"actor-2"},
+        {"highlight":"flow-actor-3","label":"the render manager paints it into the canvas","packet":true,"from":"actor-2","to":"actor-3"},
+        {"highlight":"flow-actor-4","label":"the document store persists the latest snapshot","packet":true,"from":"actor-3","to":"actor-4"}
+      ]'>
+        <div class="flow-actors">
+          <div class="flow-actor" id="flow-actor-1">
+            <div class="flow-actor-icon">👆</div>
+            <span>User</span>
+          </div>
+          <div class="flow-actor" id="flow-actor-2">
+            <div class="flow-actor-icon">🧠</div>
+            <span>app.js</span>
+          </div>
+          <div class="flow-actor" id="flow-actor-3">
+            <div class="flow-actor-icon">🎨</div>
+            <span>Render manager</span>
+          </div>
+          <div class="flow-actor" id="flow-actor-4">
+            <div class="flow-actor-icon">💾</div>
+            <span>Doc store</span>
+          </div>
+        </div>
+        <div class="flow-packet" id="flow-packet"></div>
+        <div class="flow-step-label" id="flow-label">Click "Next Step" to begin</div>
+        <div class="flow-controls">
+          <button class="btn flow-next-btn">Next Step</button>
+          <button class="btn flow-reset-btn">Restart</button>
+          <span class="flow-progress"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Real code: where a new element is born</h2>
+      <div class="translation-block animate-in">
+        <div class="translation-code">
+          <span class="translation-label">CODE</span>
+          <pre><code>
+<span class="code-line"><span class="code-keyword">function</span> <span class="code-function">createElement</span>(type, patch = {}) &#123;</span>
+<span class="code-line">  <span class="code-keyword">const</span> layout = <span class="code-function">canvasLayout</span>();</span>
+<span class="code-line">  <span class="code-keyword">const</span> prev = <span class="code-function">getInsertionAnchor</span>() || state.elements[state.elements.length - 1];</span>
+<span class="code-line">  <span class="code-keyword">const</span> spacingBefore = patch.spacingBefore ?? <span class="code-function">defaultSpacingBefore</span>(type, prev?.type);</span>
+<span class="code-line">  <span class="code-keyword">const</span> flow = <span class="code-function">getFlowPlacement</span>(type, spacingBefore);</span>
+<span class="code-line"></span>
+<span class="code-line">  <span class="code-keyword">const</span> base = &#123;</span>
+<span class="code-line">    <span class="code-property">id</span>: <span class="code-function">uid</span>(type),</span>
+<span class="code-line">    <span class="code-property">type</span>,</span>
+<span class="code-line">    <span class="code-property">x</span>: flow.x,</span>
+<span class="code-line">    <span class="code-property">y</span>: flow.y,</span>
+<span class="code-line">    <span class="code-property">width</span>: layout.contentWidth,</span>
+<span class="code-line">    <span class="code-property">height</span>: 120,</span>
+<span class="code-line">    <span class="code-property">content</span>: <span class="code-string">""</span>,</span>
+<span class="code-line">    <span class="code-property">html</span>: <span class="code-string">""</span>,</span>
+<span class="code-line">    <span class="code-property">placeholder</span>: <span class="code-string">"Write your story..."</span>,</span>
+<span class="code-line">    <span class="code-property">spacingBefore</span>,</span>
+<span class="code-line">    <span class="code-property">style</span>: &#123;</span>
+<span class="code-line">      <span class="code-property">fontSize</span>: 60,</span>
+<span class="code-line">      <span class="code-property">color</span>: <span class="code-string">"#1f1f22"</span>,</span>
+<span class="code-line">      <span class="code-property">radius</span>: 10,</span>
+<span class="code-line">      <span class="code-property">fontFamily</span>: <span class="code-string">"fangzheng"</span>,</span>
+<span class="code-line">      <span class="code-property">fontWeight</span>: 300,</span>
+<span class="code-line">      <span class="code-property">rotation</span>: 0,</span>
+<span class="code-line">      <span class="code-property">brightness</span>: 100,</span>
+<span class="code-line">      <span class="code-property">contrast</span>: 100,</span>
+<span class="code-line">      <span class="code-property">grayscale</span>: 0,</span>
+<span class="code-line">      <span class="code-property">frame</span>: <span class="code-string">"none"</span>,</span>
+<span class="code-line">    &#125;,</span>
+<span class="code-line">    <span class="code-property">src</span>: <span class="code-string">""</span>,</span>
+<span class="code-line">    <span class="code-property">aspectRatio</span>: <span class="code-keyword">null</span>,</span>
+<span class="code-line">  &#125;;</span>
+          </code></pre>
+        </div>
+        <div class="translation-english">
+          <span class="translation-label">PLAIN ENGLISH</span>
+          <div class="translation-lines">
+            <p class="tl">This function is the template factory. Every new thing you add starts here.</p>
+            <p class="tl">It looks at the current canvas layout and at the thing that came before, so new blocks can land in a sensible place.</p>
+            <p class="tl">Then it creates one base object with an ID, position, size, empty content, and default visual settings.</p>
+            <p class="tl">Nothing is visible yet. This is still just data waiting to be rendered.</p>
+          </div>
+        </div>
+      </div>
+      <div class="callout callout-accent animate-in">
+        <div class="callout-icon">💡</div>
+        <div class="callout-content">
+          <strong class="callout-title">Why this matters for steering AI</strong>
+          <p>If you know there is one factory function for new elements, you can tell an AI agent “change the defaults in createElement” instead of vaguely saying “make new blocks look different.”</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Quick check: can you trace the first move?</h2>
+      <div class="quiz-container animate-in" id="quiz-module1">
+        <div class="quiz-question-block" data-correct="option-b" data-explanation-right="Exactly — the app first creates a plain data object, then other code turns it into visible UI." data-explanation-wrong="Not quite. The app does not draw directly from the button click. It first creates structured data for the new element.">
+          <h3 class="quiz-question">When you click “Paragraph,” what is the most important thing that happens first?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The browser immediately saves a PNG export.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span><code>app.js</code> creates a new element object with defaults.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The image storage layer wakes up and downloads assets.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <div class="quiz-question-block" data-correct="option-c" data-explanation-right="Yes. The render manager is the part that turns data into visible nodes in the canvas." data-explanation-wrong="Close, but the key visual handoff is the render manager painting the DOM after the data object exists.">
+          <h3 class="quiz-question">If a new text box exists in memory but never appears on screen, where would you look first?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The export format dropdown.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The favicon.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The render path that maps element data into DOM nodes.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <div class="quiz-question-block" data-correct="option-a" data-explanation-right="Right — local persistence is what protects work across refreshes." data-explanation-wrong="Not quite. Undo helps within one session, but persistence is what lets the work survive a refresh or reopen.">
+          <h3 class="quiz-question">Why does local persistence matter so much in this app?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Because a journaling tool feels broken if your draft disappears after a refresh.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Because it lets CSS load faster.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Because it removes the need for HTML.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <button class="quiz-check-btn" onclick="checkQuiz('quiz-module1')">Check Answers</button>
+        <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module1')">Try Again</button>
+      </div>
+    </div>
+  </div>
+</section>

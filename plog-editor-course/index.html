@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How Plog Editor Works</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400;1,9..40,500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    :root {
+      --color-accent:       #D94F30;
+      --color-accent-hover: #C4432A;
+      --color-accent-light: #FDEEE9;
+      --color-accent-muted: #E8836C;
+    }
+  </style>
+
+  <script src="main.js" defer></script>
+</head>
+<body>
+
+  <nav class="nav" id="nav">
+    <div class="progress-bar" id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    <div class="nav-inner">
+      <span class="nav-title">How Plog Editor Works</span>
+      <div class="nav-dots" id="nav-dots" role="tablist">
+        <button class="nav-dot" data-target="module-1" data-tooltip="What the app does" role="tab" aria-label="Module 1: What the app does"></button>
+        <button class="nav-dot" data-target="module-2" data-tooltip="Meet the actors" role="tab" aria-label="Module 2: Meet the actors"></button>
+        <button class="nav-dot" data-target="module-3" data-tooltip="Saving without a server" role="tab" aria-label="Module 3: Saving without a server"></button>
+        <button class="nav-dot" data-target="module-4" data-tooltip="Editing and rendering" role="tab" aria-label="Module 4: Editing and rendering"></button>
+        <button class="nav-dot" data-target="module-5" data-tooltip="Export and boundaries" role="tab" aria-label="Module 5: Export and boundaries"></button>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main">
+<section class="module" id="module-1">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <div class="module-number">01</div>
+      <p class="module-subtitle">Start from the thing you already understand: the product.</p>
+      <h1 class="module-title">What this app feels like from the inside</h1>
+    </header>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Plog Editor is a <span class="term" data-definition="Local-first means the app stores and works with your data on your own device first, instead of requiring a server round-trip for every action. This usually makes software feel faster and more private.">local-first</span> scrapbook machine</h2>
+      <p class="animate-in">You are not filling out a rigid blog form. You are placing text, photos, quotes, and cards onto one long visual strip that grows as your story grows.</p>
+      <div class="pattern-cards stagger-children">
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-1)">
+          <div class="pattern-icon" style="background: var(--color-actor-1)">🧾</div>
+          <h4 class="pattern-title">A single long canvas</h4>
+          <p class="pattern-desc">Instead of pages or slides, the app thinks in one continuous story surface.</p>
+        </div>
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+          <div class="pattern-icon" style="background: var(--color-actor-2)">🗂️</div>
+          <h4 class="pattern-title">Multiple plogs</h4>
+          <p class="pattern-desc">You can keep several documents and switch among them without needing an account.</p>
+        </div>
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-4)">
+          <div class="pattern-icon" style="background: var(--color-actor-4)">🖼️</div>
+          <h4 class="pattern-title">Image-first storytelling</h4>
+          <p class="pattern-desc">Photos are first-class citizens, not decorations hanging off a text editor.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">A user action is really a short relay race</h2>
+      <div class="step-cards stagger-children">
+        <div class="step-card animate-in">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>You click an element button</strong>
+            <p>The shell in <code>index.html</code> exposes buttons like Text, Image, Quote, and Card.</p>
+          </div>
+        </div>
+        <div class="step-card animate-in">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong><code>app.js</code> creates a new object</strong>
+            <p>The editor decides size, position, spacing, and default styles before anything appears on screen.</p>
+          </div>
+        </div>
+        <div class="step-card animate-in">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>The <span class="term" data-definition="The DOM, short for Document Object Model, is the browser's live tree of page elements. It is the structure JavaScript reads and changes when it updates what you see.">DOM</span> gets re-painted</strong>
+            <p>A render manager turns the data object into visible HTML nodes inside the long canvas.</p>
+          </div>
+        </div>
+        <div class="step-card animate-in">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <strong>The current document gets saved</strong>
+            <p>Your work is pushed into browser storage so refreshing the page does not wipe your progress.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Watch the message flow when you add something</h2>
+      <div class="flow-animation animate-in" data-steps='[
+        {"highlight":"flow-actor-1","label":"You press Paragraph"},
+        {"highlight":"flow-actor-2","label":"app.js creates an element object","packet":true,"from":"actor-1","to":"actor-2"},
+        {"highlight":"flow-actor-3","label":"the render manager paints it into the canvas","packet":true,"from":"actor-2","to":"actor-3"},
+        {"highlight":"flow-actor-4","label":"the document store persists the latest snapshot","packet":true,"from":"actor-3","to":"actor-4"}
+      ]'>
+        <div class="flow-actors">
+          <div class="flow-actor" id="flow-actor-1">
+            <div class="flow-actor-icon">👆</div>
+            <span>User</span>
+          </div>
+          <div class="flow-actor" id="flow-actor-2">
+            <div class="flow-actor-icon">🧠</div>
+            <span>app.js</span>
+          </div>
+          <div class="flow-actor" id="flow-actor-3">
+            <div class="flow-actor-icon">🎨</div>
+            <span>Render manager</span>
+          </div>
+          <div class="flow-actor" id="flow-actor-4">
+            <div class="flow-actor-icon">💾</div>
+            <span>Doc store</span>
+          </div>
+        </div>
+        <div class="flow-packet" id="flow-packet"></div>
+        <div class="flow-step-label" id="flow-label">Click "Next Step" to begin</div>
+        <div class="flow-controls">
+          <button class="btn flow-next-btn">Next Step</button>
+          <button class="btn flow-reset-btn">Restart</button>
+          <span class="flow-progress"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Real code: where a new element is born</h2>
+      <div class="translation-block animate-in">
+        <div class="translation-code">
+          <span class="translation-label">CODE</span>
+          <pre><code>
+<span class="code-line"><span class="code-keyword">function</span> <span class="code-function">createElement</span>(type, patch = {}) &#123;</span>
+<span class="code-line">  <span class="code-keyword">const</span> layout = <span class="code-function">canvasLayout</span>();</span>
+<span class="code-line">  <span class="code-keyword">const</span> prev = <span class="code-function">getInsertionAnchor</span>() || state.elements[state.elements.length - 1];</span>
+<span class="code-line">  <span class="code-keyword">const</span> spacingBefore = patch.spacingBefore ?? <span class="code-function">defaultSpacingBefore</span>(type, prev?.type);</span>
+<span class="code-line">  <span class="code-keyword">const</span> flow = <span class="code-function">getFlowPlacement</span>(type, spacingBefore);</span>
+<span class="code-line"></span>
+<span class="code-line">  <span class="code-keyword">const</span> base = &#123;</span>
+<span class="code-line">    <span class="code-property">id</span>: <span class="code-function">uid</span>(type),</span>
+<span class="code-line">    <span class="code-property">type</span>,</span>
+<span class="code-line">    <span class="code-property">x</span>: flow.x,</span>
+<span class="code-line">    <span class="code-property">y</span>: flow.y,</span>
+<span class="code-line">    <span class="code-property">width</span>: layout.contentWidth,</span>
+<span class="code-line">    <span class="code-property">height</span>: 120,</span>
+<span class="code-line">    <span class="code-property">content</span>: <span class="code-string">""</span>,</span>
+<span class="code-line">    <span class="code-property">html</span>: <span class="code-string">""</span>,</span>
+<span class="code-line">    <span class="code-property">placeholder</span>: <span class="code-string">"Write your story..."</span>,</span>
+<span class="code-line">    <span class="code-property">spacingBefore</span>,</span>
+<span class="code-line">    <span class="code-property">style</span>: &#123;</span>
+<span class="code-line">      <span class="code-property">fontSize</span>: 60,</span>
+<span class="code-line">      <span class="code-property">color</span>: <span class="code-string">"#1f1f22"</span>,</span>
+<span class="code-line">      <span class="code-property">radius</span>: 10,</span>
+<span class="code-line">      <span class="code-property">fontFamily</span>: <span class="code-string">"fangzheng"</span>,</span>
+<span class="code-line">      <span class="code-property">fontWeight</span>: 300,</span>
+<span class="code-line">      <span class="code-property">rotation</span>: 0,</span>
+<span class="code-line">      <span class="code-property">brightness</span>: 100,</span>
+<span class="code-line">      <span class="code-property">contrast</span>: 100,</span>
+<span class="code-line">      <span class="code-property">grayscale</span>: 0,</span>
+<span class="code-line">      <span class="code-property">frame</span>: <span class="code-string">"none"</span>,</span>
+<span class="code-line">    &#125;,</span>
+<span class="code-line">    <span class="code-property">src</span>: <span class="code-string">""</span>,</span>
+<span class="code-line">    <span class="code-property">aspectRatio</span>: <span class="code-keyword">null</span>,</span>
+<span class="code-line">  &#125;;</span>
+          </code></pre>
+        </div>
+        <div class="translation-english">
+          <span class="translation-label">PLAIN ENGLISH</span>
+          <div class="translation-lines">
+            <p class="tl">This function is the template factory. Every new thing you add starts here.</p>
+            <p class="tl">It looks at the current canvas layout and at the thing that came before, so new blocks can land in a sensible place.</p>
+            <p class="tl">Then it creates one base object with an ID, position, size, empty content, and default visual settings.</p>
+            <p class="tl">Nothing is visible yet. This is still just data waiting to be rendered.</p>
+          </div>
+        </div>
+      </div>
+      <div class="callout callout-accent animate-in">
+        <div class="callout-icon">💡</div>
+        <div class="callout-content">
+          <strong class="callout-title">Why this matters for steering AI</strong>
+          <p>If you know there is one factory function for new elements, you can tell an AI agent “change the defaults in createElement” instead of vaguely saying “make new blocks look different.”</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Quick check: can you trace the first move?</h2>
+      <div class="quiz-container animate-in" id="quiz-module1">
+        <div class="quiz-question-block" data-correct="option-b" data-explanation-right="Exactly — the app first creates a plain data object, then other code turns it into visible UI." data-explanation-wrong="Not quite. The app does not draw directly from the button click. It first creates structured data for the new element.">
+          <h3 class="quiz-question">When you click “Paragraph,” what is the most important thing that happens first?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The browser immediately saves a PNG export.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span><code>app.js</code> creates a new element object with defaults.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The image storage layer wakes up and downloads assets.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <div class="quiz-question-block" data-correct="option-c" data-explanation-right="Yes. The render manager is the part that turns data into visible nodes in the canvas." data-explanation-wrong="Close, but the key visual handoff is the render manager painting the DOM after the data object exists.">
+          <h3 class="quiz-question">If a new text box exists in memory but never appears on screen, where would you look first?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The export format dropdown.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The favicon.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The render path that maps element data into DOM nodes.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <div class="quiz-question-block" data-correct="option-a" data-explanation-right="Right — local persistence is what protects work across refreshes." data-explanation-wrong="Not quite. Undo helps within one session, but persistence is what lets the work survive a refresh or reopen.">
+          <h3 class="quiz-question">Why does local persistence matter so much in this app?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Because a journaling tool feels broken if your draft disappears after a refresh.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Because it lets CSS load faster.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Because it removes the need for HTML.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <button class="quiz-check-btn" onclick="checkQuiz('quiz-module1')">Check Answers</button>
+        <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module1')">Try Again</button>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="module" id="module-2">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <div class="module-number">02</div>
+      <p class="module-subtitle">Every good system is a cast, not a blob.</p>
+      <h1 class="module-title">Meet the actors and what each one is responsible for</h1>
+    </header>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Think of the codebase like a small magazine studio</h2>
+      <p class="animate-in">The studio has a front desk, an editor-in-chief, a storage room, and specialists for export and layout. If you know who does what, you can tell AI exactly where new logic belongs.</p>
+      <div class="file-tree animate-in">
+        <div class="ft-file">
+          <span class="ft-name">index.html</span>
+          <span class="ft-desc">The visible shell: toolbar, canvas, inspector, dialogs, and templates.</span>
+        </div>
+        <div class="ft-file">
+          <span class="ft-name">app.js</span>
+          <span class="ft-desc">The conductor that wires state, events, managers, and user actions together.</span>
+        </div>
+        <div class="ft-folder open">
+          <span class="ft-name">js/</span>
+          <span class="ft-desc">Focused helper <span class="term" data-definition="A module is a self-contained file of code with one clear job. Splitting code into modules makes it easier to reason about, test, and change.">modules</span> instead of one giant file.</span>
+          <div class="ft-children">
+            <div class="ft-file"><span class="ft-name">doc-store.js</span><span class="ft-desc">Document library, metadata, restore and save behavior.</span></div>
+            <div class="ft-file"><span class="ft-name">editor-render.js</span><span class="ft-desc">Turns element data into live editable DOM nodes.</span></div>
+            <div class="ft-file"><span class="ft-name">history-manager.js</span><span class="ft-desc">Undo and redo snapshots plus operation history.</span></div>
+            <div class="ft-file"><span class="ft-name">export-manager.js</span><span class="ft-desc">Downloads raster images or standalone HTML.</span></div>
+            <div class="ft-file"><span class="ft-name">storage.js</span><span class="ft-desc">Browser database helpers for docs and image blobs.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">The system is split on purpose</h2>
+      <div class="pattern-cards stagger-children">
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-1)">
+          <div class="pattern-icon" style="background: var(--color-actor-1)">🎛️</div>
+          <h4 class="pattern-title">HTML shell</h4>
+          <p class="pattern-desc">Holds the controls and empty mounting points so JavaScript has somewhere to plug in.</p>
+        </div>
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+          <div class="pattern-icon" style="background: var(--color-actor-2)">🧠</div>
+          <h4 class="pattern-title">Central state</h4>
+          <p class="pattern-desc">Keeps the source of truth for elements, selection, docs, zoom, and mode.</p>
+        </div>
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-3)">
+          <div class="pattern-icon" style="background: var(--color-actor-3)">🧩</div>
+          <h4 class="pattern-title">Managers</h4>
+          <p class="pattern-desc">Each manager owns one slice of complexity instead of burying everything in one file.</p>
+        </div>
+      </div>
+      <div class="callout callout-info animate-in">
+        <div class="callout-icon">🧭</div>
+        <div class="callout-content">
+          <strong class="callout-title">Practical steering rule</strong>
+          <p>If you want a new behavior that changes only zoom and responsive shell behavior, ask AI to edit <code>shell-manager.js</code>, not random places in <code>app.js</code>.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">The opening of <code>app.js</code> tells you the architecture in one glance</h2>
+      <div class="translation-block animate-in">
+        <div class="translation-code">
+          <span class="translation-label">CODE</span>
+          <pre><code>
+<span class="code-line"><span class="code-keyword">import</span> &#123; createTextDialog &#125; <span class="code-keyword">from</span> <span class="code-string">"./js/dialog.js"</span>;</span>
+<span class="code-line"><span class="code-keyword">import</span> &#123; authoredCanvasWidthFromControls, canvasLayoutForWidth &#125; <span class="code-keyword">from</span> <span class="code-string">"./js/canvas-layout.js"</span>;</span>
+<span class="code-line"><span class="code-keyword">import</span> &#123; createDocStoreManager &#125; <span class="code-keyword">from</span> <span class="code-string">"./js/doc-store.js"</span>;</span>
+<span class="code-line"><span class="code-keyword">import</span> &#123; createEditorRenderManager &#125; <span class="code-keyword">from</span> <span class="code-string">"./js/editor-render.js"</span>;</span>
+<span class="code-line"><span class="code-keyword">import</span> &#123; createExportManager &#125; <span class="code-keyword">from</span> <span class="code-string">"./js/export-manager.js"</span>;</span>
+<span class="code-line"><span class="code-keyword">import</span> &#123; createHistoryManager &#125; <span class="code-keyword">from</span> <span class="code-string">"./js/history-manager.js"</span>;</span>
+<span class="code-line"><span class="code-keyword">import</span> &#123; createStateRenderer &#125; <span class="code-keyword">from</span> <span class="code-string">"./js/render-state.js"</span>;</span>
+<span class="code-line"><span class="code-keyword">import</span> &#123; createShellManager &#125; <span class="code-keyword">from</span> <span class="code-string">"./js/shell-manager.js"</span>;</span>
+<span class="code-line"><span class="code-keyword">import</span> &#123; idbDeleteAsset, idbGetAsset, idbSetAsset &#125; <span class="code-keyword">from</span> <span class="code-string">"./js/storage.js"</span>;</span>
+          </code></pre>
+        </div>
+        <div class="translation-english">
+          <span class="translation-label">PLAIN ENGLISH</span>
+          <div class="translation-lines">
+            <p class="tl">This file is not trying to do every job itself. It is importing specialists.</p>
+            <p class="tl">Each import name tells you the rough system map: layout, docs, rendering, history, shell, export, and storage.</p>
+            <p class="tl">That is a strong hint that the project has already moved away from “one giant script” thinking.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Group chat: how the actors talk to each other</h2>
+      <div class="chat-window animate-in" id="chat-module2">
+        <div class="chat-messages">
+          <div class="chat-message" data-msg="0" data-sender="actor-a" style="display:none">
+            <div class="chat-avatar" style="background: var(--color-actor-1)">H</div>
+            <div class="chat-bubble">
+              <span class="chat-sender" style="color: var(--color-actor-1)">HTML shell</span>
+              <p>The user clicked the New Plog button.</p>
+            </div>
+          </div>
+          <div class="chat-message" data-msg="1" data-sender="actor-b" style="display:none">
+            <div class="chat-avatar" style="background: var(--color-actor-2)">A</div>
+            <div class="chat-bubble">
+              <span class="chat-sender" style="color: var(--color-actor-2)">app.js</span>
+              <p>I will ask the doc store to create and restore the new document.</p>
+            </div>
+          </div>
+          <div class="chat-message" data-msg="2" data-sender="actor-c" style="display:none">
+            <div class="chat-avatar" style="background: var(--color-actor-3)">D</div>
+            <div class="chat-bubble">
+              <span class="chat-sender" style="color: var(--color-actor-3)">doc-store</span>
+              <p>I will write metadata, insert starter elements, and persist the new current doc ID.</p>
+            </div>
+          </div>
+          <div class="chat-message" data-msg="3" data-sender="actor-d" style="display:none">
+            <div class="chat-avatar" style="background: var(--color-actor-4)">R</div>
+            <div class="chat-bubble">
+              <span class="chat-sender" style="color: var(--color-actor-4)">render manager</span>
+              <p>Once the state is ready, I will make the new document visible in the canvas and drawer.</p>
+            </div>
+          </div>
+        </div>
+        <div class="chat-typing" id="chat-typing" style="display:none">
+          <div class="chat-avatar" id="chat-module2-typing-avatar">?</div>
+          <div class="chat-typing-dots">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          </div>
+        </div>
+        <div class="chat-controls">
+          <button class="btn chat-next-btn">Next Message</button>
+          <button class="btn chat-all-btn">Play All</button>
+          <button class="btn chat-reset-btn">Replay</button>
+          <span class="chat-progress"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Quiz: can you place the right responsibility?</h2>
+      <div class="quiz-container animate-in" id="quiz-module2">
+        <div class="quiz-question-block" data-correct="option-c" data-explanation-right="Exactly. The HTML shell is where controls and mounting points live." data-explanation-wrong="Not quite. The static toolbar buttons and panel layout belong to the shell in index.html.">
+          <h3 class="quiz-question">If you want to add a new button beside “Export PNG,” which file would you inspect first?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span><code>storage.js</code></span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span><code>render-state.js</code></span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span><code>index.html</code></span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <div class="quiz-question-block" data-correct="option-a" data-explanation-right="Yes. A new focused manager is usually the cleanest place for a self-contained responsibility." data-explanation-wrong="Not quite. If the feature has its own job, adding a focused manager often keeps the architecture clearer than bloating app.js further.">
+          <h3 class="quiz-question">Suppose you add a whole new subsystem for sharing plogs online. What architectural move best matches the style of this repo?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Create a focused manager/module for sharing and wire it into <code>app.js</code>.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Put all sharing code randomly across existing files.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Delete the current modules and move everything back into one file.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <div class="quiz-question-block" data-correct="option-b" data-explanation-right="Right — imports at the top of app.js give you a compact map of who the important players are." data-explanation-wrong="Close, but the quickest architecture summary is usually the import list at the top of the main orchestration file.">
+          <h3 class="quiz-question">What is the fastest place to skim if you want a rough architecture map of this app?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The favicon SVG.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The import section at the top of <code>app.js</code>.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The browser tab title.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <button class="quiz-check-btn" onclick="checkQuiz('quiz-module2')">Check Answers</button>
+        <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module2')">Try Again</button>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="module" id="module-3">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <div class="module-number">03</div>
+      <p class="module-subtitle">This is the part that makes the app feel trustworthy.</p>
+      <h1 class="module-title">How your plog survives without a server</h1>
+    </header>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">The storage model is closer to a personal locker than a cloud drive</h2>
+      <p class="animate-in">The app uses <span class="term" data-definition="IndexedDB is the browser's built-in database. It lets a web app store larger structured data and binary files locally, even after the tab closes.">IndexedDB</span> plus a tiny bit of <span class="term" data-definition="localStorage is a very small browser key-value store. It is simpler than IndexedDB and is good for tiny pieces of information like a remembered setting or the current document ID.">localStorage</span>. The big idea is simple: keep your real content locally, then remember which document you were using last.</p>
+      <div class="pattern-cards stagger-children">
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-1)">
+          <div class="pattern-icon" style="background: var(--color-actor-1)">📚</div>
+          <h4 class="pattern-title">Docs store</h4>
+          <p class="pattern-desc">Keeps the list of plogs, metadata like title and preview text, and the current doc ID.</p>
+        </div>
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+          <div class="pattern-icon" style="background: var(--color-actor-2)">🧱</div>
+          <h4 class="pattern-title">State snapshot</h4>
+          <p class="pattern-desc">Stores elements, zoom, theme, export settings, and other UI choices together.</p>
+        </div>
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-5)">
+          <div class="pattern-icon" style="background: var(--color-actor-5)">🖼️</div>
+          <h4 class="pattern-title">Asset blobs</h4>
+          <p class="pattern-desc">Images live as binary blobs in a separate bucket so large media is handled cleanly.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Real code: the browser database is opened lazily</h2>
+      <div class="translation-block animate-in">
+        <div class="translation-code">
+          <span class="translation-label">CODE</span>
+          <pre><code>
+<span class="code-line"><span class="code-keyword">const</span> DB_NAME = <span class="code-string">"plog_editor_db"</span>;</span>
+<span class="code-line"><span class="code-keyword">const</span> DB_STORE = <span class="code-string">"kv"</span>;</span>
+<span class="code-line"><span class="code-keyword">const</span> ASSET_STORE = <span class="code-string">"assets"</span>;</span>
+<span class="code-line"><span class="code-keyword">let</span> dbPromise = <span class="code-keyword">null</span>;</span>
+<span class="code-line"></span>
+<span class="code-line"><span class="code-keyword">function</span> <span class="code-function">openDatabase</span>() &#123;</span>
+<span class="code-line">  <span class="code-keyword">if</span> (dbPromise) <span class="code-keyword">return</span> dbPromise;</span>
+<span class="code-line"></span>
+<span class="code-line">  dbPromise = <span class="code-keyword">new</span> <span class="code-function">Promise</span>((resolve, reject) =&gt; &#123;</span>
+<span class="code-line">    <span class="code-keyword">const</span> request = indexedDB.<span class="code-function">open</span>(DB_NAME, 1);</span>
+<span class="code-line">    request.onupgradeneeded = () =&gt; &#123;</span>
+<span class="code-line">      <span class="code-keyword">const</span> db = request.result;</span>
+<span class="code-line">      <span class="code-keyword">if</span> (!db.objectStoreNames.<span class="code-function">contains</span>(DB_STORE)) &#123;</span>
+<span class="code-line">        db.<span class="code-function">createObjectStore</span>(DB_STORE);</span>
+<span class="code-line">      &#125;</span>
+<span class="code-line">      <span class="code-keyword">if</span> (!db.objectStoreNames.<span class="code-function">contains</span>(ASSET_STORE)) &#123;</span>
+<span class="code-line">        db.<span class="code-function">createObjectStore</span>(ASSET_STORE);</span>
+<span class="code-line">      &#125;</span>
+<span class="code-line">    &#125;;</span>
+<span class="code-line">    request.onsuccess = () =&gt; <span class="code-function">resolve</span>(request.result);</span>
+<span class="code-line">    request.onerror = () =&gt; &#123;</span>
+<span class="code-line">      dbPromise = <span class="code-keyword">null</span>;</span>
+<span class="code-line">      <span class="code-function">reject</span>(request.error || <span class="code-keyword">new</span> Error(<span class="code-string">"indexeddb-open-failed"</span>));</span>
+<span class="code-line">    &#125;;</span>
+<span class="code-line">  &#125;);</span>
+<span class="code-line"></span>
+<span class="code-line">  <span class="code-keyword">return</span> dbPromise;</span>
+<span class="code-line">&#125;</span>
+          </code></pre>
+        </div>
+        <div class="translation-english">
+          <span class="translation-label">PLAIN ENGLISH</span>
+          <div class="translation-lines">
+            <p class="tl">The app names one browser database and two internal shelves: one for general key-value data and one for image assets.</p>
+            <p class="tl">It does not open the database over and over. It remembers the in-progress promise so repeated callers can reuse it.</p>
+            <p class="tl">If this is the first time the database is created, the app sets up the missing stores before regular reads and writes begin.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Group chat: saving a document is a quiet conversation</h2>
+      <div class="chat-window animate-in" id="chat-module3">
+        <div class="chat-messages">
+          <div class="chat-message" data-msg="0" data-sender="actor-a" style="display:none">
+            <div class="chat-avatar" style="background: var(--color-actor-1)">E</div>
+            <div class="chat-bubble">
+              <span class="chat-sender" style="color: var(--color-actor-1)">Editor state</span>
+              <p>I changed. Please capture my current elements and UI settings.</p>
+            </div>
+          </div>
+          <div class="chat-message" data-msg="1" data-sender="actor-b" style="display:none">
+            <div class="chat-avatar" style="background: var(--color-actor-2)">D</div>
+            <div class="chat-bubble">
+              <span class="chat-sender" style="color: var(--color-actor-2)">doc-store</span>
+              <p>I will package the document snapshot and refresh the preview metadata.</p>
+            </div>
+          </div>
+          <div class="chat-message" data-msg="2" data-sender="actor-c" style="display:none">
+            <div class="chat-avatar" style="background: var(--color-actor-3)">I</div>
+            <div class="chat-bubble">
+              <span class="chat-sender" style="color: var(--color-actor-3)">IndexedDB</span>
+              <p>I will store the docs payload under a stable key.</p>
+            </div>
+          </div>
+          <div class="chat-message" data-msg="3" data-sender="actor-d" style="display:none">
+            <div class="chat-avatar" style="background: var(--color-actor-4)">L</div>
+            <div class="chat-bubble">
+              <span class="chat-sender" style="color: var(--color-actor-4)">localStorage</span>
+              <p>I will remember which document should reopen next time.</p>
+            </div>
+          </div>
+        </div>
+        <div class="chat-typing" style="display:none">
+          <div class="chat-avatar" id="chat-module3-typing-avatar">?</div>
+          <div class="chat-typing-dots">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          </div>
+        </div>
+        <div class="chat-controls">
+          <button class="btn chat-next-btn">Next Message</button>
+          <button class="btn chat-all-btn">Play All</button>
+          <button class="btn chat-reset-btn">Replay</button>
+          <span class="chat-progress"></span>
+        </div>
+      </div>
+      <div class="callout callout-warning animate-in">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-content">
+          <strong class="callout-title">Design tradeoff</strong>
+          <p>This is excellent for privacy and speed, but it also means there is no built-in cloud sync. If your browser storage is wiped, the app has no remote backup to rescue you.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Quiz: do you know where the data actually lives?</h2>
+      <div class="quiz-container animate-in" id="quiz-module3">
+        <div class="quiz-question-block" data-correct="option-b" data-explanation-right="Exactly. Image blobs need a heavier-duty local store than tiny text settings." data-explanation-wrong="Not quite. Images are stored as blobs in IndexedDB, not shoved into a tiny string-based store.">
+          <h3 class="quiz-question">If a user inserts a lot of photos, what local storage mechanism is doing the heavy lifting?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The browser tab title.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>IndexedDB, especially the separate asset store.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The CSS file.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <div class="quiz-question-block" data-correct="option-c" data-explanation-right="Yes. localStorage is used for the tiny ‘which document was current’ breadcrumb, while the fuller payload goes into IndexedDB." data-explanation-wrong="Close, but the current-doc breadcrumb is tiny enough for localStorage while the richer document payload belongs in IndexedDB.">
+          <h3 class="quiz-question">Why does this app use both IndexedDB and localStorage instead of only one?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Because HTML files are allergic to databases.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Because dark mode requires two storage systems.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Because one store handles rich local data while the other remembers a tiny convenience pointer.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <div class="quiz-question-block" data-correct="option-a" data-explanation-right="Right. That is the hidden cost of local-first without sync: losing browser storage means losing the only copy." data-explanation-wrong="Not quite. With no server copy, local browser data is the main source of truth.">
+          <h3 class="quiz-question">If someone clears all browser storage, what should you assume?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Their plogs may be gone unless they exported them elsewhere.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The app will automatically restore from a backend server.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Nothing important happens.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <button class="quiz-check-btn" onclick="checkQuiz('quiz-module3')">Check Answers</button>
+        <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module3')">Try Again</button>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="module" id="module-4">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <div class="module-number">04</div>
+      <p class="module-subtitle">This is where the app feels alive instead of static.</p>
+      <h1 class="module-title">How editing, rendering, zoom, and undo keep the canvas responsive</h1>
+    </header>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">The editor loop works like a theater stage crew</h2>
+      <div class="icon-rows stagger-children">
+        <div class="icon-row animate-in">
+          <div class="icon-circle" style="background: var(--color-actor-1)">✍️</div>
+          <div>
+            <strong>Editor render manager</strong>
+            <p>Connects real editable DOM nodes to the underlying data objects.</p>
+          </div>
+        </div>
+        <div class="icon-row animate-in">
+          <div class="icon-circle" style="background: var(--color-actor-2)">↩️</div>
+          <div>
+            <strong><span class="term" data-definition="An undo stack stores previous versions of state so the app can travel backward through recent changes.">History manager</span></strong>
+            <p>Keeps snapshots and operations so the user can step backward and forward safely.</p>
+          </div>
+        </div>
+        <div class="icon-row animate-in">
+          <div class="icon-circle" style="background: var(--color-actor-3)">🔍</div>
+          <div>
+            <strong>Shell manager</strong>
+            <p>Handles zoom, mobile panels, fit-to-frame behavior, and viewport metrics.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Real code: the app sanitizes and mirrors editable content back into state</h2>
+      <div class="translation-block animate-in">
+        <div class="translation-code">
+          <span class="translation-label">CODE</span>
+          <pre><code>
+<span class="code-line"><span class="code-keyword">function</span> <span class="code-function">setupNodeOnce</span>(node) &#123;</span>
+<span class="code-line">  <span class="code-keyword">const</span> syncEditableItem = (editable) =&gt; &#123;</span>
+<span class="code-line">    <span class="code-keyword">const</span> host = editable.closest(<span class="code-string">".el"</span>);</span>
+<span class="code-line">    <span class="code-keyword">const</span> current = host ? <span class="code-function">getElement</span>(host.dataset.id) : <span class="code-keyword">null</span>;</span>
+<span class="code-line">    <span class="code-keyword">if</span> (!current) <span class="code-keyword">return</span>;</span>
+<span class="code-line">    <span class="code-keyword">const</span> cleanHtml = <span class="code-function">sanitizeEditableHtml</span>(editable.innerHTML || <span class="code-string">""</span>);</span>
+<span class="code-line">    <span class="code-keyword">if</span> (editable.innerHTML !== cleanHtml) &#123;</span>
+<span class="code-line">      editable.innerHTML = cleanHtml;</span>
+<span class="code-line">    &#125;</span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="code-keyword">if</span> (editable.classList.contains(<span class="code-string">"content"</span>)) &#123;</span>
+<span class="code-line">      current.html = cleanHtml;</span>
+<span class="code-line">      current.content = editable.innerText || <span class="code-string">""</span>;</span>
+<span class="code-line">    &#125; <span class="code-keyword">else if</span> (editable.classList.contains(<span class="code-string">"quote-content"</span>)) &#123;</span>
+<span class="code-line">      current.html = cleanHtml;</span>
+<span class="code-line">      current.content = editable.innerText || <span class="code-string">""</span>;</span>
+<span class="code-line">    &#125;</span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="code-function">reflowAfterElement</span>(current.id);</span>
+<span class="code-line">    <span class="code-function">render</span>();</span>
+<span class="code-line">    <span class="code-function">saveSession</span>();</span>
+<span class="code-line">  &#125;;</span>
+          </code></pre>
+        </div>
+        <div class="translation-english">
+          <span class="translation-label">PLAIN ENGLISH</span>
+          <div class="translation-lines">
+            <p class="tl">When a user edits visible content, the code finds the matching element object underneath that DOM node.</p>
+            <p class="tl">Before saving anything, it cleans the HTML so pasted junk or unexpected formatting does not poison the state.</p>
+            <p class="tl">Then it updates the content, reflows the layout, redraws the view, and persists the session.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Three clever patterns worth stealing for your own AI projects</h2>
+      <div class="pattern-cards stagger-children">
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-1)">
+          <div class="pattern-icon" style="background: var(--color-actor-1)">🧼</div>
+          <h4 class="pattern-title">Sanitize on the way in</h4>
+          <p class="pattern-desc">User input is cleaned before it becomes trusted state. That prevents messy rich-text paste behavior from spreading.</p>
+        </div>
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+          <div class="pattern-icon" style="background: var(--color-actor-2)">📐</div>
+          <h4 class="pattern-title">Reflow after edits</h4>
+          <p class="pattern-desc">The app recalculates layout when text changes, so blocks keep stacking in a readable way.</p>
+        </div>
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-4)">
+          <div class="pattern-icon" style="background: var(--color-actor-4)">🔄</div>
+          <h4 class="pattern-title">Operation-aware undo</h4>
+          <p class="pattern-desc">The history manager remembers more than raw snapshots. It also understands specific moves like insert, delete, and resize.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Aha: zoom and width are treated as separate concerns</h2>
+      <div class="translation-block animate-in">
+        <div class="translation-code">
+          <span class="translation-label">CODE</span>
+          <pre><code>
+<span class="code-line"><span class="code-keyword">export function</span> <span class="code-function">authoredCanvasWidthFromControls</span>(widthMode, customWidthValue) &#123;</span>
+<span class="code-line">  <span class="code-keyword">if</span> (widthMode === <span class="code-string">"custom"</span>) &#123;</span>
+<span class="code-line">    <span class="code-keyword">return</span> clamp(Number(customWidthValue) || 1200, 480, 2400);</span>
+<span class="code-line">  &#125;</span>
+<span class="code-line">  <span class="code-keyword">return</span> clamp(Number(widthMode) || 1200, 480, 2400);</span>
+<span class="code-line">&#125;</span>
+<span class="code-line"></span>
+<span class="code-line"><span class="code-keyword">export function</span> <span class="code-function">fitZoomRatioForStage</span>(&#123; stageClientWidth, paddingLeft, paddingRight, authoredWidth &#125;) &#123;</span>
+<span class="code-line">  <span class="code-keyword">const</span> available = Math.max(180, stageClientWidth - paddingLeft - paddingRight - 8);</span>
+<span class="code-line">  <span class="code-keyword">return</span> clamp(available / Math.max(1, authoredWidth), 0.08, 1);</span>
+<span class="code-line">&#125;</span>
+          </code></pre>
+        </div>
+        <div class="translation-english">
+          <span class="translation-label">PLAIN ENGLISH</span>
+          <div class="translation-lines">
+            <p class="tl">First the app decides how wide the author wants the canvas to be in its own internal world.</p>
+            <p class="tl">Then it separately calculates how much that world should be scaled to fit the current screen.</p>
+            <p class="tl">That separation is why the app can support authored width choices and responsive zoom at the same time.</p>
+          </div>
+        </div>
+      </div>
+      <div class="callout callout-accent animate-in">
+        <div class="callout-icon">💡</div>
+        <div class="callout-content">
+          <strong class="callout-title">Universal engineering lesson</strong>
+          <p>Keep “what the content is” separate from “how it is currently displayed.” That single separation saves you from many responsive-layout bugs.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Quiz: where would you intervene when editing gets weird?</h2>
+      <div class="quiz-container animate-in" id="quiz-module4">
+        <div class="quiz-question-block" data-correct="option-a" data-explanation-right="Exactly. Sanitizing pasted or edited HTML is the first thing to inspect when formatting becomes chaotic." data-explanation-wrong="Not quite. The most likely first suspect is the sanitizing and sync path in the editor render manager.">
+          <h3 class="quiz-question">A pasted paragraph keeps bringing in ugly formatting from another app. Where would you inspect first?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The sanitizing and sync logic in <code>editor-render.js</code>.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The favicon SVG.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The docs README title.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <div class="quiz-question-block" data-correct="option-c" data-explanation-right="Yes. A history manager that understands operations gives you sharper undo behavior than naive full-page memory alone." data-explanation-wrong="Close, but the intent-aware history system is the key mechanism for making undo feel reliable.">
+          <h3 class="quiz-question">If undo feels unreliable after drag-resizing blocks, what system is most relevant?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The browser tab title.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The favicon loader.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The history manager that stores operations and snapshots.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <div class="quiz-question-block" data-correct="option-b" data-explanation-right="Right. Width is the authored document size; zoom is just the lens you are viewing it through." data-explanation-wrong="Not quite. The app deliberately treats document width and display zoom as different concepts.">
+          <h3 class="quiz-question">Why does the code separate authored canvas width from zoom ratio?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Because one controls the favicon and the other controls exports.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Because document size and viewing scale are different responsibilities.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Because JavaScript refuses to store two numbers in one file.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <button class="quiz-check-btn" onclick="checkQuiz('quiz-module4')">Check Answers</button>
+        <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module4')">Try Again</button>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="module" id="module-5">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <div class="module-number">05</div>
+      <p class="module-subtitle">The final module is about outputs and limits.</p>
+      <h1 class="module-title">How export works, where the edges are, and what this codebase is ready for next</h1>
+    </header>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">This app has two exit doors: raster image and standalone HTML</h2>
+      <div class="pattern-cards stagger-children">
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-1)">
+          <div class="pattern-icon" style="background: var(--color-actor-1)">🖼️</div>
+          <h4 class="pattern-title">Raster export</h4>
+          <p class="pattern-desc">Turn the current canvas into PNG, JPG, or WebP so it can be posted like a long image.</p>
+        </div>
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+          <div class="pattern-icon" style="background: var(--color-actor-2)">🌐</div>
+          <h4 class="pattern-title">HTML export</h4>
+          <p class="pattern-desc">Package the current visual result into a self-contained HTML file that opens elsewhere.</p>
+        </div>
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-4)">
+          <div class="pattern-icon" style="background: var(--color-actor-4)">🎛️</div>
+          <h4 class="pattern-title">Appearance-aware output</h4>
+          <p class="pattern-desc">The export layer can match the current theme or force a light or dark version.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Real code: exporting HTML means cloning the canvas and inlining the styles</h2>
+      <div class="translation-block animate-in">
+        <div class="translation-code">
+          <span class="translation-label">CODE</span>
+          <pre><code>
+<span class="code-line"><span class="code-keyword">async function</span> <span class="code-function">exportHtml</span>() &#123;</span>
+<span class="code-line">  <span class="code-function">flushRender</span>();</span>
+<span class="code-line">  <span class="code-keyword">await</span> <span class="code-function">hydrateAssetSources</span>(<span class="code-function">getElements</span>(), <span class="code-function">getAssetLoadToken</span>());</span>
+<span class="code-line">  <span class="code-keyword">const</span> clone = <span class="code-function">cloneCanvasForExport</span>();</span>
+<span class="code-line">  <span class="code-keyword">const</span> css = <span class="code-function">collectStylesText</span>();</span>
+<span class="code-line">  <span class="code-keyword">const</span> appearance = <span class="code-function">currentExportAppearance</span>();</span>
+<span class="code-line">  <span class="code-keyword">const</span> width = canvas.clientWidth;</span>
+<span class="code-line">  <span class="code-keyword">const</span> height = canvas.offsetHeight;</span>
+<span class="code-line">  <span class="code-keyword">const</span> html = <span class="code-string">`&lt;!doctype html&gt;</span>
+<span class="code-line"><span class="code-string">&lt;html lang="zh-CN"&gt;</span>
+<span class="code-line"><span class="code-string">&lt;head&gt;</span>
+<span class="code-line"><span class="code-string">  &lt;meta charset="UTF-8" /&gt;</span>
+<span class="code-line"><span class="code-string">  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0" /&gt;</span>
+<span class="code-line"><span class="code-string">  &lt;title&gt;${escapeHtml(docName())}&lt;/title&gt;</span>
+<span class="code-line"><span class="code-string">  &lt;style&gt;${css}&lt;/style&gt;</span>
+<span class="code-line"><span class="code-string">&lt;/head&gt;</span>
+<span class="code-line"><span class="code-string">&lt;body class="${appearance === "dark" ? "theme-dark" : ""}" style="margin:0;background:${exportPalette().background};display:flex;justify-content:center;padding:24px;"&gt;</span>
+<span class="code-line"><span class="code-string">  &lt;div style="position:relative;width:${width}px;min-height:${height}px;"&gt;${clone.outerHTML}&lt;/div&gt;</span>
+<span class="code-line"><span class="code-string">&lt;/body&gt;</span>
+<span class="code-line"><span class="code-string">&lt;/html&gt;`;</span></span>
+<span class="code-line">&#125;</span>
+          </code></pre>
+        </div>
+        <div class="translation-english">
+          <span class="translation-label">PLAIN ENGLISH</span>
+          <div class="translation-lines">
+            <p class="tl">Before exporting, the app forces the latest render and makes sure image sources are ready.</p>
+            <p class="tl">Then it clones the current canvas, grabs all styles from the page, and wraps the result inside a full HTML document string.</p>
+            <p class="tl">That is why the exported HTML can stand on its own: it carries both the visual markup and the CSS it needs.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">The repo is already honest about its unfinished parts</h2>
+      <div class="step-cards stagger-children">
+        <div class="step-card animate-in">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>Rich text is not fully production-hard</strong>
+            <p>The current editing model is thoughtful, but there is still room for more robust text behavior.</p>
+          </div>
+        </div>
+        <div class="step-card animate-in">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong>Image tooling is promising, not complete</strong>
+            <p>Rotation, brightness, contrast and frames exist, but crop and rotate handles are still called out as a gap.</p>
+          </div>
+        </div>
+        <div class="step-card animate-in">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>Cloud sync is the big strategic missing piece</strong>
+            <p>The architecture is local-first today, which is a strength, but collaboration and remote backup are not built yet.</p>
+          </div>
+        </div>
+      </div>
+      <div class="callout callout-info animate-in">
+        <div class="callout-icon">🚀</div>
+        <div class="callout-content">
+          <strong class="callout-title">Why this codebase is still worth studying</strong>
+          <p>It already has the hard beginnings of a real product: focused modules, local persistence, export paths, undo logic, and a clear product boundary. That is much more valuable than a flashy but shapeless demo.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Quiz: what would you build next, and where?</h2>
+      <div class="quiz-container animate-in" id="quiz-module5">
+        <div class="quiz-question-block" data-correct="option-b" data-explanation-right="Exactly. Cloud sync is the missing product layer that would change how persistence and conflict handling work." data-explanation-wrong="Not quite. Export is already there; the bigger strategic jump is sync and collaboration.">
+          <h3 class="quiz-question">If you wanted to make this app feel much more production-ready for real creators, which missing capability would most change the architecture?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Another button color.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Cloud sync and collaboration.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>A second favicon.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <div class="quiz-question-block" data-correct="option-a" data-explanation-right="Yes. export-manager.js is where output formats and packaging logic live." data-explanation-wrong="Close, but the export manager is the place that already owns file-output behavior.">
+          <h3 class="quiz-question">If an AI agent needs to add PDF export, where is the most logical place to start?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span><code>export-manager.js</code></span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span><code>favicon.svg</code></span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The README headline only.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <div class="quiz-question-block" data-correct="option-c" data-explanation-right="Right. A useful course is not just about admiring the code — it is about gaining vocabulary and mental models so you can direct AI more precisely." data-explanation-wrong="Not quite. The main payoff here is practical fluency: better prompts, better debugging, and better architectural judgment.">
+          <h3 class="quiz-question">What is the most practical reason to understand this codebase at this level?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>So you can memorize every line forever.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>So you never need AI help again.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>So you can steer AI with sharper requests and debug it when it gets stuck.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <button class="quiz-check-btn" onclick="checkQuiz('quiz-module5')">Check Answers</button>
+        <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module5')">Try Again</button>
+      </div>
+    </div>
+  </div>
+</section>
+  </main>
+
+</body>
+</html>

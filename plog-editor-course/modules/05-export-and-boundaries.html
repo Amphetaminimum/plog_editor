@@ -1,0 +1,139 @@
+<section class="module" id="module-5">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <div class="module-number">05</div>
+      <p class="module-subtitle">The final module is about outputs and limits.</p>
+      <h1 class="module-title">How export works, where the edges are, and what this codebase is ready for next</h1>
+    </header>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">This app has two exit doors: raster image and standalone HTML</h2>
+      <div class="pattern-cards stagger-children">
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-1)">
+          <div class="pattern-icon" style="background: var(--color-actor-1)">🖼️</div>
+          <h4 class="pattern-title">Raster export</h4>
+          <p class="pattern-desc">Turn the current canvas into PNG, JPG, or WebP so it can be posted like a long image.</p>
+        </div>
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+          <div class="pattern-icon" style="background: var(--color-actor-2)">🌐</div>
+          <h4 class="pattern-title">HTML export</h4>
+          <p class="pattern-desc">Package the current visual result into a self-contained HTML file that opens elsewhere.</p>
+        </div>
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-4)">
+          <div class="pattern-icon" style="background: var(--color-actor-4)">🎛️</div>
+          <h4 class="pattern-title">Appearance-aware output</h4>
+          <p class="pattern-desc">The export layer can match the current theme or force a light or dark version.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Real code: exporting HTML means cloning the canvas and inlining the styles</h2>
+      <div class="translation-block animate-in">
+        <div class="translation-code">
+          <span class="translation-label">CODE</span>
+          <pre><code>
+<span class="code-line"><span class="code-keyword">async function</span> <span class="code-function">exportHtml</span>() &#123;</span>
+<span class="code-line">  <span class="code-function">flushRender</span>();</span>
+<span class="code-line">  <span class="code-keyword">await</span> <span class="code-function">hydrateAssetSources</span>(<span class="code-function">getElements</span>(), <span class="code-function">getAssetLoadToken</span>());</span>
+<span class="code-line">  <span class="code-keyword">const</span> clone = <span class="code-function">cloneCanvasForExport</span>();</span>
+<span class="code-line">  <span class="code-keyword">const</span> css = <span class="code-function">collectStylesText</span>();</span>
+<span class="code-line">  <span class="code-keyword">const</span> appearance = <span class="code-function">currentExportAppearance</span>();</span>
+<span class="code-line">  <span class="code-keyword">const</span> width = canvas.clientWidth;</span>
+<span class="code-line">  <span class="code-keyword">const</span> height = canvas.offsetHeight;</span>
+<span class="code-line">  <span class="code-keyword">const</span> html = <span class="code-string">`&lt;!doctype html&gt;</span>
+<span class="code-line"><span class="code-string">&lt;html lang="zh-CN"&gt;</span>
+<span class="code-line"><span class="code-string">&lt;head&gt;</span>
+<span class="code-line"><span class="code-string">  &lt;meta charset="UTF-8" /&gt;</span>
+<span class="code-line"><span class="code-string">  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0" /&gt;</span>
+<span class="code-line"><span class="code-string">  &lt;title&gt;${escapeHtml(docName())}&lt;/title&gt;</span>
+<span class="code-line"><span class="code-string">  &lt;style&gt;${css}&lt;/style&gt;</span>
+<span class="code-line"><span class="code-string">&lt;/head&gt;</span>
+<span class="code-line"><span class="code-string">&lt;body class="${appearance === "dark" ? "theme-dark" : ""}" style="margin:0;background:${exportPalette().background};display:flex;justify-content:center;padding:24px;"&gt;</span>
+<span class="code-line"><span class="code-string">  &lt;div style="position:relative;width:${width}px;min-height:${height}px;"&gt;${clone.outerHTML}&lt;/div&gt;</span>
+<span class="code-line"><span class="code-string">&lt;/body&gt;</span>
+<span class="code-line"><span class="code-string">&lt;/html&gt;`;</span></span>
+<span class="code-line">&#125;</span>
+          </code></pre>
+        </div>
+        <div class="translation-english">
+          <span class="translation-label">PLAIN ENGLISH</span>
+          <div class="translation-lines">
+            <p class="tl">Before exporting, the app forces the latest render and makes sure image sources are ready.</p>
+            <p class="tl">Then it clones the current canvas, grabs all styles from the page, and wraps the result inside a full HTML document string.</p>
+            <p class="tl">That is why the exported HTML can stand on its own: it carries both the visual markup and the CSS it needs.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">The repo is already honest about its unfinished parts</h2>
+      <div class="step-cards stagger-children">
+        <div class="step-card animate-in">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>Rich text is not fully production-hard</strong>
+            <p>The current editing model is thoughtful, but there is still room for more robust text behavior.</p>
+          </div>
+        </div>
+        <div class="step-card animate-in">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong>Image tooling is promising, not complete</strong>
+            <p>Rotation, brightness, contrast and frames exist, but crop and rotate handles are still called out as a gap.</p>
+          </div>
+        </div>
+        <div class="step-card animate-in">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>Cloud sync is the big strategic missing piece</strong>
+            <p>The architecture is local-first today, which is a strength, but collaboration and remote backup are not built yet.</p>
+          </div>
+        </div>
+      </div>
+      <div class="callout callout-info animate-in">
+        <div class="callout-icon">🚀</div>
+        <div class="callout-content">
+          <strong class="callout-title">Why this codebase is still worth studying</strong>
+          <p>It already has the hard beginnings of a real product: focused modules, local persistence, export paths, undo logic, and a clear product boundary. That is much more valuable than a flashy but shapeless demo.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Quiz: what would you build next, and where?</h2>
+      <div class="quiz-container animate-in" id="quiz-module5">
+        <div class="quiz-question-block" data-correct="option-b" data-explanation-right="Exactly. Cloud sync is the missing product layer that would change how persistence and conflict handling work." data-explanation-wrong="Not quite. Export is already there; the bigger strategic jump is sync and collaboration.">
+          <h3 class="quiz-question">If you wanted to make this app feel much more production-ready for real creators, which missing capability would most change the architecture?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Another button color.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Cloud sync and collaboration.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>A second favicon.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <div class="quiz-question-block" data-correct="option-a" data-explanation-right="Yes. export-manager.js is where output formats and packaging logic live." data-explanation-wrong="Close, but the export manager is the place that already owns file-output behavior.">
+          <h3 class="quiz-question">If an AI agent needs to add PDF export, where is the most logical place to start?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span><code>export-manager.js</code></span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span><code>favicon.svg</code></span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The README headline only.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <div class="quiz-question-block" data-correct="option-c" data-explanation-right="Right. A useful course is not just about admiring the code — it is about gaining vocabulary and mental models so you can direct AI more precisely." data-explanation-wrong="Not quite. The main payoff here is practical fluency: better prompts, better debugging, and better architectural judgment.">
+          <h3 class="quiz-question">What is the most practical reason to understand this codebase at this level?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>So you can memorize every line forever.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>So you never need AI help again.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>So you can steer AI with sharper requests and debug it when it gets stuck.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <button class="quiz-check-btn" onclick="checkQuiz('quiz-module5')">Check Answers</button>
+        <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module5')">Try Again</button>
+      </div>
+    </div>
+  </div>
+</section>

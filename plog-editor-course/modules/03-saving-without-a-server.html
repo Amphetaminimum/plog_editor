@@ -1,0 +1,170 @@
+<section class="module" id="module-3">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <div class="module-number">03</div>
+      <p class="module-subtitle">This is the part that makes the app feel trustworthy.</p>
+      <h1 class="module-title">How your plog survives without a server</h1>
+    </header>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">The storage model is closer to a personal locker than a cloud drive</h2>
+      <p class="animate-in">The app uses <span class="term" data-definition="IndexedDB is the browser's built-in database. It lets a web app store larger structured data and binary files locally, even after the tab closes.">IndexedDB</span> plus a tiny bit of <span class="term" data-definition="localStorage is a very small browser key-value store. It is simpler than IndexedDB and is good for tiny pieces of information like a remembered setting or the current document ID.">localStorage</span>. The big idea is simple: keep your real content locally, then remember which document you were using last.</p>
+      <div class="pattern-cards stagger-children">
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-1)">
+          <div class="pattern-icon" style="background: var(--color-actor-1)">📚</div>
+          <h4 class="pattern-title">Docs store</h4>
+          <p class="pattern-desc">Keeps the list of plogs, metadata like title and preview text, and the current doc ID.</p>
+        </div>
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-2)">
+          <div class="pattern-icon" style="background: var(--color-actor-2)">🧱</div>
+          <h4 class="pattern-title">State snapshot</h4>
+          <p class="pattern-desc">Stores elements, zoom, theme, export settings, and other UI choices together.</p>
+        </div>
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-5)">
+          <div class="pattern-icon" style="background: var(--color-actor-5)">🖼️</div>
+          <h4 class="pattern-title">Asset blobs</h4>
+          <p class="pattern-desc">Images live as binary blobs in a separate bucket so large media is handled cleanly.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Real code: the browser database is opened lazily</h2>
+      <div class="translation-block animate-in">
+        <div class="translation-code">
+          <span class="translation-label">CODE</span>
+          <pre><code>
+<span class="code-line"><span class="code-keyword">const</span> DB_NAME = <span class="code-string">"plog_editor_db"</span>;</span>
+<span class="code-line"><span class="code-keyword">const</span> DB_STORE = <span class="code-string">"kv"</span>;</span>
+<span class="code-line"><span class="code-keyword">const</span> ASSET_STORE = <span class="code-string">"assets"</span>;</span>
+<span class="code-line"><span class="code-keyword">let</span> dbPromise = <span class="code-keyword">null</span>;</span>
+<span class="code-line"></span>
+<span class="code-line"><span class="code-keyword">function</span> <span class="code-function">openDatabase</span>() &#123;</span>
+<span class="code-line">  <span class="code-keyword">if</span> (dbPromise) <span class="code-keyword">return</span> dbPromise;</span>
+<span class="code-line"></span>
+<span class="code-line">  dbPromise = <span class="code-keyword">new</span> <span class="code-function">Promise</span>((resolve, reject) =&gt; &#123;</span>
+<span class="code-line">    <span class="code-keyword">const</span> request = indexedDB.<span class="code-function">open</span>(DB_NAME, 1);</span>
+<span class="code-line">    request.onupgradeneeded = () =&gt; &#123;</span>
+<span class="code-line">      <span class="code-keyword">const</span> db = request.result;</span>
+<span class="code-line">      <span class="code-keyword">if</span> (!db.objectStoreNames.<span class="code-function">contains</span>(DB_STORE)) &#123;</span>
+<span class="code-line">        db.<span class="code-function">createObjectStore</span>(DB_STORE);</span>
+<span class="code-line">      &#125;</span>
+<span class="code-line">      <span class="code-keyword">if</span> (!db.objectStoreNames.<span class="code-function">contains</span>(ASSET_STORE)) &#123;</span>
+<span class="code-line">        db.<span class="code-function">createObjectStore</span>(ASSET_STORE);</span>
+<span class="code-line">      &#125;</span>
+<span class="code-line">    &#125;;</span>
+<span class="code-line">    request.onsuccess = () =&gt; <span class="code-function">resolve</span>(request.result);</span>
+<span class="code-line">    request.onerror = () =&gt; &#123;</span>
+<span class="code-line">      dbPromise = <span class="code-keyword">null</span>;</span>
+<span class="code-line">      <span class="code-function">reject</span>(request.error || <span class="code-keyword">new</span> Error(<span class="code-string">"indexeddb-open-failed"</span>));</span>
+<span class="code-line">    &#125;;</span>
+<span class="code-line">  &#125;);</span>
+<span class="code-line"></span>
+<span class="code-line">  <span class="code-keyword">return</span> dbPromise;</span>
+<span class="code-line">&#125;</span>
+          </code></pre>
+        </div>
+        <div class="translation-english">
+          <span class="translation-label">PLAIN ENGLISH</span>
+          <div class="translation-lines">
+            <p class="tl">The app names one browser database and two internal shelves: one for general key-value data and one for image assets.</p>
+            <p class="tl">It does not open the database over and over. It remembers the in-progress promise so repeated callers can reuse it.</p>
+            <p class="tl">If this is the first time the database is created, the app sets up the missing stores before regular reads and writes begin.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Group chat: saving a document is a quiet conversation</h2>
+      <div class="chat-window animate-in" id="chat-module3">
+        <div class="chat-messages">
+          <div class="chat-message" data-msg="0" data-sender="actor-a" style="display:none">
+            <div class="chat-avatar" style="background: var(--color-actor-1)">E</div>
+            <div class="chat-bubble">
+              <span class="chat-sender" style="color: var(--color-actor-1)">Editor state</span>
+              <p>I changed. Please capture my current elements and UI settings.</p>
+            </div>
+          </div>
+          <div class="chat-message" data-msg="1" data-sender="actor-b" style="display:none">
+            <div class="chat-avatar" style="background: var(--color-actor-2)">D</div>
+            <div class="chat-bubble">
+              <span class="chat-sender" style="color: var(--color-actor-2)">doc-store</span>
+              <p>I will package the document snapshot and refresh the preview metadata.</p>
+            </div>
+          </div>
+          <div class="chat-message" data-msg="2" data-sender="actor-c" style="display:none">
+            <div class="chat-avatar" style="background: var(--color-actor-3)">I</div>
+            <div class="chat-bubble">
+              <span class="chat-sender" style="color: var(--color-actor-3)">IndexedDB</span>
+              <p>I will store the docs payload under a stable key.</p>
+            </div>
+          </div>
+          <div class="chat-message" data-msg="3" data-sender="actor-d" style="display:none">
+            <div class="chat-avatar" style="background: var(--color-actor-4)">L</div>
+            <div class="chat-bubble">
+              <span class="chat-sender" style="color: var(--color-actor-4)">localStorage</span>
+              <p>I will remember which document should reopen next time.</p>
+            </div>
+          </div>
+        </div>
+        <div class="chat-typing" style="display:none">
+          <div class="chat-avatar" id="chat-module3-typing-avatar">?</div>
+          <div class="chat-typing-dots">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          </div>
+        </div>
+        <div class="chat-controls">
+          <button class="btn chat-next-btn">Next Message</button>
+          <button class="btn chat-all-btn">Play All</button>
+          <button class="btn chat-reset-btn">Replay</button>
+          <span class="chat-progress"></span>
+        </div>
+      </div>
+      <div class="callout callout-warning animate-in">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-content">
+          <strong class="callout-title">Design tradeoff</strong>
+          <p>This is excellent for privacy and speed, but it also means there is no built-in cloud sync. If your browser storage is wiped, the app has no remote backup to rescue you.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading animate-in">Quiz: do you know where the data actually lives?</h2>
+      <div class="quiz-container animate-in" id="quiz-module3">
+        <div class="quiz-question-block" data-correct="option-b" data-explanation-right="Exactly. Image blobs need a heavier-duty local store than tiny text settings." data-explanation-wrong="Not quite. Images are stored as blobs in IndexedDB, not shoved into a tiny string-based store.">
+          <h3 class="quiz-question">If a user inserts a lot of photos, what local storage mechanism is doing the heavy lifting?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The browser tab title.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>IndexedDB, especially the separate asset store.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The CSS file.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <div class="quiz-question-block" data-correct="option-c" data-explanation-right="Yes. localStorage is used for the tiny ‘which document was current’ breadcrumb, while the fuller payload goes into IndexedDB." data-explanation-wrong="Close, but the current-doc breadcrumb is tiny enough for localStorage while the richer document payload belongs in IndexedDB.">
+          <h3 class="quiz-question">Why does this app use both IndexedDB and localStorage instead of only one?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Because HTML files are allergic to databases.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Because dark mode requires two storage systems.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Because one store handles rich local data while the other remembers a tiny convenience pointer.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <div class="quiz-question-block" data-correct="option-a" data-explanation-right="Right. That is the hidden cost of local-first without sync: losing browser storage means losing the only copy." data-explanation-wrong="Not quite. With no server copy, local browser data is the main source of truth.">
+          <h3 class="quiz-question">If someone clears all browser storage, what should you assume?</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Their plogs may be gone unless they exported them elsewhere.</span></button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>The app will automatically restore from a backend server.</span></button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)"><div class="quiz-option-radio"></div><span>Nothing important happens.</span></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <button class="quiz-check-btn" onclick="checkQuiz('quiz-module3')">Check Answers</button>
+        <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module3')">Try Again</button>
+      </div>
+    </div>
+  </div>
+</section>
