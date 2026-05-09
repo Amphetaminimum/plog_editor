@@ -18,6 +18,10 @@
           <div class="brand">
             <p class="brand-note">Long-canvas studio</p>
             <h1>Plog Editor</h1>
+            <div class="topbar-meta">
+              <span>editor surface</span>
+              <span>local drafts</span>
+            </div>
           </div>
         </div>
         <div class="mobile-shell-actions">
@@ -25,6 +29,10 @@
           <button id="btn-mobile-settings" class="btn mobile-shell-btn" type="button">Settings</button>
         </div>
         <div class="actions">
+          <div class="topbar-status">
+            <span class="topbar-status-dot"></span>
+            <span>Draft mode</span>
+          </div>
           <a class="btn shell-link-btn" href="./index.html">Overview</a>
           <div class="toolbar-group toolbar-actions">
             <details class="toolbar-menu">
@@ -111,41 +119,45 @@
 
       <main class="workspace">
         <aside class="panel left-panel">
-          <p class="panel-kicker">Library of parts</p>
-          <h2>Elements</h2>
-          <p class="panel-intro">Build the page from narrative blocks instead of fixed templates.</p>
-          <div class="element-grid">
-            <button id="btn-add-text" class="btn">📝 Text</button>
-            <button id="btn-add-text-section" class="btn">¶ Paragraph</button>
-            <label class="file-btn">
-              🖼 Image
-              <input id="input-image" type="file" accept="image/*" />
-            </label>
-            <button id="btn-add-divider" class="btn">➖ Divider</button>
-            <button id="btn-add-header" class="btn">📄 Header</button>
-            <button id="btn-add-quote" class="btn">💬 Quote</button>
-            <button id="btn-add-card" class="btn">🃏 Card</button>
-          </div>
+          <section class="panel-section panel-section-emphasis">
+            <p class="panel-kicker">Library of parts</p>
+            <h2>Elements</h2>
+            <p class="panel-intro">Build the page from narrative blocks instead of fixed templates.</p>
+            <div class="element-grid">
+              <button id="btn-add-text" class="btn">📝 Text</button>
+              <button id="btn-add-text-section" class="btn">¶ Paragraph</button>
+              <label class="file-btn">
+                🖼 Image
+                <input id="input-image" type="file" accept="image/*" />
+              </label>
+              <button id="btn-add-divider" class="btn">➖ Divider</button>
+              <button id="btn-add-header" class="btn">📄 Header</button>
+              <button id="btn-add-quote" class="btn">💬 Quote</button>
+              <button id="btn-add-card" class="btn">🃏 Card</button>
+            </div>
+          </section>
 
-          <div class="group">
-            <h3>Canvas</h3>
-            <label>
-              Width
-              <select id="canvas-width">
-                <option value="1080">1080px</option>
-                <option value="1200" selected>1200px</option>
-                <option value="custom">Custom</option>
-              </select>
-            </label>
-            <label id="custom-width-wrap" class="hidden">
-              Custom Width
-              <input id="custom-width" type="number" min="480" max="2400" value="1200" />
-            </label>
-            <label>
-              Background
-              <input id="canvas-bg" type="color" value="#ffffff" />
-            </label>
-          </div>
+          <section class="panel-section">
+            <div class="group">
+              <h3>Canvas</h3>
+              <label>
+                Width
+                <select id="canvas-width">
+                  <option value="1080">1080px</option>
+                  <option value="1200" selected>1200px</option>
+                  <option value="custom">Custom</option>
+                </select>
+              </label>
+              <label id="custom-width-wrap" class="hidden">
+                Custom Width
+                <input id="custom-width" type="number" min="480" max="2400" value="1200" />
+              </label>
+              <label>
+                Background
+                <input id="canvas-bg" type="color" value="#ffffff" />
+              </label>
+            </div>
+          </section>
         </aside>
 
         <section class="canvas-wrap">
@@ -159,10 +171,12 @@
         </section>
 
         <aside class="panel right-panel">
-          <p class="panel-kicker">Editing controls</p>
-          <h2>Settings</h2>
-          <p class="panel-intro">Tune the selected block without losing the overall reading rhythm.</p>
-          <p id="no-selection">Select an element to edit style.</p>
+          <section class="panel-section panel-section-emphasis">
+            <p class="panel-kicker">Editing controls</p>
+            <h2>Settings</h2>
+            <p class="panel-intro">Tune the selected block without losing the overall reading rhythm.</p>
+            <p id="no-selection">Select an element to edit style.</p>
+          </section>
           <div id="inspector" class="hidden">
             <label>
               Type
