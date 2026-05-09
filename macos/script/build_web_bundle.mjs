@@ -38,8 +38,8 @@ function stripModuleSyntax(source) {
 
 await mkdir(out, { recursive: true });
 
-const indexSource = await readFile(path.join(root, "index.html"), "utf8");
-const indexBundled = indexSource.replace(
+const editorSource = await readFile(path.join(root, "editor.html"), "utf8");
+const indexBundled = editorSource.replace(
   /<script\s+src="\.\/app\.js\?v=[^"]+"\s+type="module"><\/script>/,
   '<script src="./app.bundle.js"></script>',
 );

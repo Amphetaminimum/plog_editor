@@ -1,326 +1,219 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <title>Long Canvas Plog Editor</title>
+    <title>Plog Editor Overview</title>
     <link rel="icon" href="./favicon.svg?v=20260325-2238" type="image/svg+xml" />
     <link rel="stylesheet" href="./styles.css?v=20260325-2238" />
   </head>
-  <body>
-    <div class="app-shell">
-      <header class="topbar">
-        <div class="topbar-main">
-          <button id="btn-doc-drawer" class="btn shell-icon-btn" type="button" aria-label="Open documents"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="1" y1="1" x2="17" y2="1"/><line x1="1" y1="7" x2="17" y2="7"/><line x1="1" y1="13" x2="17" y2="13"/></svg></button>
-          <div class="brand">
-            <h1>Plog Editor</h1>
-          </div>
-        </div>
-        <div class="mobile-shell-actions">
-          <button id="btn-mobile-elements" class="btn mobile-shell-btn" type="button">Elements</button>
-          <button id="btn-mobile-settings" class="btn mobile-shell-btn" type="button">Settings</button>
-        </div>
-        <div class="actions">
-          <div class="toolbar-group toolbar-actions">
-            <details class="toolbar-menu">
-              <summary class="btn">View</summary>
-              <div class="menu-panel menu-panel-wide">
-                <button id="btn-theme-mode" class="btn menu-btn">Theme: Night</button>
-                <label class="export-scale-label menu-field">
-                  Zoom
-                  <select id="canvas-zoom">
-                    <option value="fit">Auto</option>
-                    <option value="0.5">50%</option>
-                    <option value="0.67">67%</option>
-                    <option value="0.8">80%</option>
-                    <option value="1" selected>100%</option>
-                    <option value="1.25">125%</option>
-                  </select>
-                </label>
-                <button id="btn-toggle-lock" class="btn menu-btn">Layout Locked</button>
-                <button id="btn-fit-frame" class="btn menu-btn">Fit To Frame</button>
-              </div>
-            </details>
-            <details class="toolbar-menu">
-              <summary class="btn">Export</summary>
-              <div class="menu-panel menu-panel-wide">
-                <label class="export-scale-label menu-field">
-                  Scale
-                  <select id="export-scale">
-                    <option value="1">1x</option>
-                    <option value="2" selected>2x</option>
-                    <option value="3">3x</option>
-                  </select>
-                </label>
-                <label class="export-scale-label menu-field">
-                  Format
-                  <select id="export-format">
-                    <option value="png" selected>PNG</option>
-                    <option value="jpg">JPG</option>
-                    <option value="webp">WebP</option>
-                  </select>
-                </label>
-                <label class="export-scale-label menu-field">
-                  Quality
-                  <select id="export-quality">
-                    <option value="0.82">82</option>
-                    <option value="0.9" selected>90</option>
-                    <option value="0.96">96</option>
-                  </select>
-                </label>
-                <label class="export-scale-label menu-field">
-                  Appearance
-                  <select id="export-appearance">
-                    <option value="match" selected>Match</option>
-                    <option value="light">Light</option>
-                    <option value="dark">Dark</option>
-                  </select>
-                </label>
-                <button id="btn-export-html" class="btn menu-btn">Export HTML</button>
-              </div>
-            </details>
-            <button id="btn-export" class="btn btn-primary">Export PNG</button>
-          </div>
+  <body class="page-landing">
+    <div class="landing-side-rail landing-side-rail-left"><span>Plog Editor / Long Canvas Stories</span></div>
+    <div class="landing-side-rail landing-side-rail-right"><span>Open Drafts / Private Library / Export-ready</span></div>
+
+    <div class="landing-shell">
+      <header class="landing-meta-bar">
+        <div class="landing-container landing-meta-inner">
+          <span><strong>VOL. 01</strong> Studio build</span>
+          <span>Filed under <em>editor</em> + <em>publishing</em></span>
+          <span><i></i> Dark-first workspace, warm-light entry</span>
         </div>
       </header>
 
-      <aside id="doc-drawer" class="doc-drawer" aria-label="Documents">
-        <div class="doc-drawer-header">
-          <div>
-            <p class="doc-drawer-eyebrow">Library</p>
-            <h2>Plogs</h2>
+      <nav class="landing-nav">
+        <div class="landing-container landing-nav-inner">
+          <a class="landing-brand" href="./index.html">
+            <span class="landing-brand-mark">P</span>
+            <span class="landing-brand-copy">
+              <strong>Plog Editor</strong>
+              <small>Long-canvas image-led writing</small>
+            </span>
+          </a>
+          <div class="landing-nav-links">
+            <a href="#why">Why it feels different</a>
+            <a href="#surface">Surface language</a>
+            <a href="#flow">Workflow</a>
           </div>
-          <button id="btn-doc-drawer-close" class="btn shell-icon-btn shell-icon-btn-quiet" type="button" aria-label="Close documents">×</button>
+          <div class="landing-nav-actions">
+            <a class="btn landing-nav-btn" href="./editor.html">Open Editor</a>
+          </div>
         </div>
-        <div class="doc-drawer-toolbar">
-          <button id="btn-doc-new" class="btn" type="button">New Plog</button>
-          <button id="btn-doc-rename" class="btn" type="button">Rename</button>
-          <button id="btn-doc-delete" class="btn btn-danger" type="button">Delete</button>
-        </div>
-        <label class="hidden">
-          Doc
-          <select id="doc-select"></select>
-        </label>
-        <div id="doc-drawer-list" class="doc-drawer-list"></div>
-      </aside>
+      </nav>
 
-      <main class="workspace">
-        <aside class="panel left-panel">
-          <h2>Elements</h2>
-          <div class="element-grid">
-            <button id="btn-add-text" class="btn">📝 Text</button>
-            <button id="btn-add-text-section" class="btn">¶ Paragraph</button>
-            <label class="file-btn">
-              🖼 Image
-              <input id="input-image" type="file" accept="image/*" />
-            </label>
-            <button id="btn-add-divider" class="btn">➖ Divider</button>
-            <button id="btn-add-header" class="btn">📄 Header</button>
-            <button id="btn-add-quote" class="btn">💬 Quote</button>
-            <button id="btn-add-card" class="btn">🃏 Card</button>
-          </div>
+      <main>
+        <section class="landing-hero">
+          <div class="landing-container landing-hero-grid">
+            <div class="landing-hero-copy">
+              <p class="landing-eyebrow">I. Editorial shell for a modern tool</p>
+              <h1>
+                Write visual stories in an
+                <span class="landing-serif">editor</span>
+                that feels more like a studio than a form.
+                <span class="landing-dot">.</span>
+              </h1>
+              <p class="landing-lead">
+                Plog Editor gives you a long canvas for text, images, quotes, dividers, and cards.
+                This branch reframes the product with a warmer front door, cleaner controls, and a more
+                intentional product surface.
+              </p>
+              <div class="landing-cta-row">
+                <a class="btn btn-primary landing-cta" href="./editor.html">Enter Editor</a>
+                <a class="btn landing-ghost-cta" href="#surface">See the interface language</a>
+              </div>
+              <dl class="landing-stat-grid">
+                <div class="landing-stat">
+                  <dt>01</dt>
+                  <dd>Dark-first editor that still exports clean light artifacts</dd>
+                </div>
+                <div class="landing-stat">
+                  <dt>02</dt>
+                  <dd>Document drawer, canvas workspace, and settings panel in one continuous shell</dd>
+                </div>
+                <div class="landing-stat">
+                  <dt>03</dt>
+                  <dd>Image-led, quote-friendly, card-friendly authoring instead of rigid post forms</dd>
+                </div>
+              </dl>
+            </div>
 
-          <div class="group">
-            <h3>Canvas</h3>
-            <label>
-              Width
-              <select id="canvas-width">
-                <option value="1080">1080px</option>
-                <option value="1200" selected>1200px</option>
-                <option value="custom">Custom</option>
-              </select>
-            </label>
-            <label id="custom-width-wrap" class="hidden">
-              Custom Width
-              <input id="custom-width" type="number" min="480" max="2400" value="1200" />
-            </label>
-            <label>
-              Background
-              <input id="canvas-bg" type="color" value="#ffffff" />
-            </label>
-          </div>
-        </aside>
-
-        <section class="canvas-wrap">
-          <div id="canvas-stage" class="canvas-stage">
-            <div id="canvas-viewport" class="canvas-viewport">
-              <div id="canvas-scale" class="canvas-scale">
-                <div id="canvas" class="long-canvas"></div>
+            <div class="landing-hero-visual">
+              <div class="landing-preview-card landing-preview-frame">
+                <div class="landing-preview-topline">
+                  <span>Night workspace</span>
+                  <span>1200px canvas</span>
+                </div>
+                <div class="landing-preview-app">
+                  <div class="landing-preview-sidebar">
+                    <div class="landing-preview-chip landing-preview-chip-accent">Library</div>
+                    <div class="landing-preview-tile">Header</div>
+                    <div class="landing-preview-tile">Paragraph</div>
+                    <div class="landing-preview-tile">Image</div>
+                    <div class="landing-preview-tile">Quote</div>
+                  </div>
+                  <div class="landing-preview-canvas">
+                    <div class="landing-preview-canvas-sheet">
+                      <div class="landing-preview-kicker">Issue / 01</div>
+                      <div class="landing-preview-title">A softer shell for long-form visual notes.</div>
+                      <div class="landing-preview-line"></div>
+                      <div class="landing-preview-body">
+                        The editor stays efficient, but the surfaces now feel more deliberate, tactile, and
+                        presentation-ready.
+                      </div>
+                      <div class="landing-preview-quote">“Studio calm outside, productive inside.”</div>
+                    </div>
+                  </div>
+                  <div class="landing-preview-inspector">
+                    <div class="landing-preview-chip">Selection</div>
+                    <div class="landing-preview-field"></div>
+                    <div class="landing-preview-field"></div>
+                    <div class="landing-preview-field landing-preview-field-short"></div>
+                    <div class="landing-preview-swatch"></div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <aside class="panel right-panel">
-          <h2>Settings</h2>
-          <p id="no-selection">Select an element to edit style.</p>
-          <div id="inspector" class="hidden">
-            <label>
-              Type
-              <input id="prop-type" type="text" readonly />
-            </label>
-            <p class="hint">Drag with the top-left handle. Resize with the bottom-right dot.</p>
-            <label>
-              Font Size
-              <input id="prop-font-size" type="number" min="12" max="140" />
-            </label>
-            <label>
-              Font Size Preset
-              <select id="prop-font-size-preset">
-                <option value="">Custom</option>
-                <option value="36">36</option>
-                <option value="44">44</option>
-                <option value="52">52</option>
-                <option value="60">60</option>
-                <option value="68">68</option>
-                <option value="76">76</option>
-              </select>
-            </label>
-            <label>
-              Font Family
-              <select id="prop-font-family">
-                <option value="fangzheng">Fangzheng YueSong</option>
-                <option value="song">Songti</option>
-                <option value="sans">Sans</option>
-              </select>
-            </label>
-            <label>
-              Block Weight
-              <select id="prop-font-weight">
-                <option value="200">Thin</option>
-                <option value="300" selected>Light</option>
-                <option value="400">Regular</option>
-                <option value="500">Medium</option>
-                <option value="600">SemiBold</option>
-              </select>
-            </label>
-            <p class="hint">This controls the whole text box. `Ctrl+B` only affects selected text.</p>
-            <div id="text-formatting-controls" class="group hidden">
-              <h3>Text Editing</h3>
-              <p class="hint">`Cmd/Ctrl+Z` works globally. These buttons follow the selected text block.</p>
-              <div class="inspector-actions">
-                <button id="btn-undo" class="btn inspector-btn" type="button">Undo</button>
-                <button id="btn-redo" class="btn inspector-btn" type="button">Redo</button>
-              </div>
-              <div class="inspector-actions inspector-actions-compact">
-                <button id="btn-bold" class="btn inspector-btn tool-icon" type="button">B</button>
-                <button id="btn-italic" class="btn inspector-btn tool-icon" type="button">I</button>
-                <button id="btn-clear-format" class="btn inspector-btn" type="button">Clear</button>
-              </div>
+        <section id="why" class="landing-section">
+          <div class="landing-container">
+            <div class="landing-section-rule">
+              <span class="landing-section-no">II.</span>
+              <span>Why it feels different</span>
+              <span>002 / 004</span>
             </div>
-            <label>
-              Spacing Before
-              <select id="prop-spacing-before">
-                <option value="tight">Tight</option>
-                <option value="normal">Normal</option>
-                <option value="section">New Paragraph</option>
-              </select>
-            </label>
-            <label>
-              Text Color
-              <input id="prop-color" type="color" value="#1f1f22" />
-            </label>
-            <div id="image-controls" class="hidden">
-              <label>
-                Rotation
-                <input id="prop-rotation" type="range" min="-180" max="180" value="0" />
-              </label>
-              <label>
-                Brightness
-                <input id="prop-brightness" type="range" min="50" max="150" value="100" />
-              </label>
-              <label>
-                Contrast
-                <input id="prop-contrast" type="range" min="50" max="150" value="100" />
-              </label>
-              <label>
-                Grayscale
-                <input id="prop-grayscale" type="range" min="0" max="100" value="0" />
-              </label>
-              <label>
-                Frame
-                <select id="prop-frame">
-                  <option value="none">None</option>
-                  <option value="polaroid">Polaroid</option>
-                  <option value="card">Card</option>
-                </select>
-              </label>
+            <div class="landing-card-grid">
+              <article class="landing-info-card">
+                <p class="landing-card-tag">Surface</p>
+                <h2>Landing calm, editor focus<span class="landing-dot">.</span></h2>
+                <p>
+                  The first page explains the product and sets tone. The editor page keeps the workflow dense,
+                  but the chrome becomes more premium, card-based, and modern.
+                </p>
+              </article>
+              <article class="landing-info-card">
+                <p class="landing-card-tag">Theme logic</p>
+                <h2>Light gets the editorial warmth. Dark gets the same hierarchy<span class="landing-dot">.</span></h2>
+                <p>
+                  The warm-paper language maps naturally to light mode. The dark theme keeps the same spacing,
+                  typography, and control hierarchy without becoming a literal inverted poster.
+                </p>
+              </article>
+              <article class="landing-info-card">
+                <p class="landing-card-tag">Interaction</p>
+                <h2>Buttons and drawers read like product UI, not raw controls<span class="landing-dot">.</span></h2>
+                <p>
+                  The goal is not maximal decoration. It is higher-quality affordance: better grouping,
+                  clearer primary actions, more deliberate cards, and less “utility panel” feel.
+                </p>
+              </article>
             </div>
-            <button id="btn-delete" class="btn btn-danger">Delete Element</button>
           </div>
-        </aside>
+        </section>
+
+        <section id="surface" class="landing-section landing-section-dark">
+          <div class="landing-container">
+            <div class="landing-section-rule landing-section-rule-dark">
+              <span class="landing-section-no">III.</span>
+              <span>Surface language</span>
+              <span>003 / 004</span>
+            </div>
+            <div class="landing-feature-grid">
+              <div class="landing-feature-block">
+                <p class="landing-card-tag">Editor shell</p>
+                <h2>Sticky topbar, stronger panels, calmer cards<span class="landing-dot">.</span></h2>
+                <ul class="landing-feature-list">
+                  <li>Document drawer reads like a library, not a raw select box.</li>
+                  <li>Canvas stage feels framed and intentional.</li>
+                  <li>Inspector groups become readable product sections.</li>
+                </ul>
+              </div>
+              <div class="landing-feature-block">
+                <p class="landing-card-tag">Theme bridge</p>
+                <h2>One design language, two moods<span class="landing-dot">.</span></h2>
+                <ul class="landing-feature-list">
+                  <li>Light mode borrows editorial warmth from Open Design.</li>
+                  <li>Dark mode keeps the same proportions and emphasis structure.</li>
+                  <li>Accent color remains controlled instead of flooding the page.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="flow" class="landing-section">
+          <div class="landing-container">
+            <div class="landing-section-rule">
+              <span class="landing-section-no">IV.</span>
+              <span>Workflow</span>
+              <span>004 / 004</span>
+            </div>
+            <div class="landing-flow-grid">
+              <div class="landing-flow-step">
+                <span>01</span>
+                <strong>Enter through the overview</strong>
+                <p>Explain the product first, then drop into the workspace.</p>
+              </div>
+              <div class="landing-flow-step">
+                <span>02</span>
+                <strong>Compose on one long canvas</strong>
+                <p>Mix text, images, quote blocks, dividers, and cards without switching mental models.</p>
+              </div>
+              <div class="landing-flow-step">
+                <span>03</span>
+                <strong>Export when the artifact is ready</strong>
+                <p>Keep the authoring shell dark if you want, then export light or dark as needed.</p>
+              </div>
+            </div>
+            <div class="landing-bottom-cta">
+              <a class="btn btn-primary landing-cta" href="./editor.html">Start a Plog</a>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
-    <div id="doc-drawer-backdrop" class="doc-drawer-backdrop hidden"></div>
-    <div id="mobile-panel-backdrop" class="mobile-panel-backdrop hidden"></div>
-
-    <div id="dialog-backdrop" class="dialog-backdrop hidden">
-      <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
-        <h3 id="dialog-title">Edit</h3>
-        <p id="dialog-message" class="dialog-message"></p>
-        <div id="dialog-fields" class="dialog-fields hidden"></div>
-        <input id="dialog-input" type="text" />
-        <div class="dialog-actions">
-          <button id="dialog-cancel" class="btn">Cancel</button>
-          <button id="dialog-confirm" class="btn btn-primary">OK</button>
-        </div>
-      </div>
-    </div>
-
-    <template id="tpl-text">
-      <div class="el el-text" data-type="text">
-        <div class="move-handle" aria-hidden="true">Drag</div>
-        <div class="content" contenteditable="true" data-placeholder="Write your story..."></div>
-        <div class="resize-handle" aria-hidden="true"></div>
-      </div>
-    </template>
-
-    <template id="tpl-image">
-      <div class="el el-image" data-type="image">
-        <div class="move-handle" aria-hidden="true">Drag</div>
-        <img alt="Plog image" />
-        <div class="resize-handle" aria-hidden="true"></div>
-      </div>
-    </template>
-
-    <template id="tpl-divider">
-      <div class="el el-divider" data-type="divider">
-        <div class="move-handle" aria-hidden="true">Drag</div>
-        <div class="divider-line"></div>
-        <div class="resize-handle" aria-hidden="true"></div>
-      </div>
-    </template>
-
-    <template id="tpl-header">
-      <div class="el el-header" data-type="header">
-        <div class="move-handle" aria-hidden="true">Drag</div>
-        <div class="header-title" contenteditable="true">Tokyo Coffee Log</div>
-        <div class="header-meta" contenteditable="true">[Aug. 2020]</div>
-        <div class="resize-handle" aria-hidden="true"></div>
-      </div>
-    </template>
-
-    <template id="tpl-quote">
-      <div class="el el-quote" data-type="quote">
-        <div class="move-handle" aria-hidden="true">Drag</div>
-        <div class="quote-mark">"</div>
-        <div class="quote-content" contenteditable="true" data-placeholder="Quote..."></div>
-        <div class="resize-handle" aria-hidden="true"></div>
-      </div>
-    </template>
-
-    <template id="tpl-card">
-      <div class="el el-card" data-type="card">
-        <div class="move-handle" aria-hidden="true">Drag</div>
-        <div class="card-title" contenteditable="true" data-placeholder="Card title"></div>
-        <div class="card-body" contenteditable="true" data-placeholder="Card text..."></div>
-        <div class="resize-handle" aria-hidden="true"></div>
-      </div>
-    </template>
-
-    <script src="./app.js?v=20260325-2238" type="module"></script>
   </body>
 </html>
