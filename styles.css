@@ -552,6 +552,14 @@ body.theme-dark .panel-section-emphasis {
   background: rgba(255, 248, 239, 0.04);
 }
 
+.panel-section-compact {
+  padding: 4px 2px 12px;
+}
+
+.panel-section-compact h2 {
+  margin-bottom: 6px;
+}
+
 .panel h2 {
   margin: 0 0 14px;
   font-family: var(--font-display);
@@ -1712,13 +1720,13 @@ body.layout-locked .el {
 
 #no-selection {
   margin: 0;
-  padding: 18px;
+  padding: 12px 14px;
   border: 1px dashed var(--line);
-  border-radius: 18px;
-  background: rgba(255, 253, 248, 0.36);
+  border-radius: 16px;
+  background: rgba(255, 253, 248, 0.24);
   color: var(--muted);
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 body.theme-dark #no-selection {
