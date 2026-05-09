@@ -49,6 +49,7 @@ body {
   background: var(--bg);
   position: relative;
   min-height: 100vh;
+  isolation: isolate;
 }
 
 body::before {
@@ -81,7 +82,6 @@ body.theme-dark::before {
 .app-shell {
   min-height: 100vh;
   position: relative;
-  z-index: 1;
 }
 
 .topbar {
@@ -516,7 +516,6 @@ body.theme-dark .doc-card-visual {
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
   background: linear-gradient(180deg, rgba(255, 251, 243, 0.78), rgba(247, 241, 226, 0.96));
-  backdrop-filter: blur(10px);
   padding: 16px;
   height: calc(100vh - 92px);
   overflow: auto;
@@ -533,6 +532,23 @@ body.theme-dark .panel {
   font-family: var(--font-display);
   font-size: 17px;
   letter-spacing: -0.02em;
+}
+
+.panel-kicker {
+  margin: 0 0 8px;
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.panel-intro {
+  margin: -4px 0 16px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 .panel h3 {
@@ -709,6 +725,32 @@ body.theme-dark .btn-danger:hover {
 
 .canvas-wrap {
   min-height: calc(100vh - 92px);
+}
+
+.canvas-shell-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 20px;
+  margin-bottom: 14px;
+  padding: 8px 6px 0;
+}
+
+.canvas-shell-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.canvas-shell-meta {
+  max-width: 340px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: right;
 }
 
 .canvas-stage {
@@ -1563,8 +1605,7 @@ body.layout-locked .el {
   position: fixed;
   inset: 0;
   z-index: 14;
-  background: rgba(17, 12, 9, 0.36);
-  backdrop-filter: blur(8px);
+  background: rgba(17, 12, 9, 0.24);
 }
 
 #image-controls {
@@ -1699,6 +1740,17 @@ body.layout-locked .el {
 
   .panel {
     height: auto;
+  }
+
+  .canvas-shell-head {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-inline: 2px;
+  }
+
+  .canvas-shell-meta {
+    max-width: none;
+    text-align: left;
   }
 
   .canvas-stage {
