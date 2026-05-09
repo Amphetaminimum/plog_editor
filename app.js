@@ -1518,7 +1518,7 @@ document.getElementById("btn-add-quote").addEventListener("click", () => {
   addElement(createElement("quote", { content: "", spacingBefore: "normal" }));
 });
 
-document.getElementById("btn-add-card").addEventListener("click", () => {
+document.getElementById("btn-add-card")?.addEventListener("click", () => {
   addElement(createElement("card", { spacingBefore: "section" }));
 });
 
