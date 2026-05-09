@@ -507,7 +507,7 @@ body.theme-dark .doc-card-visual {
 
 .workspace {
   display: grid;
-  grid-template-columns: 284px minmax(0, 1fr) 292px;
+  grid-template-columns: 316px minmax(0, 1fr) 292px;
   gap: 20px;
   padding: 18px;
 }
@@ -751,12 +751,13 @@ body.theme-dark .btn-danger:hover {
 .element-grid .btn,
 .element-grid .file-btn {
   margin-bottom: 0;
-  justify-content: flex-start;
-  min-height: 50px;
-  font-size: 15px;
+  justify-content: center;
+  min-height: 48px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: -0.015em;
-  padding: 11px 14px;
+  white-space: nowrap;
+  padding: 10px 14px;
   border-radius: 999px;
 }
 
