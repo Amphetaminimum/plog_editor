@@ -728,32 +728,6 @@ body.theme-dark .btn-danger:hover {
   min-height: calc(100vh - 92px);
 }
 
-.canvas-shell-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: end;
-  gap: 20px;
-  margin-bottom: 14px;
-  padding: 8px 6px 0;
-}
-
-.canvas-shell-title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-}
-
-.canvas-shell-meta {
-  max-width: 340px;
-  margin: 0;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.5;
-  text-align: right;
-}
-
 .canvas-stage {
   height: calc(100vh - 92px);
   display: flex;
@@ -1742,17 +1716,6 @@ body.layout-locked .el {
 
   .panel {
     height: auto;
-  }
-
-  .canvas-shell-head {
-    flex-direction: column;
-    align-items: flex-start;
-    padding-inline: 2px;
-  }
-
-  .canvas-shell-meta {
-    max-width: none;
-    text-align: left;
   }
 
   .canvas-stage {
