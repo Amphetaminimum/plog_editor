@@ -1504,10 +1504,13 @@ body.layout-locked .el {
 .landing-preview-title {
   margin-top: 20px;
   font-family: var(--font-display);
-  font-size: 42px;
+  max-width: 100%;
+  font-size: 34px;
   font-weight: 800;
-  line-height: 1.02;
+  line-height: 0.98;
   letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .landing-preview-line {
