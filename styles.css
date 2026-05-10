@@ -644,6 +644,17 @@ label {
   letter-spacing: 0.02em;
 }
 
+.field-block {
+  margin-bottom: 12px;
+}
+
+.field-label {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
 input,
 select {
   margin-top: 4px;
