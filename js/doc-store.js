@@ -4,6 +4,7 @@ export function createDocStoreManager({
   state,
   controls,
   getCanvasBackground,
+  getDefaultTextColor,
   setCanvasBackground,
   serializeElementsForStorage,
   clearAssetUrls,
@@ -193,7 +194,7 @@ export function createDocStoreManager({
           meta: headerMeta,
         },
         spacingBefore: "normal",
-        style: { fontSize: 62, color: "#1f1f22", radius: 0, fontFamily: "fangzheng" },
+        style: { fontSize: 62, color: getDefaultTextColor(), radius: 0, fontFamily: "fangzheng" },
       }),
     );
     addElement(createElement("text", { content: "", placeholder: "Paragraph", spacingBefore: "section" }));

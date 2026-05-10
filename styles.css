@@ -728,6 +728,10 @@ body.theme-dark select {
   white-space: nowrap;
 }
 
+.canvas-palette-status {
+  margin: 0;
+}
+
 .btn,
 .file-btn {
   display: inline-flex;

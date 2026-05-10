@@ -101,6 +101,7 @@ const exportQuality = document.getElementById("export-quality");
 const exportAppearance = document.getElementById("export-appearance");
 const canvasBgInput = document.getElementById("canvas-bg");
 const btnCanvasBgReset = document.getElementById("btn-canvas-bg-reset");
+const canvasPaletteStatus = document.getElementById("canvas-palette-status");
 const canvasBgPresetButtons = [...document.querySelectorAll("[data-canvas-bg]")];
 const propRotation = document.getElementById("prop-rotation");
 const propBrightness = document.getElementById("prop-brightness");
@@ -346,7 +347,7 @@ function createElement(type, patch = {}) {
     spacingBefore,
     style: {
       fontSize: 60,
-      color: "#1f1f22",
+      color: defaultTextColorForTheme(),
       radius: 10,
       fontFamily: "fangzheng",
       fontWeight: 300,
@@ -493,13 +494,36 @@ function defaultCanvasBackgroundForTheme(mode = state.themeMode) {
   return mode === "day" ? CANVAS_BG_DEFAULTS.day : CANVAS_BG_DEFAULTS.night;
 }
 
+function defaultTextColorForTheme(mode = state.themeMode) {
+  return mode === "day" ? "#1f1f22" : "#f4ede2";
+}
+
 function normalizeCanvasBackground(value, fallback = defaultCanvasBackgroundForTheme()) {
   const normalized = String(value || "").trim();
-  return /^#[0-9a-f]{6}$/i.test(normalized) ? normalized : fallback;
+  return /^#[0-9a-f]{6}$/i.test(normalized) ? normalized.toLowerCase() : fallback.toLowerCase();
+}
+
+function normalizeTextColor(value, fallback = defaultTextColorForTheme()) {
+  const normalized = String(value || "").trim();
+  return /^#[0-9a-f]{6}$/i.test(normalized) ? normalized.toLowerCase() : fallback.toLowerCase();
 }
 
 function currentCanvasBackground() {
   return normalizeCanvasBackground(canvasBgInput?.value, defaultCanvasBackgroundForTheme());
+}
+
+function isTextualElement(item) {
+  return item?.type === "text" || item?.type === "header" || item?.type === "quote" || item?.type === "card";
+}
+
+function resolvedElementTextColor(item, mode = state.themeMode) {
+  return normalizeTextColor(item?.style?.color, defaultTextColorForTheme(mode));
+}
+
+function canvasUsesThemeDefaults(mode = state.themeMode) {
+  const bgMatches = currentCanvasBackground() === normalizeCanvasBackground(defaultCanvasBackgroundForTheme(mode));
+  const textMatches = state.elements.filter(isTextualElement).every((item) => resolvedElementTextColor(item, mode) === normalizeTextColor(defaultTextColorForTheme(mode)));
+  return bgMatches && textMatches;
 }
 
 function syncCanvasBackgroundPresetState() {
@@ -514,6 +538,32 @@ function applyCanvasBackground(value, { persist = false } = {}) {
   if (canvasBgInput) canvasBgInput.value = next;
   canvas.style.background = next;
   syncCanvasBackgroundPresetState();
+  updateCanvasPaletteUi();
+  if (persist) saveSession();
+}
+
+function updateCanvasPaletteUi() {
+  if (!canvasPaletteStatus || !btnCanvasBgReset) return;
+  const auto = canvasUsesThemeDefaults(state.themeMode);
+  const themeLabel = state.themeMode === "day" ? "Day" : "Night";
+  canvasPaletteStatus.textContent = auto
+    ? "Theme default colors follow day and night automatically."
+    : "Using custom canvas colors. Theme switches will keep them until you reset.";
+  btnCanvasBgReset.textContent = auto ? `Reapply ${themeLabel} Default` : `Use ${themeLabel} Default`;
+}
+
+function applyThemePalette(mode = state.themeMode, { persist = false } = {}) {
+  const bg = defaultCanvasBackgroundForTheme(mode);
+  const text = defaultTextColorForTheme(mode);
+  applyCanvasBackground(bg);
+  state.elements.forEach((item) => {
+    if (!isTextualElement(item)) return;
+    item.style = item.style || {};
+    item.style.color = text;
+  });
+  render();
+  syncInspector();
+  updateCanvasPaletteUi();
   if (persist) saveSession();
 }
 
@@ -611,6 +661,7 @@ const docStore = createDocStoreManager({
     widthSelect,
   },
   getCanvasBackground: currentCanvasBackground,
+  getDefaultTextColor: () => defaultTextColorForTheme(),
   setCanvasBackground: (value) => applyCanvasBackground(value),
   serializeElementsForStorage,
   clearAssetUrls,
@@ -748,11 +799,17 @@ const shellManager = createShellManager({
 } = shellManager);
 
 function applyThemeMode(mode = state.themeMode) {
+  const previousMode = state.themeMode;
+  const shouldSyncPalette = canvasUsesThemeDefaults(previousMode);
   state.themeMode = mode === "day" ? "day" : "night";
   const dark = state.themeMode === "night";
   document.body.classList.toggle("theme-dark", dark);
   canvas.dataset.theme = dark ? "dark" : "light";
-  applyCanvasBackground(currentCanvasBackground());
+  if (shouldSyncPalette) {
+    applyThemePalette(state.themeMode);
+  } else {
+    applyCanvasBackground(currentCanvasBackground());
+  }
   if (btnThemeMode) {
     const label = state.themeMode.charAt(0).toUpperCase() + state.themeMode.slice(1);
     btnThemeMode.textContent = `Theme: ${label}`;
@@ -1570,7 +1627,7 @@ document.getElementById("btn-add-header").addEventListener("click", () => {
         meta: "[Aug. 2020]",
       },
       spacingBefore: "section",
-      style: { fontSize: 62, color: "#20160f", radius: 0, fontFamily: "fangzheng" },
+      style: { fontSize: 62, color: defaultTextColorForTheme(), radius: 0, fontFamily: "fangzheng" },
     }),
   );
 });
@@ -1624,7 +1681,7 @@ document.getElementById("input-image").addEventListener("change", async (ev) => 
       height,
       aspectRatio,
       spacingBefore: defaultSpacingBefore("image", (getInsertionAnchor() || state.elements[state.elements.length - 1])?.type),
-      style: { radius: 0, fontSize: 60, color: "#1f1f22", fontFamily: "fangzheng" },
+      style: { radius: 0, fontSize: 60, color: defaultTextColorForTheme(), fontFamily: "fangzheng" },
     }),
   );
   ev.target.value = "";
@@ -1728,8 +1785,9 @@ propColor.addEventListener("input", () => {
   const selected = getElement(state.selectedId);
   if (!selected) return;
   const beforeValue = selected.style.color;
-  selected.style.color = propColor.value;
+  selected.style.color = normalizeTextColor(propColor.value);
   render();
+  updateCanvasPaletteUi();
   commitStyleChange(selected, "style.color", beforeValue, selected.style.color);
 });
 
@@ -1803,7 +1861,7 @@ canvasBgPresetButtons.forEach((button) => {
 });
 
 btnCanvasBgReset?.addEventListener("click", () => {
-  applyCanvasBackground(defaultCanvasBackgroundForTheme(), { persist: true });
+  applyThemePalette(state.themeMode, { persist: true });
 });
 
 document.getElementById("btn-export").addEventListener("click", () => {
