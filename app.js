@@ -1341,6 +1341,10 @@ function addElement(item) {
   state.selectedId = item.id;
   if (state.layoutLocked) reflowFrom(0);
   render();
+  requestAnimationFrame(() => {
+    const node = getElementNode(item.id);
+    node?.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
+  });
   commitAndSave("structure.insert", {
     index: insertedIndex,
     item,
