@@ -122,7 +122,7 @@ export function createHistoryManager({
       widthSelect: controls.widthSelect.value,
       customWidth: controls.customWidth.value,
     };
-    setCanvasBackground(snapshot.ui?.canvasBg || "#ffffff");
+    setCanvasBackground(snapshot.ui?.canvasBg);
     controls.exportScale.value = snapshot.ui?.exportScale || controls.exportScale.value;
     controls.exportFormat.value = snapshot.ui?.exportFormat || controls.exportFormat.value;
     controls.exportQuality.value = snapshot.ui?.exportQuality || controls.exportQuality.value;

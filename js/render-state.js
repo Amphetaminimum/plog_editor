@@ -63,7 +63,6 @@ export function createStateRenderer({
     const ctx = out.getContext("2d");
     ctx.scale(scale, scale);
     ctx.fillStyle = palette.background;
-    if (format === "jpg" && palette.appearance === "light") ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, width, height);
 
     for (const item of getElements()) {

@@ -145,7 +145,18 @@
               </label>
               <label>
                 Background
-                <input id="canvas-bg" type="color" value="#ffffff" />
+                <div class="canvas-bg-tools">
+                  <div class="canvas-bg-presets" aria-label="Background presets">
+                    <button class="canvas-bg-swatch" type="button" data-canvas-bg="#ffffff" style="--swatch:#ffffff;" aria-label="White background"></button>
+                    <button class="canvas-bg-swatch" type="button" data-canvas-bg="#f6efe2" style="--swatch:#f6efe2;" aria-label="Warm paper background"></button>
+                    <button class="canvas-bg-swatch" type="button" data-canvas-bg="#e8edf2" style="--swatch:#e8edf2;" aria-label="Cool mist background"></button>
+                    <button class="canvas-bg-swatch" type="button" data-canvas-bg="#14110d" style="--swatch:#14110d;" aria-label="Night ink background"></button>
+                  </div>
+                  <div class="canvas-bg-row">
+                    <input id="canvas-bg" type="color" value="#14110d" />
+                    <button id="btn-canvas-bg-reset" class="btn canvas-bg-reset" type="button">Reset</button>
+                  </div>
+                </div>
               </label>
             </div>
           </section>

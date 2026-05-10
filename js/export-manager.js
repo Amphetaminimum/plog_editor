@@ -111,7 +111,6 @@ export function createExportManager({
       out.height = height * scale;
       const ctx = out.getContext("2d");
       ctx.fillStyle = exportPalette().background;
-      if (format === "jpg" && currentExportAppearance() === "light") ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, out.width, out.height);
       ctx.drawImage(image, 0, 0);
       if (url) URL.revokeObjectURL(url);

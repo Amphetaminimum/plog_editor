@@ -168,7 +168,7 @@ export function createDocStoreManager({
       widthSelect: controls.widthSelect.value,
       customWidth: controls.customWidth.value,
     };
-    setCanvasBackground(payload.ui?.canvasBg || "#ffffff");
+    setCanvasBackground(payload.ui?.canvasBg);
     controls.exportScale.value = payload.ui?.exportScale || "2";
     controls.exportFormat.value = payload.ui?.exportFormat || "png";
     controls.exportQuality.value = payload.ui?.exportQuality || "0.9";

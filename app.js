@@ -20,6 +20,11 @@ const SPACING_MAP = {
   section: 52,
 };
 
+const CANVAS_BG_DEFAULTS = {
+  day: "#ffffff",
+  night: "#14110d",
+};
+
 const THEME_SEQUENCE = ["night", "day"];
 
 const state = {
@@ -94,6 +99,9 @@ const docDrawerList = document.getElementById("doc-drawer-list");
 const exportFormat = document.getElementById("export-format");
 const exportQuality = document.getElementById("export-quality");
 const exportAppearance = document.getElementById("export-appearance");
+const canvasBgInput = document.getElementById("canvas-bg");
+const btnCanvasBgReset = document.getElementById("btn-canvas-bg-reset");
+const canvasBgPresetButtons = [...document.querySelectorAll("[data-canvas-bg]")];
 const propRotation = document.getElementById("prop-rotation");
 const propBrightness = document.getElementById("prop-brightness");
 const propContrast = document.getElementById("prop-contrast");
@@ -152,7 +160,7 @@ function createDefaultDocData() {
     ui: {
       widthSelect: "1200",
       customWidth: "1200",
-      canvasBg: "#ffffff",
+      canvasBg: CANVAS_BG_DEFAULTS.night,
       exportScale: "2",
       exportFormat: "png",
       exportQuality: "0.9",
@@ -481,11 +489,63 @@ function currentExportAppearance() {
   return exportAppearance.value === "dark" ? "dark" : "light";
 }
 
+function defaultCanvasBackgroundForTheme(mode = state.themeMode) {
+  return mode === "day" ? CANVAS_BG_DEFAULTS.day : CANVAS_BG_DEFAULTS.night;
+}
+
+function normalizeCanvasBackground(value, fallback = defaultCanvasBackgroundForTheme()) {
+  const normalized = String(value || "").trim();
+  return /^#[0-9a-f]{6}$/i.test(normalized) ? normalized : fallback;
+}
+
+function currentCanvasBackground() {
+  return normalizeCanvasBackground(canvasBgInput?.value, defaultCanvasBackgroundForTheme());
+}
+
+function syncCanvasBackgroundPresetState() {
+  const current = currentCanvasBackground().toLowerCase();
+  canvasBgPresetButtons.forEach((button) => {
+    button.classList.toggle("is-active", (button.dataset.canvasBg || "").toLowerCase() === current);
+  });
+}
+
+function applyCanvasBackground(value, { persist = false } = {}) {
+  const next = normalizeCanvasBackground(value, defaultCanvasBackgroundForTheme());
+  if (canvasBgInput) canvasBgInput.value = next;
+  canvas.style.background = next;
+  syncCanvasBackgroundPresetState();
+  if (persist) saveSession();
+}
+
+function insertLineBreakAtSelection(editable) {
+  if (!editable) return;
+  editable.focus();
+  let inserted = false;
+  try {
+    inserted = document.execCommand("insertLineBreak");
+  } catch {
+    inserted = false;
+  }
+  if (!inserted) {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    const range = selection.getRangeAt(0);
+    range.deleteContents();
+    const br = document.createElement("br");
+    range.insertNode(br);
+    range.setStartAfter(br);
+    range.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+  editable.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
 function exportPalette() {
   const appearance = currentExportAppearance();
   return {
     appearance,
-    background: appearance === "dark" ? "#14110d" : "#ffffff",
+    background: currentCanvasBackground(),
     text: appearance === "dark" ? "#f4ede2" : "#1f1f22",
     panel: appearance === "dark" ? "rgba(255,248,239,0.08)" : "#fffaf2",
   };
@@ -550,10 +610,8 @@ const docStore = createDocStoreManager({
     exportScale,
     widthSelect,
   },
-  getCanvasBackground: () => document.getElementById("canvas-bg").value,
-  setCanvasBackground: (value) => {
-    document.getElementById("canvas-bg").value = value;
-  },
+  getCanvasBackground: currentCanvasBackground,
+  setCanvasBackground: (value) => applyCanvasBackground(value),
   serializeElementsForStorage,
   clearAssetUrls,
   setLayoutLocked,
@@ -646,7 +704,7 @@ const exportManager = createExportManager({
 ({ commitMutation, pushHistory, redoHistory, undoHistory } = createHistoryManager({
   state,
   controls: {
-    canvasBg: document.getElementById("canvas-bg"),
+    canvasBg: canvasBgInput,
     customWidth,
     exportAppearance,
     exportButton: btnExport,
@@ -656,9 +714,7 @@ const exportManager = createExportManager({
     widthSelect,
   },
   setCanvasBackground: (value) => {
-    document.getElementById("canvas-bg").value = value;
-    const dark = state.themeMode === "night";
-    canvas.style.background = dark ? "#14110d" : value;
+    applyCanvasBackground(value);
   },
   setLayoutLocked,
 }));
@@ -696,8 +752,7 @@ function applyThemeMode(mode = state.themeMode) {
   const dark = state.themeMode === "night";
   document.body.classList.toggle("theme-dark", dark);
   canvas.dataset.theme = dark ? "dark" : "light";
-  const pickerBg = document.getElementById("canvas-bg").value || "#ffffff";
-  canvas.style.background = dark ? "#14110d" : pickerBg;
+  applyCanvasBackground(currentCanvasBackground());
   if (btnThemeMode) {
     const label = state.themeMode.charAt(0).toUpperCase() + state.themeMode.slice(1);
     btnThemeMode.textContent = `Theme: ${label}`;
@@ -1436,6 +1491,12 @@ document.addEventListener("keydown", (ev) => {
   const isEditing = active && active.getAttribute && active.getAttribute("contenteditable") === "true";
   const selected = getElement(state.selectedId);
 
+  if (isEditing && ev.key === "Enter" && !ev.altKey && !ev.ctrlKey && !ev.metaKey) {
+    insertLineBreakAtSelection(active);
+    ev.preventDefault();
+    return;
+  }
+
   if ((ev.ctrlKey || ev.metaKey) && !ev.altKey && ev.key.toLowerCase() === "z") {
     const restored = ev.shiftKey ? redoHistory() : undoHistory();
     if (restored) syncRestoredHistoryState();
@@ -1731,10 +1792,18 @@ customWidth.addEventListener("input", () => {
   });
 });
 
-document.getElementById("canvas-bg").addEventListener("input", (ev) => {
-  const dark = state.themeMode === "night";
-  canvas.style.background = dark ? "#14110d" : ev.target.value;
-  saveSession();
+canvasBgInput.addEventListener("input", (ev) => {
+  applyCanvasBackground(ev.target.value, { persist: true });
+});
+
+canvasBgPresetButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    applyCanvasBackground(button.dataset.canvasBg, { persist: true });
+  });
+});
+
+btnCanvasBgReset?.addEventListener("click", () => {
+  applyCanvasBackground(defaultCanvasBackgroundForTheme(), { persist: true });
 });
 
 document.getElementById("btn-export").addEventListener("click", () => {
