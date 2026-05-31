@@ -2,6 +2,7 @@ export const STORAGE_KEY = "plog_editor_v1";
 export const DOCS_STORAGE_KEY = "plog_editor_docs_v1";
 
 const DB_NAME = "plog_editor_db";
+const DB_VERSION = 2;
 const DB_STORE = "kv";
 const ASSET_STORE = "assets";
 const HEIC_CONVERTER_URL = "https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js";
@@ -90,7 +91,7 @@ function openDatabase() {
   if (dbPromise) return dbPromise;
 
   dbPromise = new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
     request.onupgradeneeded = () => {
       const db = request.result;
       if (!db.objectStoreNames.contains(DB_STORE)) {
