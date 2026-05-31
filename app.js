@@ -1652,6 +1652,7 @@ document.getElementById("input-image").addEventListener("change", async (ev) => 
     assetBlob = await normalizeImageAsset(file);
   } catch (err) {
     console.error("Failed to normalize image asset", err);
+    alert("This HIF/HEIF image could not be converted in the browser. Check the network connection and try again.");
     ev.target.value = "";
     return;
   }
@@ -1663,9 +1664,18 @@ document.getElementById("input-image").addEventListener("change", async (ev) => 
     image = await new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => resolve(img);
-      img.onerror = reject;
+      img.onerror = () => reject(new Error(`image-decode-failed:${file.name || file.type || "unknown-image"}`));
       img.src = tempUrl;
     });
+  } catch (err) {
+    console.error("Failed to load image asset", {
+      name: file.name || "",
+      originalType: file.type || "",
+      normalizedType: assetBlob.type || "",
+    }, err);
+    alert("This image could not be displayed after import.");
+    ev.target.value = "";
+    return;
   } finally {
     URL.revokeObjectURL(tempUrl);
   }

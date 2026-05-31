@@ -64,3 +64,26 @@ test("storage serializes native assets as base64 and restores them as blobs", as
   assert.equal(restored.type, "text/plain");
   assert.equal(await restored.text(), "hello");
 });
+
+test("storage converts heif assets in browser mode", async () => {
+  const calls = [];
+  globalThis.window = {};
+  globalThis.heic2any = async (payload) => {
+    calls.push(payload);
+    return new Blob(["png"], { type: "image/png" });
+  };
+
+  const { normalizeImageAsset } = await importFreshStorage();
+  const asset = new File(["heif"], "sample.HIF", { type: "" });
+
+  const restored = await normalizeImageAsset(asset);
+
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].blob, asset);
+  assert.equal(calls[0].toType, "image/png");
+  assert.equal(restored instanceof Blob, true);
+  assert.equal(restored.type, "image/png");
+  assert.equal(await restored.text(), "png");
+
+  delete globalThis.heic2any;
+});

@@ -4,7 +4,9 @@ export const DOCS_STORAGE_KEY = "plog_editor_docs_v1";
 const DB_NAME = "plog_editor_db";
 const DB_STORE = "kv";
 const ASSET_STORE = "assets";
+const HEIC_CONVERTER_URL = "https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js";
 let dbPromise = null;
+let heicConverterPromise = null;
 
 function nativeStorage() {
   return globalThis.window?.plogNativeStorage;
@@ -12,6 +14,44 @@ function nativeStorage() {
 
 function hasNativeStorage() {
   return typeof nativeStorage()?.request === "function";
+}
+
+function isHeifAsset(value) {
+  const type = value?.type?.toLowerCase() || "";
+  const name = value?.name?.toLowerCase() || "";
+  return type === "image/heif"
+    || type === "image/heic"
+    || name.endsWith(".hif")
+    || name.endsWith(".heif")
+    || name.endsWith(".heic");
+}
+
+async function loadHeicConverter() {
+  if (typeof globalThis.heic2any === "function") return globalThis.heic2any;
+  if (heicConverterPromise) return heicConverterPromise;
+
+  heicConverterPromise = new Promise((resolve, reject) => {
+    if (!globalThis.document?.createElement) {
+      reject(new Error("heic-converter-unavailable"));
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = HEIC_CONVERTER_URL;
+    script.async = true;
+    script.crossOrigin = "anonymous";
+    script.onload = () => {
+      if (typeof globalThis.heic2any === "function") {
+        resolve(globalThis.heic2any);
+      } else {
+        reject(new Error("heic-converter-missing"));
+      }
+    };
+    script.onerror = () => reject(new Error("heic-converter-load-failed"));
+    document.head.appendChild(script);
+  });
+
+  return heicConverterPromise;
 }
 
 async function blobToBase64(blob) {
@@ -118,15 +158,23 @@ export async function idbSetAsset(key, value) {
 }
 
 export async function normalizeImageAsset(value) {
-  if (!hasNativeStorage()) return value;
-  const response = await nativeRequest({
-    op: "normalizeImageAsset",
-    name: value.name || "",
-    type: value.type || "application/octet-stream",
-    data: await blobToBase64(value),
-  });
-  if (!response.data) return value;
-  return base64ToBlob(response.data, response.type || value.type);
+  if (hasNativeStorage()) {
+    const response = await nativeRequest({
+      op: "normalizeImageAsset",
+      name: value.name || "",
+      type: value.type || "application/octet-stream",
+      data: await blobToBase64(value),
+    });
+    if (!response.data) return value;
+    return base64ToBlob(response.data, response.type || value.type);
+  }
+
+  if (!isHeifAsset(value)) return value;
+  const heic2any = await loadHeicConverter();
+  const converted = await heic2any({ blob: value, toType: "image/png" });
+  const blob = Array.isArray(converted) ? converted[0] : converted;
+  if (blob instanceof Blob) return blob;
+  return new Blob([blob], { type: "image/png" });
 }
 
 export async function idbGetAsset(key) {
