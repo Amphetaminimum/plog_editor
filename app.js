@@ -6,7 +6,7 @@ import { createExportManager } from "./js/export-manager.js";
 import { createHistoryManager } from "./js/history-manager.js";
 import { createStateRenderer } from "./js/render-state.js";
 import { createShellManager } from "./js/shell-manager.js";
-import { idbDeleteAsset, idbGetAsset, idbSetAsset } from "./js/storage.js";
+import { idbDeleteAsset, idbGetAsset, idbSetAsset, normalizeImageAsset } from "./js/storage.js";
 
 const FONT_MAP = {
   fangzheng: '"方正清刻本悦宋", "FZQKBYSJW--GB1-0", "Songti SC", "STSong", "Noto Serif SC", serif',
@@ -1647,7 +1647,16 @@ document.getElementById("btn-add-card")?.addEventListener("click", () => {
 document.getElementById("input-image").addEventListener("change", async (ev) => {
   const file = ev.target.files?.[0];
   if (!file) return;
-  const tempUrl = URL.createObjectURL(file);
+  let assetBlob;
+  try {
+    assetBlob = await normalizeImageAsset(file);
+  } catch (err) {
+    console.error("Failed to normalize image asset", err);
+    ev.target.value = "";
+    return;
+  }
+
+  const tempUrl = URL.createObjectURL(assetBlob);
 
   let image;
   try {
@@ -1668,7 +1677,7 @@ document.getElementById("input-image").addEventListener("change", async (ev) => 
   const assetId = createAssetId();
 
   try {
-    await idbSetAsset(assetId, file);
+    await idbSetAsset(assetId, assetBlob);
   } catch (err) {
     console.error("Failed to persist image asset", err);
     ev.target.value = "";

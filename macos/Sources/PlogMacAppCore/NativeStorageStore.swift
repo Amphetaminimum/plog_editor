@@ -1,4 +1,6 @@
 import Foundation
+import ImageIO
+import UniformTypeIdentifiers
 
 public final class NativeStorageStore {
     private let root: URL
@@ -40,6 +42,8 @@ public final class NativeStorageStore {
             case "setAsset":
                 try setAsset(payload)
                 return ok()
+            case "normalizeImageAsset":
+                return try normalizeImageAsset(payload)
             case "getAsset":
                 return try getAsset(forKey: key(from: payload))
             case "deleteAsset":
@@ -89,6 +93,47 @@ public final class NativeStorageStore {
         ]
         let metadataData = try JSONSerialization.data(withJSONObject: metadata, options: [.prettyPrinted, .sortedKeys])
         try metadataData.write(to: assetMetadataURL(forKey: key), options: .atomic)
+    }
+
+    private func normalizeImageAsset(_ payload: [String: Any]) throws -> [String: Any] {
+        guard let encoded = payload["data"] as? String, let data = Data(base64Encoded: encoded) else {
+            throw NativeStorageError.invalidPayload
+        }
+
+        let type = payload["type"] as? String ?? "application/octet-stream"
+        let name = payload["name"] as? String ?? ""
+        guard shouldTranscodeForWebDisplay(type: type, name: name) else {
+            return [
+                "ok": true,
+                "data": encoded,
+                "type": type,
+            ]
+        }
+
+        guard
+            let source = CGImageSourceCreateWithData(data as CFData, nil),
+            let image = CGImageSourceCreateImageAtIndex(source, 0, nil)
+        else {
+            throw NativeStorageError.imageTranscodeFailed
+        }
+
+        let output = NSMutableData()
+        guard
+            let destination = CGImageDestinationCreateWithData(output, UTType.png.identifier as CFString, 1, nil)
+        else {
+            throw NativeStorageError.imageTranscodeFailed
+        }
+
+        CGImageDestinationAddImage(destination, image, nil)
+        guard CGImageDestinationFinalize(destination) else {
+            throw NativeStorageError.imageTranscodeFailed
+        }
+
+        return [
+            "ok": true,
+            "data": (output as Data).base64EncodedString(),
+            "type": "image/png",
+        ]
     }
 
     private func getAsset(forKey key: String) throws -> [String: Any] {
@@ -144,6 +189,18 @@ public final class NativeStorageStore {
         metadataDirectory.appendingPathComponent(safeFilename(forKey: key)).appendingPathExtension("json")
     }
 
+    private func shouldTranscodeForWebDisplay(type: String, name: String) -> Bool {
+        let normalizedType = type.lowercased()
+        if normalizedType == "image/heif" || normalizedType == "image/heic" {
+            return true
+        }
+
+        let normalizedName = name.lowercased()
+        return normalizedName.hasSuffix(".hif")
+            || normalizedName.hasSuffix(".heif")
+            || normalizedName.hasSuffix(".heic")
+    }
+
     private func safeFilename(forKey key: String) -> String {
         Data(key.utf8).base64EncodedString()
             .replacingOccurrences(of: "/", with: "_")
@@ -161,5 +218,6 @@ public final class NativeStorageStore {
 
 public enum NativeStorageError: Error, Equatable {
     case invalidPayload
+    case imageTranscodeFailed
     case unsupportedOperation(String)
 }

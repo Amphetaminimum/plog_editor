@@ -117,6 +117,18 @@ export async function idbSetAsset(key, value) {
   });
 }
 
+export async function normalizeImageAsset(value) {
+  if (!hasNativeStorage()) return value;
+  const response = await nativeRequest({
+    op: "normalizeImageAsset",
+    name: value.name || "",
+    type: value.type || "application/octet-stream",
+    data: await blobToBase64(value),
+  });
+  if (!response.data) return value;
+  return base64ToBlob(response.data, response.type || value.type);
+}
+
 export async function idbGetAsset(key) {
   if (hasNativeStorage()) {
     const response = await nativeRequest({ op: "getAsset", key });
