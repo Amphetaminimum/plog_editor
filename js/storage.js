@@ -5,7 +5,7 @@ const DB_NAME = "plog_editor_db";
 const DB_VERSION = 2;
 const DB_STORE = "kv";
 const ASSET_STORE = "assets";
-const HEIC_CONVERTER_URL = "https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js";
+const HEIC_CONVERTER_URL = "https://cdn.jsdelivr.net/npm/heic-to@1.5.2/dist/iife/heic-to.js";
 let dbPromise = null;
 let heicConverterPromise = null;
 
@@ -28,7 +28,8 @@ function isHeifAsset(value) {
 }
 
 async function loadHeicConverter() {
-  if (typeof globalThis.heic2any === "function") return globalThis.heic2any;
+  if (typeof globalThis.HeicTo === "function") return globalThis.HeicTo;
+  if (typeof globalThis.HeicTo?.heicTo === "function") return globalThis.HeicTo.heicTo;
   if (heicConverterPromise) return heicConverterPromise;
 
   heicConverterPromise = new Promise((resolve, reject) => {
@@ -42,8 +43,10 @@ async function loadHeicConverter() {
     script.async = true;
     script.crossOrigin = "anonymous";
     script.onload = () => {
-      if (typeof globalThis.heic2any === "function") {
-        resolve(globalThis.heic2any);
+      if (typeof globalThis.HeicTo === "function") {
+        resolve(globalThis.HeicTo);
+      } else if (typeof globalThis.HeicTo?.heicTo === "function") {
+        resolve(globalThis.HeicTo.heicTo);
       } else {
         reject(new Error("heic-converter-missing"));
       }
@@ -171,8 +174,8 @@ export async function normalizeImageAsset(value) {
   }
 
   if (!isHeifAsset(value)) return value;
-  const heic2any = await loadHeicConverter();
-  const converted = await heic2any({ blob: value, toType: "image/png" });
+  const heicTo = await loadHeicConverter();
+  const converted = await heicTo({ blob: value, type: "image/png" });
   const blob = Array.isArray(converted) ? converted[0] : converted;
   if (blob instanceof Blob) return blob;
   return new Blob([blob], { type: "image/png" });
