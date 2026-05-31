@@ -858,6 +858,22 @@ body.theme-dark .btn-danger:hover {
   border-radius: 999px;
 }
 
+.import-quality-control {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+  padding: 2px 2px 0;
+}
+
+.import-quality-control span {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.import-quality-control input {
+  margin-top: 6px;
+  padding: 0;
+}
+
 .canvas-wrap {
   min-height: calc(100vh - 92px);
 }

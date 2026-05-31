@@ -161,7 +161,7 @@ export async function idbSetAsset(key, value) {
   });
 }
 
-export async function normalizeImageAsset(value) {
+export async function normalizeImageAsset(value, options = {}) {
   if (hasNativeStorage()) {
     const response = await nativeRequest({
       op: "normalizeImageAsset",
@@ -175,10 +175,11 @@ export async function normalizeImageAsset(value) {
 
   if (!isHeifAsset(value)) return value;
   const heicTo = await loadHeicConverter();
-  const converted = await heicTo({ blob: value, type: "image/png" });
+  const quality = Math.max(0.8, Math.min(1, Number(options.quality) || 0.96));
+  const converted = await heicTo({ blob: value, type: "image/jpeg", quality });
   const blob = Array.isArray(converted) ? converted[0] : converted;
   if (blob instanceof Blob) return blob;
-  return new Blob([blob], { type: "image/png" });
+  return new Blob([blob], { type: "image/jpeg" });
 }
 
 export async function idbGetAsset(key) {

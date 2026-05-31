@@ -102,6 +102,8 @@ const exportAppearance = document.getElementById("export-appearance");
 const canvasBgInput = document.getElementById("canvas-bg");
 const btnCanvasBgReset = document.getElementById("btn-canvas-bg-reset");
 const canvasPaletteStatus = document.getElementById("canvas-palette-status");
+const importQuality = document.getElementById("import-quality");
+const importQualityValue = document.getElementById("import-quality-value");
 const canvasBgPresetButtons = [...document.querySelectorAll("[data-canvas-bg]")];
 const propRotation = document.getElementById("prop-rotation");
 const propBrightness = document.getElementById("prop-brightness");
@@ -1649,7 +1651,8 @@ document.getElementById("input-image").addEventListener("change", async (ev) => 
   if (!file) return;
   let assetBlob;
   try {
-    assetBlob = await normalizeImageAsset(file);
+    const quality = Math.max(0.8, Math.min(1, (Number(importQuality?.value) || 96) / 100));
+    assetBlob = await normalizeImageAsset(file, { quality });
   } catch (err) {
     console.error("Failed to normalize image asset", err);
     alert("This HIF/HEIF image could not be converted in the browser. Check the network connection and try again.");
@@ -1708,6 +1711,10 @@ document.getElementById("input-image").addEventListener("change", async (ev) => 
     }),
   );
   ev.target.value = "";
+});
+
+importQuality?.addEventListener("input", () => {
+  if (importQualityValue) importQualityValue.textContent = importQuality.value;
 });
 
 document.getElementById("btn-delete").addEventListener("click", () => {

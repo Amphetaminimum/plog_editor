@@ -7,8 +7,8 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <title>Plog Editor</title>
-    <link rel="icon" href="./favicon.svg?v=20260531-002" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260531-002" />
+    <link rel="icon" href="./favicon.svg?v=20260531-003" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css?v=20260531-003" />
   </head>
   <body class="page-editor">
     <div class="app-shell">
@@ -121,6 +121,10 @@
               <label class="file-btn">
                 Image
                 <input id="input-image" type="file" accept="image/*,.hif,.heif,.heic,image/heif,image/heic" />
+              </label>
+              <label class="import-quality-control">
+                Import Quality <span id="import-quality-value">96</span>
+                <input id="import-quality" type="range" min="80" max="100" value="96" />
               </label>
               <button id="btn-add-divider" class="btn">Divider</button>
               <button id="btn-add-header" class="btn">Header</button>
@@ -343,6 +347,6 @@
       </div>
     </template>
 
-    <script src="./app.js?v=20260531-002" type="module"></script>
+    <script src="./app.js?v=20260531-003" type="module"></script>
   </body>
 </html>

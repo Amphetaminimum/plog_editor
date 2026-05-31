@@ -76,11 +76,12 @@ test("storage converts heif assets in browser mode", async () => {
   const { normalizeImageAsset } = await importFreshStorage();
   const asset = new File(["heif"], "sample.HIF", { type: "" });
 
-  const restored = await normalizeImageAsset(asset);
+  const restored = await normalizeImageAsset(asset, { quality: 0.88 });
 
   assert.equal(calls.length, 1);
   assert.equal(calls[0].blob, asset);
-  assert.equal(calls[0].type, "image/png");
+  assert.equal(calls[0].type, "image/jpeg");
+  assert.equal(calls[0].quality, 0.88);
   assert.equal(restored instanceof Blob, true);
   assert.equal(restored.type, "image/png");
   assert.equal(await restored.text(), "png");
