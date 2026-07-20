@@ -4,6 +4,7 @@ import { createDocStoreManager } from "./js/doc-store.js";
 import { createEditorRenderManager } from "./js/editor-render.js";
 import { createExportManager } from "./js/export-manager.js";
 import { createHistoryManager } from "./js/history-manager.js";
+import { formatMonthYearLabel } from "./js/header-format.js";
 import { DEFAULT_IMAGE_LOOK, imagePresetById } from "./js/image-filters.js";
 import { createStateRenderer } from "./js/render-state.js";
 import { createShellManager } from "./js/shell-manager.js";
@@ -943,11 +944,11 @@ async function loadBuildWeekExample() {
     content: {
       title: "The Walk Before the City Wakes",
       titleHtml: "The Walk Before the City Wakes",
-      meta: "06:42 · Sunday",
-      metaHtml: "06:42 · Sunday",
+      meta: "[July 26]",
+      metaHtml: "[July 26]",
     },
     spacingBefore: "normal",
-    style: { fontSize: 74, color: "#232038", radius: 0, fontFamily: "fangzheng", fontWeight: 600 },
+    style: { fontSize: 62, color: "#232038", radius: 0, fontFamily: "fangzheng", fontWeight: 500 },
   }));
   addDemoElement(createElement("text", {
     content: "At 6:42, the streets were still holding their breath. I left my phone on silent and followed the light toward the old reservoir.",
@@ -1762,7 +1763,7 @@ document.getElementById("btn-add-header").addEventListener("click", () => {
     createElement("header", {
       content: {
         title: "Prayer",
-        meta: "[Aug. 2020]",
+        meta: formatMonthYearLabel(),
       },
       spacingBefore: "section",
       style: { fontSize: 62, color: defaultTextColorForTheme(), radius: 0, fontFamily: "fangzheng" },

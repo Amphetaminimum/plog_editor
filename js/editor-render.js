@@ -291,9 +291,9 @@ export function createEditorRenderManager({
         if (!item.content || typeof item.content !== "object") {
           item.content = {
             title: "Prayer",
-            meta: "[Aug. 2020]",
+            meta: "[August 20]",
             titleHtml: "Prayer",
-            metaHtml: "[Aug. 2020]",
+            metaHtml: "[August 20]",
           };
         }
         const desiredTitleHtml = sanitizeEditableHtml(item.content.titleHtml || item.content.title || "");

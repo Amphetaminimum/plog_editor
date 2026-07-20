@@ -1,4 +1,5 @@
 import { imageFilterCss } from "./image-filters.js";
+import { headerMetaBaselineY } from "./header-format.js";
 
 export function createStateRenderer({
   getCanvasMetrics,
@@ -95,6 +96,7 @@ export function createStateRenderer({
       }
 
       if (item.type === "header") {
+        const titleFontSize = item.style.fontSize ?? 62;
         drawRichTextBox(ctx, {
           ...item,
           width: Math.max(180, item.width - 460),
@@ -103,8 +105,18 @@ export function createStateRenderer({
         });
         const metaHtml = item.content?.metaHtml || item.content?.meta || "";
         const metaText = plainTextFromHtml(metaHtml);
+        const metaFontSize = Math.max(24, Math.min(60, titleFontSize));
         ctx.textAlign = "right";
-        drawText(ctx, metaText, item.x + item.width, item.y + 56, Math.max(24, Math.min(60, item.style.fontSize ?? 62)), resolveTextColor(item.style.color ?? "#1f1f22"), "500", resolveFontFamily(item));
+        drawText(
+          ctx,
+          metaText,
+          item.x + item.width,
+          headerMetaBaselineY(item.y, titleFontSize, metaFontSize),
+          metaFontSize,
+          resolveTextColor(item.style.color ?? "#1f1f22"),
+          "500",
+          resolveFontFamily(item),
+        );
         ctx.textAlign = "left";
         continue;
       }

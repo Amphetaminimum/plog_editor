@@ -1,4 +1,5 @@
 import { DOCS_STORAGE_KEY, STORAGE_KEY, idbGet, idbSet } from "./storage.js";
+import { formatMonthYearLabel, normalizeMonthYearLabel } from "./header-format.js";
 
 export function createDocStoreManager({
   state,
@@ -68,6 +69,25 @@ export function createDocStoreManager({
 
   function normalizeDocRecord(doc) {
     const data = doc?.data || createDefaultDocData();
+    const elements = Array.isArray(data.state?.elements) ? data.state.elements : [];
+    elements.forEach((item) => {
+      if (item?.type !== "header" || !item.content) return;
+      const previousMeta = item.content.meta || "";
+      const normalizedMeta = normalizeMonthYearLabel(previousMeta);
+      if (normalizedMeta && normalizedMeta !== previousMeta) {
+        item.content.meta = normalizedMeta;
+        if (!item.content.metaHtml || item.content.metaHtml === previousMeta) {
+          item.content.metaHtml = normalizedMeta;
+        }
+      }
+      if (doc?.name === "Example" && item.content.title === "The Walk Before the City Wakes") {
+        item.style = item.style || {};
+        item.style.fontSize = 62;
+        item.style.fontWeight = 500;
+        item.content.meta = "[July 26]";
+        item.content.metaHtml = "[July 26]";
+      }
+    });
     const derivedMeta = deriveDocMeta(doc, data);
     return {
       id: doc?.id,
@@ -82,9 +102,7 @@ export function createDocStoreManager({
   }
 
   function monthYearLabel(value = new Date()) {
-    const date = value instanceof Date ? value : new Date(value);
-    const months = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."];
-    return `[${months[date.getMonth()]} ${date.getFullYear()}]`;
+    return formatMonthYearLabel(value);
   }
 
   function isoMonthValue(value = new Date()) {
