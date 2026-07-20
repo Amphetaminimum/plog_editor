@@ -8,7 +8,7 @@
     <meta http-equiv="Expires" content="0" />
     <title>Plog — Long content to polished design</title>
     <link rel="icon" href="./favicon.svg?v=20260720-001" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260720-001" />
+    <link rel="stylesheet" href="./styles.css?v=20260720-003" />
   </head>
   <body class="page-editor">
     <div class="app-shell">
@@ -216,55 +216,61 @@
               <input id="prop-type" type="text" readonly />
             </label>
             <p class="hint">Drag with the top-left handle. Resize with the bottom-right dot.</p>
-            <label>
-              Font Size
-              <input id="prop-font-size" type="number" min="12" max="140" />
-            </label>
-            <label>
-              Font Size Preset
-              <select id="prop-font-size-preset">
-                <option value="">Custom</option>
-                <option value="36">36</option>
-                <option value="44">44</option>
-                <option value="52">52</option>
-                <option value="60">60</option>
-                <option value="68">68</option>
-                <option value="76">76</option>
-              </select>
-            </label>
-            <label>
-              Font Family
-              <select id="prop-font-family">
-                <option value="fangzheng">Fangzheng YueSong</option>
-                <option value="song">Songti</option>
-                <option value="sans">Sans</option>
-              </select>
-            </label>
-            <label>
-              Block Weight
-              <select id="prop-font-weight">
-                <option value="200">Thin</option>
-                <option value="300" selected>Light</option>
-                <option value="400">Regular</option>
-                <option value="500">Medium</option>
-                <option value="600">SemiBold</option>
-              </select>
-            </label>
-            <p class="hint">This controls the whole text box. `Ctrl+B` only affects selected text.</p>
-            <div id="text-formatting-controls" class="group hidden">
-              <h3>Text Editing</h3>
-              <p class="hint">`Cmd/Ctrl+Z` works globally. These buttons follow the selected text block.</p>
-              <div class="inspector-actions">
-                <button id="btn-undo" class="btn inspector-btn" type="button">Undo</button>
-                <button id="btn-redo" class="btn inspector-btn" type="button">Redo</button>
+            <div id="text-style-controls">
+              <label>
+                Font Size
+                <input id="prop-font-size" type="number" min="12" max="140" />
+              </label>
+              <label>
+                Font Size Preset
+                <select id="prop-font-size-preset">
+                  <option value="">Custom</option>
+                  <option value="36">36</option>
+                  <option value="44">44</option>
+                  <option value="52">52</option>
+                  <option value="60">60</option>
+                  <option value="68">68</option>
+                  <option value="76">76</option>
+                </select>
+              </label>
+              <label>
+                Font Family
+                <select id="prop-font-family">
+                  <option value="fangzheng">Fangzheng YueSong</option>
+                  <option value="song">Songti</option>
+                  <option value="sans">Sans</option>
+                </select>
+              </label>
+              <label>
+                Block Weight
+                <select id="prop-font-weight">
+                  <option value="200">Thin</option>
+                  <option value="300" selected>Light</option>
+                  <option value="400">Regular</option>
+                  <option value="500">Medium</option>
+                  <option value="600">SemiBold</option>
+                </select>
+              </label>
+              <p class="hint">This controls the whole text box. `Ctrl+B` only affects selected text.</p>
+              <div id="text-formatting-controls" class="group hidden">
+                <h3>Text Editing</h3>
+                <p class="hint">`Cmd/Ctrl+Z` works globally. These buttons follow the selected text block.</p>
+                <div class="inspector-actions">
+                  <button id="btn-undo" class="btn inspector-btn" type="button">Undo</button>
+                  <button id="btn-redo" class="btn inspector-btn" type="button">Redo</button>
+                </div>
+                <div class="inspector-actions inspector-actions-compact">
+                  <button id="btn-bold" class="btn inspector-btn tool-icon" type="button">B</button>
+                  <button id="btn-italic" class="btn inspector-btn tool-icon" type="button">I</button>
+                  <button id="btn-bullet-list" class="btn inspector-btn tool-icon" type="button" aria-label="Bulleted list">• List</button>
+                  <button id="btn-number-list" class="btn inspector-btn tool-icon" type="button" aria-label="Numbered list">1. List</button>
+                  <button id="btn-clear-format" class="btn inspector-btn" type="button">Clear</button>
+                </div>
               </div>
-              <div class="inspector-actions inspector-actions-compact">
-                <button id="btn-bold" class="btn inspector-btn tool-icon" type="button">B</button>
-                <button id="btn-italic" class="btn inspector-btn tool-icon" type="button">I</button>
-                <button id="btn-bullet-list" class="btn inspector-btn tool-icon" type="button" aria-label="Bulleted list">• List</button>
-                <button id="btn-number-list" class="btn inspector-btn tool-icon" type="button" aria-label="Numbered list">1. List</button>
-                <button id="btn-clear-format" class="btn inspector-btn" type="button">Clear</button>
-              </div>
+              <label>
+                Text Color
+                <input id="prop-color" type="color" value="#1f1f22" />
+              </label>
             </div>
             <label>
               Spacing Before
@@ -274,35 +280,65 @@
                 <option value="section">New Paragraph</option>
               </select>
             </label>
-            <label>
-              Text Color
-              <input id="prop-color" type="color" value="#1f1f22" />
-            </label>
             <div id="image-controls" class="hidden">
-              <label>
-                Rotation
-                <input id="prop-rotation" type="range" min="-180" max="180" value="0" />
-              </label>
-              <label>
-                Brightness
-                <input id="prop-brightness" type="range" min="50" max="150" value="100" />
-              </label>
-              <label>
-                Contrast
-                <input id="prop-contrast" type="range" min="50" max="150" value="100" />
-              </label>
-              <label>
-                Grayscale
-                <input id="prop-grayscale" type="range" min="0" max="100" value="0" />
-              </label>
-              <label>
-                Frame
-                <select id="prop-frame">
-                  <option value="none">None</option>
-                  <option value="polaroid">Polaroid</option>
-                  <option value="card">Card</option>
-                </select>
-              </label>
+              <div class="image-inspector-heading">
+                <div>
+                  <p class="panel-kicker">Image look</p>
+                  <h3>Film &amp; everyday presets</h3>
+                </div>
+                <button id="btn-image-reset" class="btn image-reset-btn" type="button">Reset</button>
+              </div>
+              <div class="image-filter-presets" aria-label="Image filter presets">
+                <button class="image-filter-preset" type="button" data-image-preset="soft">Soft</button>
+                <button class="image-filter-preset" type="button" data-image-preset="portra">Portra</button>
+                <button class="image-filter-preset" type="button" data-image-preset="gold">Gold</button>
+                <button class="image-filter-preset" type="button" data-image-preset="chrome">Chrome</button>
+                <button class="image-filter-preset" type="button" data-image-preset="cinema">Cinema</button>
+                <button class="image-filter-preset" type="button" data-image-preset="mono">Mono</button>
+                <button class="image-filter-preset" type="button" data-image-preset="noir">Noir</button>
+              </div>
+              <details class="inspector-disclosure" open>
+                <summary><span>Adjust</span><small>5 controls</small></summary>
+                <div class="inspector-disclosure-body">
+                  <label class="range-field">
+                    <span>Brightness <output id="prop-brightness-value">100</output></span>
+                    <input id="prop-brightness" type="range" min="50" max="150" value="100" />
+                  </label>
+                  <label class="range-field">
+                    <span>Contrast <output id="prop-contrast-value">100</output></span>
+                    <input id="prop-contrast" type="range" min="50" max="150" value="100" />
+                  </label>
+                  <label class="range-field">
+                    <span>Saturation <output id="prop-saturation-value">100</output></span>
+                    <input id="prop-saturation" type="range" min="0" max="180" value="100" />
+                  </label>
+                  <label class="range-field">
+                    <span>Warmth <output id="prop-warmth-value">0</output></span>
+                    <input id="prop-warmth" type="range" min="-100" max="100" value="0" />
+                  </label>
+                  <label class="range-field">
+                    <span>Grayscale <output id="prop-grayscale-value">0</output></span>
+                    <input id="prop-grayscale" type="range" min="0" max="100" value="0" />
+                  </label>
+                </div>
+              </details>
+              <details class="inspector-disclosure">
+                <summary><span>Transform &amp; frame</span><small>Optional</small></summary>
+                <div class="inspector-disclosure-body">
+                  <label class="range-field">
+                    <span>Rotation <output id="prop-rotation-value">0°</output></span>
+                    <input id="prop-rotation" type="range" min="-180" max="180" value="0" />
+                  </label>
+                  <label>
+                    Frame
+                    <select id="prop-frame">
+                      <option value="none">None</option>
+                      <option value="polaroid">Polaroid</option>
+                      <option value="card">Card</option>
+                    </select>
+                  </label>
+                </div>
+              </details>
             </div>
             <button id="btn-delete" class="btn btn-danger">Delete Element</button>
           </div>
@@ -377,6 +413,6 @@
       </div>
     </template>
 
-    <script src="./app.js?v=20260720-002" type="module"></script>
+    <script src="./app.js?v=20260720-003" type="module"></script>
   </body>
 </html>

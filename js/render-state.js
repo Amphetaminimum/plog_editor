@@ -1,3 +1,5 @@
+import { imageFilterCss } from "./image-filters.js";
+
 export function createStateRenderer({
   getCanvasMetrics,
   getElements,
@@ -78,7 +80,7 @@ export function createStateRenderer({
         const centerY = item.y + item.height / 2;
         ctx.translate(centerX, centerY);
         ctx.rotate(((item.style.rotation ?? 0) * Math.PI) / 180);
-        ctx.filter = `brightness(${item.style.brightness ?? 100}%) contrast(${item.style.contrast ?? 100}%) grayscale(${item.style.grayscale ?? 0}%)`;
+        ctx.filter = imageFilterCss(item.style);
         drawRoundedImage(ctx, img, -item.width / 2, -item.height / 2, item.width, item.height, item.style.radius ?? 0);
         ctx.restore();
         ctx.filter = "none";
@@ -95,14 +97,14 @@ export function createStateRenderer({
       if (item.type === "header") {
         drawRichTextBox(ctx, {
           ...item,
-          width: Math.max(180, item.width - 300),
+          width: Math.max(180, item.width - 460),
           html: item.content?.titleHtml || item.content?.title || "",
           style: { ...item.style, color: resolveTextColor(item.style.color ?? "#1f1f22"), fontWeight: item.style.fontWeight ?? 500 },
         });
         const metaHtml = item.content?.metaHtml || item.content?.meta || "";
         const metaText = plainTextFromHtml(metaHtml);
         ctx.textAlign = "right";
-        drawText(ctx, metaText, item.x + item.width, item.y + 42, Math.max(18, Math.round((item.style.fontSize ?? 62) * 0.4)), resolveTextColor(item.style.color ?? "#1f1f22"), "500", resolveFontFamily(item));
+        drawText(ctx, metaText, item.x + item.width, item.y + 56, Math.max(24, Math.min(60, item.style.fontSize ?? 62)), resolveTextColor(item.style.color ?? "#1f1f22"), "500", resolveFontFamily(item));
         ctx.textAlign = "left";
         continue;
       }

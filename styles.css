@@ -1901,7 +1901,143 @@ body.layout-locked .el {
 }
 
 #image-controls {
-  padding-top: 4px;
+  margin: 4px 0 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.image-inspector-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.image-inspector-heading .panel-kicker {
+  margin-bottom: 4px;
+  font-size: 10px;
+}
+
+.image-inspector-heading h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.image-reset-btn {
+  width: auto;
+  min-height: 30px;
+  margin: 0;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+}
+
+.image-filter-presets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin-bottom: 16px;
+}
+
+.image-filter-preset {
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 253, 248, 0.52);
+  color: var(--muted);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.image-filter-preset:hover {
+  border-color: #c8b79f;
+  color: var(--ink);
+}
+
+.image-filter-preset.is-active {
+  border-color: color-mix(in srgb, var(--accent) 56%, var(--line));
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+}
+
+body.theme-dark .image-filter-preset {
+  background: rgba(255, 248, 239, 0.035);
+}
+
+.inspector-disclosure {
+  border-top: 1px solid var(--line);
+}
+
+.inspector-disclosure:last-of-type {
+  border-bottom: 1px solid var(--line);
+}
+
+.inspector-disclosure summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 42px;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  list-style: none;
+}
+
+.inspector-disclosure summary::-webkit-details-marker {
+  display: none;
+}
+
+.inspector-disclosure summary small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.inspector-disclosure summary::after {
+  content: "+";
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 400;
+}
+
+.inspector-disclosure[open] summary::after {
+  content: "−";
+}
+
+.inspector-disclosure-body {
+  padding: 4px 0 10px;
+}
+
+.range-field > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.range-field output {
+  color: var(--ink);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.range-field input[type="range"] {
+  height: 22px;
+  margin-top: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  accent-color: var(--accent);
 }
 
 .dialog-backdrop {

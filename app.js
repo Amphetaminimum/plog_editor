@@ -4,6 +4,7 @@ import { createDocStoreManager } from "./js/doc-store.js";
 import { createEditorRenderManager } from "./js/editor-render.js";
 import { createExportManager } from "./js/export-manager.js";
 import { createHistoryManager } from "./js/history-manager.js";
+import { DEFAULT_IMAGE_LOOK, imagePresetById } from "./js/image-filters.js";
 import { createStateRenderer } from "./js/render-state.js";
 import { createShellManager } from "./js/shell-manager.js";
 import { idbDeleteAsset, idbGetAsset, idbSetAsset, normalizeImageAsset } from "./js/storage.js";
@@ -109,11 +110,22 @@ const importQualityValue = document.getElementById("import-quality-value");
 const canvasBgPresetButtons = [...document.querySelectorAll("[data-canvas-bg]")];
 const propRotation = document.getElementById("prop-rotation");
 const propBrightness = document.getElementById("prop-brightness");
+const propBrightnessValue = document.getElementById("prop-brightness-value");
 const propContrast = document.getElementById("prop-contrast");
+const propContrastValue = document.getElementById("prop-contrast-value");
+const propSaturation = document.getElementById("prop-saturation");
+const propSaturationValue = document.getElementById("prop-saturation-value");
+const propWarmth = document.getElementById("prop-warmth");
+const propWarmthValue = document.getElementById("prop-warmth-value");
 const propGrayscale = document.getElementById("prop-grayscale");
+const propGrayscaleValue = document.getElementById("prop-grayscale-value");
+const propRotationValue = document.getElementById("prop-rotation-value");
 const propFrame = document.getElementById("prop-frame");
 const imageControls = document.getElementById("image-controls");
+const imagePresetButtons = [...document.querySelectorAll("[data-image-preset]")];
+const btnImageReset = document.getElementById("btn-image-reset");
 const textFormattingControls = document.getElementById("text-formatting-controls");
+const textStyleControls = document.getElementById("text-style-controls");
 const btnMobileElements = document.getElementById("btn-mobile-elements");
 const btnMobileSettings = document.getElementById("btn-mobile-settings");
 const mobilePanelBackdrop = document.getElementById("mobile-panel-backdrop");
@@ -142,12 +154,16 @@ const STYLE_PROPERTY_BY_KIND = {
   "style.imageFrame": "frame",
   "style.imageGrayscale": "grayscale",
   "style.imageRotation": "rotation",
+  "style.imageSaturation": "saturation",
+  "style.imageWarmth": "warmth",
 };
 
 propFontSize.dataset.historyKind = "style.fontSize";
 propRotation.dataset.historyKind = "style.imageRotation";
 propBrightness.dataset.historyKind = "style.imageBrightness";
 propContrast.dataset.historyKind = "style.imageContrast";
+propSaturation.dataset.historyKind = "style.imageSaturation";
+propWarmth.dataset.historyKind = "style.imageWarmth";
 propGrayscale.dataset.historyKind = "style.imageGrayscale";
 
 function docName() {
@@ -380,6 +396,8 @@ function createElement(type, patch = {}) {
       rotation: 0,
       brightness: 100,
       contrast: 100,
+      saturation: 100,
+      warmth: 0,
       grayscale: 0,
       frame: "none",
     },
@@ -735,18 +753,28 @@ const docStore = createDocStoreManager({
     imageControls,
     inspector,
     propBrightness,
+    propBrightnessValue,
     propColor,
     propContrast,
+    propContrastValue,
     propFontFamily,
     propFontSize,
     propFontSizePreset,
     propFontWeight,
     propFrame,
     propGrayscale,
+    propGrayscaleValue,
     propRotation,
+    propRotationValue,
+    propSaturation,
+    propSaturationValue,
     propSpacingBefore,
     propType,
+    propWarmth,
+    propWarmthValue,
+    imagePresetButtons,
     textFormattingControls,
+    textStyleControls,
   },
   getElement,
   getElementNode,
@@ -1850,8 +1878,60 @@ wireInspectorNumber(propContrast, (selected, value) => {
   selected.style.contrast = clamp(value || 100, 50, 150);
 });
 
+wireInspectorNumber(propSaturation, (selected, value) => {
+  selected.style.saturation = clamp(value, 0, 180);
+});
+
+wireInspectorNumber(propWarmth, (selected, value) => {
+  selected.style.warmth = clamp(value, -100, 100);
+});
+
 wireInspectorNumber(propGrayscale, (selected, value) => {
   selected.style.grayscale = clamp(value || 0, 0, 100);
+});
+
+const IMAGE_LOOK_PROPERTIES = ["brightness", "contrast", "saturation", "warmth", "grayscale"];
+const IMAGE_RESET_PROPERTIES = [...IMAGE_LOOK_PROPERTIES, "rotation", "frame", "radius"];
+const IMAGE_STYLE_DEFAULTS = {
+  ...DEFAULT_IMAGE_LOOK,
+  rotation: 0,
+  frame: "none",
+  radius: 0,
+};
+
+function captureImageStyle(style, properties) {
+  return Object.fromEntries(properties.map((property) => [property, style[property] ?? IMAGE_STYLE_DEFAULTS[property]]));
+}
+
+function applyImageStyle(selected, nextStyle, properties = IMAGE_LOOK_PROPERTIES) {
+  properties.forEach((property) => {
+    selected.style[property] = nextStyle[property];
+  });
+}
+
+imagePresetButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const selected = getElement(state.selectedId);
+    const preset = imagePresetById(button.dataset.imagePreset);
+    if (!selected || selected.type !== "image" || !preset) return;
+    const beforeStyle = captureImageStyle(selected.style, IMAGE_LOOK_PROPERTIES);
+    applyImageStyle(selected, preset);
+    const afterStyle = captureImageStyle(selected.style, IMAGE_LOOK_PROPERTIES);
+    render();
+    commitAndSave("style.imageLook", { id: selected.id, beforeStyle, afterStyle });
+    showToast(`${preset.label} applied.`);
+  });
+});
+
+btnImageReset.addEventListener("click", () => {
+  const selected = getElement(state.selectedId);
+  if (!selected || selected.type !== "image") return;
+  const beforeStyle = captureImageStyle(selected.style, IMAGE_RESET_PROPERTIES);
+  applyImageStyle(selected, IMAGE_STYLE_DEFAULTS, IMAGE_RESET_PROPERTIES);
+  const afterStyle = captureImageStyle(selected.style, IMAGE_RESET_PROPERTIES);
+  render();
+  commitAndSave("style.imageLook", { id: selected.id, beforeStyle, afterStyle });
+  showToast("Image adjustments reset.");
 });
 
 propFontSizePreset.addEventListener("change", () => {

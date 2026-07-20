@@ -88,6 +88,38 @@ test("layout.canvasWidth undo and redo restore control values and tracked UI sta
   assert.equal(state.elements[0].width, 994);
 });
 
+test("image look presets and reset undo as one operation", () => {
+  const { state, manager } = createHarness();
+  state.elements[0].style = {
+    brightness: 100,
+    contrast: 100,
+    saturation: 100,
+    warmth: 0,
+    grayscale: 0,
+  };
+  manager.pushHistory("initial");
+
+  const beforeStyle = { ...state.elements[0].style };
+  const afterStyle = {
+    brightness: 104,
+    contrast: 94,
+    saturation: 92,
+    warmth: 24,
+    grayscale: 0,
+  };
+  Object.assign(state.elements[0].style, afterStyle);
+  manager.commitMutation("style.imageLook", {
+    id: "a",
+    beforeStyle,
+    afterStyle,
+  });
+
+  assert.equal(manager.undoHistory(), true);
+  assert.deepEqual(state.elements[0].style, beforeStyle);
+  assert.equal(manager.redoHistory(), true);
+  assert.deepEqual(state.elements[0].style, afterStyle);
+});
+
 test("content.edit undo and redo restore block content and height", () => {
   const { state, manager } = createHarness();
   state.elements[0].type = "text";

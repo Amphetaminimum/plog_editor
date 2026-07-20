@@ -1,4 +1,5 @@
 import { sanitizeEditableHtml, sanitizePastedHtml } from "./html-sanitize.js";
+import { imageFilterCss, matchingImagePreset, normalizedImageLook } from "./image-filters.js";
 
 export function createEditorRenderManager({
   state,
@@ -24,6 +25,7 @@ export function createEditorRenderManager({
       controls.elNoSelection.classList.remove("hidden");
       controls.inspector.classList.add("hidden");
       controls.textFormattingControls.classList.add("hidden");
+      controls.textStyleControls.classList.add("hidden");
       controls.btnUndo.disabled = state.historyIndex <= 0;
       controls.btnRedo.disabled = state.historyIndex >= state.history.length - 1;
       return;
@@ -38,14 +40,31 @@ export function createEditorRenderManager({
     controls.propFontWeight.value = String(selected.style.fontWeight ?? 300);
     controls.propSpacingBefore.value = selected.spacingBefore ?? "normal";
     controls.propColor.value = selected.style.color ?? "#1f1f22";
-    controls.propRotation.value = String(selected.style.rotation ?? 0);
-    controls.propBrightness.value = String(selected.style.brightness ?? 100);
-    controls.propContrast.value = String(selected.style.contrast ?? 100);
-    controls.propGrayscale.value = String(selected.style.grayscale ?? 0);
+    const imageLook = normalizedImageLook(selected.style);
+    const rotation = selected.style.rotation ?? 0;
+    controls.propRotation.value = String(rotation);
+    controls.propRotationValue.value = `${rotation}°`;
+    controls.propBrightness.value = String(imageLook.brightness);
+    controls.propBrightnessValue.value = String(imageLook.brightness);
+    controls.propContrast.value = String(imageLook.contrast);
+    controls.propContrastValue.value = String(imageLook.contrast);
+    controls.propSaturation.value = String(imageLook.saturation);
+    controls.propSaturationValue.value = String(imageLook.saturation);
+    controls.propWarmth.value = String(imageLook.warmth);
+    controls.propWarmthValue.value = String(imageLook.warmth);
+    controls.propGrayscale.value = String(imageLook.grayscale);
+    controls.propGrayscaleValue.value = String(imageLook.grayscale);
     controls.propFrame.value = selected.style.frame ?? "none";
     controls.imageControls.classList.toggle("hidden", selected.type !== "image");
+    const activePreset = selected.type === "image" ? matchingImagePreset(selected.style) : null;
+    controls.imagePresetButtons.forEach((button) => {
+      const active = button.dataset.imagePreset === activePreset;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
 
     const textLike = selected.type === "text" || selected.type === "header" || selected.type === "quote" || selected.type === "card";
+    controls.textStyleControls.classList.toggle("hidden", !textLike);
     controls.textFormattingControls.classList.toggle("hidden", !textLike);
     controls.btnUndo.disabled = state.historyIndex <= 0;
     controls.btnRedo.disabled = state.historyIndex >= state.history.length - 1;
@@ -255,7 +274,7 @@ export function createEditorRenderManager({
         if (img.src !== item.src) img.src = item.src;
         img.style.borderRadius = `${item.style.radius ?? 0}px`;
         img.style.transform = `rotate(${item.style.rotation ?? 0}deg)`;
-        img.style.filter = `brightness(${item.style.brightness ?? 100}%) contrast(${item.style.contrast ?? 100}%) grayscale(${item.style.grayscale ?? 0}%)`;
+        img.style.filter = imageFilterCss(item.style);
         node.classList.remove("frame-none", "frame-polaroid", "frame-card");
         node.classList.add(`frame-${item.style.frame ?? "none"}`);
       }
@@ -285,10 +304,10 @@ export function createEditorRenderManager({
         title.style.color = item.style.color ?? "#1f1f22";
         title.style.fontFamily = familyCss(item);
         title.style.fontWeight = String(item.style.fontWeight ?? 500);
-        title.style.maxWidth = `${Math.max(180, layout.contentWidth - 300)}px`;
+        title.style.maxWidth = `${Math.max(180, layout.contentWidth - 460)}px`;
         meta.style.fontFamily = familyCss(item);
         meta.style.fontWeight = "500";
-        meta.style.fontSize = `${Math.max(18, Math.round((item.style.fontSize ?? 62) * 0.4))}px`;
+        meta.style.fontSize = `${Math.max(24, Math.min(60, item.style.fontSize ?? 62))}px`;
         node.style.borderRadius = `${item.style.radius ?? 0}px`;
         const titleH = Math.max(40, Math.ceil(title.scrollHeight));
         const metaH = Math.max(58, Math.ceil(meta.scrollHeight));
