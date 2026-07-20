@@ -3,3 +3,8 @@ Thumbs.db
 doc/*-private.md
 .build/
 dist/
+node_modules/
+.next/
+.wrangler/
+public/
+*.tsbuildinfo
