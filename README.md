@@ -56,7 +56,7 @@ Current scope:
 - local documents
 - text, image, divider, header, quote, card
 - bold, italic, bulleted list, and numbered list formatting
-- original Build Week demo content
+- original example content
 - PNG/JPG/WebP export
 - HTML export
 

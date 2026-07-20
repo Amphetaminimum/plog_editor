@@ -112,7 +112,15 @@ export function createStateRenderer({
         ctx.fillRect(item.x, item.y, item.width, item.height);
         ctx.fillStyle = "#8d7354";
         ctx.fillRect(item.x, item.y, 6, item.height);
-        drawRichTextBox(ctx, { ...item, html: item.html || item.content || "", style: { ...item.style, color: resolveTextColor(item.style.color) } });
+        drawText(ctx, "\"", item.x + 26, item.y + 38, 30, "#8d7354", "400", resolveFontFamily(item));
+        drawRichTextBox(ctx, {
+          ...item,
+          x: item.x + 26,
+          y: item.y + 42,
+          width: item.width - 52,
+          html: item.html || item.content || "",
+          style: { ...item.style, color: resolveTextColor(item.style.color) },
+        });
         continue;
       }
 
@@ -198,9 +206,10 @@ export function createStateRenderer({
 
     function pushText(text, current) {
       if (!text) return;
-      for (const ch of text.replace(/\r/g, "")) {
+      const parts = text.replace(/\r/g, "").match(/\n|[\u3400-\u9FFF]|[^\s\u3400-\u9FFF]+|[ \t]+/g) || [];
+      for (const part of parts) {
         tokens.push({
-          text: ch,
+          text: part,
           weight: current.weight,
           italic: current.italic,
         });
@@ -285,24 +294,35 @@ export function createStateRenderer({
     let currentLine = [];
     let currentWidth = 0;
 
+    const trimTrailingSpaces = (line) => {
+      while (line.length && /^\s+$/.test(line[line.length - 1].text)) line.pop();
+      return line;
+    };
+
     for (const token of tokens) {
       if (token.text === "\n") {
-        lines.push(currentLine);
+        lines.push(trimTrailingSpaces(currentLine));
         currentLine = [];
         currentWidth = 0;
         continue;
       }
       const tokenWidth = measureRichToken(ctx, token, fontSize, family);
       if (currentWidth + tokenWidth > item.width && currentLine.length) {
-        lines.push(currentLine);
-        currentLine = [token];
-        currentWidth = tokenWidth;
+        lines.push(trimTrailingSpaces(currentLine));
+        if (/^\s+$/.test(token.text)) {
+          currentLine = [];
+          currentWidth = 0;
+        } else {
+          currentLine = [token];
+          currentWidth = tokenWidth;
+        }
       } else {
+        if (!currentLine.length && /^\s+$/.test(token.text)) continue;
         currentLine.push(token);
         currentWidth += tokenWidth;
       }
     }
-    if (currentLine.length) lines.push(currentLine);
+    if (currentLine.length) lines.push(trimTrailingSpaces(currentLine));
 
     lines.forEach((line, index) => {
       let cursorX = item.x;

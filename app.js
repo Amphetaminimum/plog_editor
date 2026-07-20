@@ -887,11 +887,12 @@ function syncRestoredHistoryState() {
 
 async function loadBuildWeekExample() {
   await flushSaveSession();
-  let doc = state.docs.find((entry) => entry.name === "Build Week Demo");
+  let doc = state.docs.find((entry) => entry.name === "Example" || entry.name === "Build Week Demo");
   if (!doc) {
-    doc = createDocRecord("Build Week Demo");
+    doc = createDocRecord("Example");
     state.docs.push(doc);
   }
+  doc.name = "Example";
 
   state.currentDocId = doc.id;
   applyDocData(createDefaultDocData());
@@ -908,13 +909,13 @@ async function loadBuildWeekExample() {
       metaHtml: "06:42 · Sunday",
     },
     spacingBefore: "normal",
-    style: { fontSize: 74, color: "#232038", radius: 0, fontFamily: "sans", fontWeight: 600 },
+    style: { fontSize: 74, color: "#232038", radius: 0, fontFamily: "fangzheng", fontWeight: 600 },
   }));
   addDemoElement(createElement("text", {
     content: "At 6:42, the streets were still holding their breath. I left my phone on silent and followed the light toward the old reservoir.",
     html: "At <strong>6:42</strong>, the streets were still holding their breath. I left my phone on silent and followed the light toward the <em>old reservoir</em>.",
     spacingBefore: "section",
-    style: { fontSize: 38, color: "#232038", radius: 0, fontFamily: "sans", fontWeight: 400 },
+    style: { fontSize: 38, color: "#232038", radius: 0, fontFamily: "fangzheng", fontWeight: 400 },
   }));
   addDemoElement(createElement("image", {
     src: new URL("./assets/build-week-demo.svg", window.location.href).href,
@@ -926,19 +927,19 @@ async function loadBuildWeekExample() {
     content: "What I noticed:\nThe first bus sounded farther away than usual.\nA baker unlocked the corner shop.\nSunlight arrived before the crowd did.",
     html: "<strong>What I noticed</strong><ul><li>The first bus sounded farther away than usual.</li><li>A baker unlocked the corner shop.</li><li>Sunlight arrived before the crowd did.</li></ul>",
     spacingBefore: "section",
-    style: { fontSize: 36, color: "#232038", radius: 0, fontFamily: "sans", fontWeight: 400 },
+    style: { fontSize: 36, color: "#232038", radius: 0, fontFamily: "fangzheng", fontWeight: 400 },
   }));
   addDemoElement(createElement("quote", {
     content: "A long story should feel composed, not assembled.",
     html: "A long story should feel <em>composed</em>, not assembled.",
     spacingBefore: "section",
-    style: { fontSize: 42, color: "#4a416b", radius: 0, fontFamily: "sans", fontWeight: 500 },
+    style: { fontSize: 42, color: "#4a416b", radius: 0, fontFamily: "fangzheng", fontWeight: 500 },
   }));
   addDemoElement(createElement("text", {
     content: "By the time the city became loud again, the page was already complete: every block in order, every gap intentional, and the canvas exactly as long as the story needed.",
     html: "By the time the city became loud again, the page was already complete: every block in order, every gap intentional, and the canvas exactly as long as the story needed.",
     spacingBefore: "section",
-    style: { fontSize: 38, color: "#232038", radius: 0, fontFamily: "sans", fontWeight: 400 },
+    style: { fontSize: 38, color: "#232038", radius: 0, fontFamily: "fangzheng", fontWeight: 400 },
   }));
 
   setLayoutLocked(true);
