@@ -26,6 +26,7 @@ export function createEditorRenderManager({
       controls.inspector.classList.add("hidden");
       controls.textFormattingControls.classList.add("hidden");
       controls.textStyleControls.classList.add("hidden");
+      if (controls.btnMobileSettings) controls.btnMobileSettings.disabled = true;
       controls.btnUndo.disabled = state.historyIndex <= 0;
       controls.btnRedo.disabled = state.historyIndex >= state.history.length - 1;
       return;
@@ -33,6 +34,7 @@ export function createEditorRenderManager({
 
     controls.elNoSelection.classList.add("hidden");
     controls.inspector.classList.remove("hidden");
+    if (controls.btnMobileSettings) controls.btnMobileSettings.disabled = false;
     controls.propType.value = selected.type;
     controls.propFontSize.value = selected.style.fontSize ?? 60;
     controls.propFontSizePreset.value = String(selected.style.fontSize ?? "");
@@ -185,7 +187,7 @@ export function createEditorRenderManager({
   }
 
   function bindNodeEvents(node) {
-    node.addEventListener("mousedown", (ev) => {
+    node.addEventListener("pointerdown", (ev) => {
       const target = ev.target;
       const isResize = target.classList.contains("resize-handle");
       const isMoveHandle = target.classList.contains("move-handle");
@@ -205,7 +207,9 @@ export function createEditorRenderManager({
           baseY: item.y,
           baseWidth: item.width,
           baseHeight: item.height,
+          pointerId: ev.pointerId,
         };
+        node.setPointerCapture?.(ev.pointerId);
         ev.preventDefault();
         return;
       }
@@ -224,7 +228,9 @@ export function createEditorRenderManager({
         baseHeight: item.height,
         canvasLeft: canvasRect.left,
         canvasTop: canvasRect.top,
+        pointerId: ev.pointerId,
       };
+      node.setPointerCapture?.(ev.pointerId);
       document.body.classList.add("drag-reordering");
       ev.preventDefault();
     });

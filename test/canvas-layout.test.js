@@ -8,6 +8,7 @@ import {
   flowVerticalElements,
   isMobileViewport,
   requiredCanvasHeight,
+  responsiveShellMode,
 } from "../js/canvas-layout.js";
 
 test("authoredCanvasWidthFromControls clamps preset and custom widths", () => {
@@ -41,9 +42,13 @@ test("fitZoomRatioForStage respects minimum and maximum ratios", () => {
   }), 0.08);
 });
 
-test("isMobileViewport switches at 900px and below", () => {
-  assert.equal(isMobileViewport(900), true);
-  assert.equal(isMobileViewport(901), false);
+test("responsive shell uses explicit phone, tablet, and desktop modes", () => {
+  assert.equal(isMobileViewport(767), true);
+  assert.equal(isMobileViewport(768), false);
+  assert.equal(responsiveShellMode(390), "phone");
+  assert.equal(responsiveShellMode(768), "tablet");
+  assert.equal(responsiveShellMode(1199), "tablet");
+  assert.equal(responsiveShellMode(1200), "desktop");
 });
 
 test("flowVerticalElements produces stable non-overlapping geometry", () => {

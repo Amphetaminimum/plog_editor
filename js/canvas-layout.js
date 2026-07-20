@@ -23,7 +23,13 @@ export function fitZoomRatioForStage({ stageClientWidth, paddingLeft, paddingRig
 }
 
 export function isMobileViewport(viewportWidth) {
-  return viewportWidth <= 900;
+  return viewportWidth <= 767;
+}
+
+export function responsiveShellMode(viewportWidth) {
+  if (viewportWidth <= 767) return "phone";
+  if (viewportWidth <= 1199) return "tablet";
+  return "desktop";
 }
 
 export function flowVerticalElements(elements, layout, spacingMap) {

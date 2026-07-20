@@ -91,6 +91,7 @@ const btnBulletList = document.getElementById("btn-bullet-list");
 const btnNumberList = document.getElementById("btn-number-list");
 const btnClearFormat = document.getElementById("btn-clear-format");
 const btnThemeMode = document.getElementById("btn-theme-mode");
+const btnThemeModeMobile = document.getElementById("btn-theme-mode-mobile");
 const btnDocDrawer = document.getElementById("btn-doc-drawer");
 const docSelect = document.getElementById("doc-select");
 const btnDocNew = document.getElementById("btn-doc-new");
@@ -128,6 +129,8 @@ const textFormattingControls = document.getElementById("text-formatting-controls
 const textStyleControls = document.getElementById("text-style-controls");
 const btnMobileElements = document.getElementById("btn-mobile-elements");
 const btnMobileSettings = document.getElementById("btn-mobile-settings");
+const btnMobileExport = document.getElementById("btn-mobile-export");
+const mobileSheetCloseButtons = [...document.querySelectorAll("[data-close-mobile-panel]")];
 const mobilePanelBackdrop = document.getElementById("mobile-panel-backdrop");
 const dialogBackdrop = document.getElementById("dialog-backdrop");
 const dialogTitle = document.getElementById("dialog-title");
@@ -240,6 +243,13 @@ function setGenerateButtonState(loading) {
   btnExport.disabled = loading;
   btnExport.classList.toggle("is-loading", loading);
   label.textContent = loading ? "Generating…" : "Generate design";
+  if (btnMobileExport) {
+    const mobileLabel = btnMobileExport.querySelector(".mobile-shell-label");
+    btnMobileExport.disabled = loading;
+    btnMobileExport.classList.toggle("is-loading", loading);
+    btnMobileExport.setAttribute("aria-busy", String(loading));
+    if (mobileLabel) mobileLabel.textContent = loading ? "Working…" : "Export";
+  }
 }
 
 function closeToolbarMenus({ except = null } = {}) {
@@ -592,7 +602,7 @@ function updateCanvasPaletteUi() {
   const themeLabel = state.themeMode === "day" ? "Day" : "Night";
   canvasPaletteStatus.textContent = auto
     ? "Theme default colors follow day and night automatically."
-    : "Using custom canvas colors. Theme switches will keep them until you reset.";
+    : "Using custom canvas colors. They stay until you switch themes or reset.";
   btnCanvasBgReset.textContent = auto ? `Reapply ${themeLabel} Default` : `Use ${themeLabel} Default`;
 }
 
@@ -749,6 +759,7 @@ const docStore = createDocStoreManager({
   controls: {
     btnRedo,
     btnUndo,
+    btnMobileSettings,
     elNoSelection,
     imageControls,
     inspector,
@@ -839,6 +850,8 @@ const shellManager = createShellManager({
     canvasScale,
     canvasStage,
     canvasViewport,
+    mobileShellActions: document.querySelector(".mobile-shell-actions"),
+    topbar: document.querySelector(".topbar"),
   },
   authoredCanvasWidth,
 });
@@ -853,29 +866,26 @@ const shellManager = createShellManager({
   updateViewportMetrics,
 } = shellManager);
 
-function applyThemeMode(mode = state.themeMode) {
-  const previousMode = state.themeMode;
-  const shouldSyncPalette = canvasUsesThemeDefaults(previousMode);
+function applyThemeMode(mode = state.themeMode, { syncPalette = true } = {}) {
   state.themeMode = mode === "day" ? "day" : "night";
   const dark = state.themeMode === "night";
   document.body.classList.toggle("theme-dark", dark);
   canvas.dataset.theme = dark ? "dark" : "light";
-  if (shouldSyncPalette) {
+  if (syncPalette) {
     applyThemePalette(state.themeMode);
   } else {
     applyCanvasBackground(currentCanvasBackground());
   }
-  if (btnThemeMode) {
-    const label = state.themeMode.charAt(0).toUpperCase() + state.themeMode.slice(1);
-    btnThemeMode.textContent = `Theme: ${label}`;
-  }
+  const label = state.themeMode.charAt(0).toUpperCase() + state.themeMode.slice(1);
+  if (btnThemeMode) btnThemeMode.textContent = `Theme: ${label}`;
+  if (btnThemeModeMobile) btnThemeModeMobile.textContent = `Theme: ${label}`;
   saveSession();
 }
 
 function syncAppliedDocState({ hydrate = true, pushInitialHistory = false } = {}) {
   applyCanvasWidth();
   applyZoom(state.zoomMode === "fit" ? "fit" : state.zoom, { mode: state.zoomMode, persist: false });
-  applyThemeMode(state.themeMode);
+  applyThemeMode(state.themeMode, { syncPalette: false });
   flushRender();
   renderDocDrawer();
   if (hydrate) {
@@ -908,7 +918,7 @@ function commitStyleChange(selected, kind, beforeValue, afterValue) {
 function syncRestoredHistoryState() {
   applyCanvasWidth();
   applyZoom(state.zoomMode === "fit" ? "fit" : state.zoom, { mode: state.zoomMode, persist: false });
-  applyThemeMode(state.themeMode);
+  applyThemeMode(state.themeMode, { syncPalette: false });
   flushRender();
   renderDocDrawer();
 }
@@ -1563,8 +1573,10 @@ function reflowAroundDragged(draggedId, draggedY) {
   }
 }
 
-document.addEventListener("mousemove", (ev) => {
+document.addEventListener("pointermove", (ev) => {
   if (!state.drag && !state.resize) return;
+  const activePointerId = state.drag?.pointerId ?? state.resize?.pointerId;
+  if (activePointerId != null && ev.pointerId !== activePointerId) return;
   const selected = getElement(state.drag?.id || state.resize?.id);
   if (!selected) return;
 
@@ -1595,8 +1607,10 @@ document.addEventListener("mousemove", (ev) => {
   }
 });
 
-document.addEventListener("mouseup", () => {
+function finishPointerInteraction(ev) {
   const interaction = state.drag || state.resize;
+  const activePointerId = state.drag?.pointerId ?? state.resize?.pointerId;
+  if (interaction && activePointerId != null && ev?.pointerId != null && ev.pointerId !== activePointerId) return;
   const activeId = state.drag?.id || state.resize?.id || null;
   const interactionKind = state.drag ? "layout.move" : state.resize ? "layout.resize" : "unknown";
   const interactionBefore = state.drag
@@ -1639,7 +1653,10 @@ document.addEventListener("mouseup", () => {
       height: selectedAfter.height,
     },
   });
-});
+}
+
+document.addEventListener("pointerup", finishPointerInteraction);
+document.addEventListener("pointercancel", finishPointerInteraction);
 
 document.addEventListener("selectionchange", () => {
   const selection = window.getSelection();
@@ -1721,7 +1738,7 @@ document.addEventListener("keydown", (ev) => {
   }
 });
 
-canvas.addEventListener("mousedown", (ev) => {
+canvas.addEventListener("pointerdown", (ev) => {
   if (ev.target === canvas) {
     state.selectedId = null;
     render();
@@ -2076,6 +2093,15 @@ document.getElementById("btn-export").addEventListener("click", async () => {
   }
 });
 
+btnMobileExport?.addEventListener("click", () => {
+  closeMobilePanels();
+  btnExport.click();
+});
+
+mobileSheetCloseButtons.forEach((button) => {
+  button.addEventListener("click", closeMobilePanels);
+});
+
 document.getElementById("btn-export-html").addEventListener("click", () => {
   void exportHtml();
 });
@@ -2111,36 +2137,40 @@ btnBold.addEventListener("click", (ev) => {
   ev.preventDefault();
 });
 
-btnBold.addEventListener("mousedown", (ev) => {
+btnBold.addEventListener("pointerdown", (ev) => {
   ev.preventDefault();
   applyInlineFormat("bold");
 });
 
-btnBold.addEventListener("mouseup", (ev) => {
+btnBold.addEventListener("pointerup", (ev) => {
   ev.preventDefault();
 });
 
-btnItalic.addEventListener("mousedown", (ev) => {
+btnItalic.addEventListener("pointerdown", (ev) => {
   ev.preventDefault();
   applyInlineFormat("italic");
 });
 
-btnBulletList?.addEventListener("mousedown", (ev) => {
+btnBulletList?.addEventListener("pointerdown", (ev) => {
   ev.preventDefault();
   applyInlineFormat("insertUnorderedList");
 });
 
-btnNumberList?.addEventListener("mousedown", (ev) => {
+btnNumberList?.addEventListener("pointerdown", (ev) => {
   ev.preventDefault();
   applyInlineFormat("insertOrderedList");
 });
 
-btnClearFormat.addEventListener("mousedown", (ev) => {
+btnClearFormat.addEventListener("pointerdown", (ev) => {
   ev.preventDefault();
   applyInlineFormat("removeFormat");
 });
 
 btnThemeMode.addEventListener("click", () => {
+  cycleThemeMode();
+});
+
+btnThemeModeMobile?.addEventListener("click", () => {
   cycleThemeMode();
 });
 

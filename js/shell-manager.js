@@ -1,4 +1,4 @@
-import { fitZoomRatioForStage, isMobileViewport } from "./canvas-layout.js";
+import { fitZoomRatioForStage, responsiveShellMode } from "./canvas-layout.js";
 
 export function createShellManager({
   state,
@@ -6,8 +6,20 @@ export function createShellManager({
   nodes,
   authoredCanvasWidth,
 }) {
-  function isMobileShell() {
-    return isMobileViewport(window.innerWidth);
+  let responsiveFrame = 0;
+  let chromeObserver = null;
+
+  function shellMode() {
+    return responsiveShellMode(window.innerWidth);
+  }
+
+  function syncChromeMetrics() {
+    const topbarHeight = Math.ceil(nodes.topbar?.getBoundingClientRect().height || 0);
+    const dockHeight = shellMode() === "phone"
+      ? Math.ceil(nodes.mobileShellActions?.getBoundingClientRect().height || 0)
+      : 0;
+    document.documentElement.style.setProperty("--topbar-height", `${topbarHeight}px`);
+    document.documentElement.style.setProperty("--mobile-dock-height", `${dockHeight}px`);
   }
 
   function updateViewportMetrics() {
@@ -52,17 +64,24 @@ export function createShellManager({
   function closeMobilePanels() {
     document.body.classList.remove("mobile-panel-left-open", "mobile-panel-right-open");
     controls.mobilePanelBackdrop.classList.add("hidden");
+    controls.btnMobileElements.setAttribute("aria-expanded", "false");
+    controls.btnMobileSettings.setAttribute("aria-expanded", "false");
   }
 
   function openMobilePanel(side) {
-    if (!isMobileShell()) return;
+    if (shellMode() === "desktop") return;
     document.body.classList.toggle("mobile-panel-left-open", side === "left");
     document.body.classList.toggle("mobile-panel-right-open", side === "right");
     controls.mobilePanelBackdrop.classList.remove("hidden");
+    controls.btnMobileElements.setAttribute("aria-expanded", String(side === "left"));
+    controls.btnMobileSettings.setAttribute("aria-expanded", String(side === "right"));
   }
 
   function syncResponsiveShell() {
-    if (!isMobileShell()) {
+    const mode = shellMode();
+    document.body.dataset.shellMode = mode;
+    syncChromeMetrics();
+    if (mode === "desktop") {
       closeMobilePanels();
     }
     if (state.zoomMode === "fit") {
@@ -71,6 +90,14 @@ export function createShellManager({
       updateViewportMetrics();
       syncZoomControl();
     }
+  }
+
+  function scheduleResponsiveSync() {
+    if (responsiveFrame) window.cancelAnimationFrame(responsiveFrame);
+    responsiveFrame = window.requestAnimationFrame(() => {
+      responsiveFrame = 0;
+      syncResponsiveShell();
+    });
   }
 
   function bindEvents({ onEscape, onOpenMobileElements, onOpenMobileSettings, onZoomChange }) {
@@ -93,7 +120,12 @@ export function createShellManager({
     controls.btnMobileSettings.addEventListener("click", onOpenMobileSettings);
     controls.mobilePanelBackdrop.addEventListener("click", closeMobilePanels);
 
-    window.addEventListener("resize", syncResponsiveShell);
+    window.addEventListener("resize", scheduleResponsiveSync, { passive: true });
+    if (typeof ResizeObserver !== "undefined") {
+      chromeObserver = new ResizeObserver(scheduleResponsiveSync);
+      if (nodes.topbar) chromeObserver.observe(nodes.topbar);
+      if (nodes.mobileShellActions) chromeObserver.observe(nodes.mobileShellActions);
+    }
     window.addEventListener("keydown", (ev) => {
       if (ev.key === "Escape") onEscape();
     });

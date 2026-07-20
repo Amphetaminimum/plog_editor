@@ -8,7 +8,7 @@
     <meta http-equiv="Expires" content="0" />
     <title>Plog — Long content to polished design</title>
     <link rel="icon" href="./favicon.svg?v=20260720-001" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260720-003" />
+    <link rel="stylesheet" href="./styles.css?v=20260720-005" />
   </head>
   <body class="page-editor">
     <div class="app-shell">
@@ -25,10 +25,6 @@
           <li><span>2</span> Format</li>
           <li class="is-current"><span>3</span> Generate design</li>
         </ol>
-        <div class="mobile-shell-actions">
-          <button id="btn-mobile-elements" class="btn mobile-shell-btn" type="button">Elements</button>
-          <button id="btn-mobile-settings" class="btn mobile-shell-btn" type="button">Settings</button>
-        </div>
         <div class="actions">
           <button id="btn-load-example-top" class="btn shell-link-btn" type="button">Load example</button>
           <div class="toolbar-group toolbar-actions">
@@ -97,6 +93,18 @@
         </div>
       </header>
 
+      <nav class="mobile-shell-actions" aria-label="Mobile editor tools">
+        <button id="btn-mobile-elements" class="btn mobile-shell-btn" type="button" aria-controls="mobile-elements-sheet" aria-expanded="false">
+          <span class="mobile-shell-icon" aria-hidden="true">＋</span><span class="mobile-shell-label">Add</span>
+        </button>
+        <button id="btn-mobile-settings" class="btn mobile-shell-btn" type="button" aria-controls="mobile-style-sheet" aria-expanded="false">
+          <span class="mobile-shell-icon" aria-hidden="true">◇</span><span class="mobile-shell-label">Style</span>
+        </button>
+        <button id="btn-mobile-export" class="btn mobile-shell-btn mobile-export-btn" type="button">
+          <span class="mobile-shell-icon" aria-hidden="true">↑</span><span class="mobile-shell-label">Export</span>
+        </button>
+      </nav>
+
       <aside id="doc-drawer" class="doc-drawer" aria-label="Documents">
         <div class="doc-drawer-header">
           <div>
@@ -118,7 +126,11 @@
       </aside>
 
       <main class="workspace">
-        <aside class="panel left-panel">
+        <aside id="mobile-elements-sheet" class="panel left-panel" aria-label="Add content and canvas settings">
+          <div class="mobile-sheet-heading">
+            <div><span>Add</span><strong>Content &amp; canvas</strong></div>
+            <button class="btn mobile-sheet-close" type="button" data-close-mobile-panel aria-label="Close add panel">×</button>
+          </div>
           <section class="panel-section panel-section-emphasis">
             <p class="panel-kicker">Start here</p>
             <h2>Long content, one design</h2>
@@ -155,6 +167,7 @@
           <section class="panel-section">
             <div class="group">
               <h3>Canvas</h3>
+              <button id="btn-theme-mode-mobile" class="btn mobile-theme-btn" type="button">Theme: Night</button>
               <label>
                 Width
                 <select id="canvas-width">
@@ -204,7 +217,11 @@
           </div>
         </section>
 
-        <aside class="panel right-panel">
+        <aside id="mobile-style-sheet" class="panel right-panel" aria-label="Selected block style">
+          <div class="mobile-sheet-heading">
+            <div><span>Style</span><strong>Selected block</strong></div>
+            <button class="btn mobile-sheet-close" type="button" data-close-mobile-panel aria-label="Close style panel">×</button>
+          </div>
           <section class="panel-section panel-section-compact">
             <p class="panel-kicker">Format</p>
             <h2>Selected block</h2>
@@ -413,6 +430,6 @@
       </div>
     </template>
 
-    <script src="./app.js?v=20260720-003" type="module"></script>
+    <script src="./app.js?v=20260720-005" type="module"></script>
   </body>
 </html>
