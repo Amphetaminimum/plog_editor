@@ -1,9 +1,12 @@
 import { createTextDialog } from "./js/dialog.js";
 import { authoredCanvasWidthFromControls, canvasLayoutForWidth, flowVerticalElements, requiredCanvasHeight } from "./js/canvas-layout.js";
 import { createDocStoreManager } from "./js/doc-store.js";
+import { DOCUMENT_COMMANDS, executeDocumentCommand } from "./js/document-commands.js";
+import { parseDocumentImport } from "./js/document-import.js";
 import { createEditorRenderManager } from "./js/editor-render.js";
 import { createExportManager } from "./js/export-manager.js";
 import { createHistoryManager } from "./js/history-manager.js";
+import { sanitizeEditableHtml } from "./js/html-sanitize.js";
 import { formatMonthYearLabel } from "./js/header-format.js";
 import { DEFAULT_IMAGE_LOOK, imagePresetById } from "./js/image-filters.js";
 import { createStateRenderer } from "./js/render-state.js";
@@ -109,6 +112,7 @@ const btnCanvasBgReset = document.getElementById("btn-canvas-bg-reset");
 const canvasPaletteStatus = document.getElementById("canvas-palette-status");
 const importQuality = document.getElementById("import-quality");
 const importQualityValue = document.getElementById("import-quality-value");
+const inputDocument = document.getElementById("input-document");
 const canvasBgPresetButtons = [...document.querySelectorAll("[data-canvas-bg]")];
 const propRotation = document.getElementById("prop-rotation");
 const propBrightness = document.getElementById("prop-brightness");
@@ -243,7 +247,7 @@ function setGenerateButtonState(loading) {
   if (!btnExport || !label) return;
   btnExport.disabled = loading;
   btnExport.classList.toggle("is-loading", loading);
-  label.textContent = loading ? "Generating…" : "Generate design";
+  label.textContent = loading ? "Exporting…" : "Export image";
   if (btnMobileExport) {
     const mobileLabel = btnMobileExport.querySelector(".mobile-shell-label");
     btnMobileExport.disabled = loading;
@@ -800,6 +804,9 @@ const docStore = createDocStoreManager({
   saveSession: (...args) => saveSession(...args),
   updateCanvasHeight,
   updateViewportMetrics: (...args) => updateViewportMetrics(...args),
+  updateBlockContent: (id, patch) => {
+    applyDocumentCommandState({ type: DOCUMENT_COMMANDS.UPDATE_CONTENT, id, patch });
+  },
 }));
 
 const exportManager = createExportManager({
@@ -902,18 +909,58 @@ function commitAndSave(kind = "unknown", payload = null) {
   saveSession();
 }
 
+function applyDocumentCommandState(command) {
+  const result = executeDocumentCommand(state.elements, command);
+  state.elements = result.blocks;
+  return result;
+}
+
+function recordDocumentCommand(command, inverse, { beforeLayout = null, afterLayout = null } = {}) {
+  if (!inverse) return;
+  commitAndSave("document.command", { command, inverse, beforeLayout, afterLayout });
+}
+
+function dispatchDocumentCommand(command, { beforeLayout = captureElementLayoutState(), select = true } = {}) {
+  const result = applyDocumentCommandState(command);
+  if (!result.changed) return result;
+  const affectedId = command.id || command.block?.id || null;
+  if (select) state.selectedId = command.type === DOCUMENT_COMMANDS.DELETE ? null : affectedId;
+  if (state.layoutLocked) reflowFrom(0);
+  render();
+  recordDocumentCommand(command, result.inverse, {
+    beforeLayout,
+    afterLayout: captureElementLayoutState(),
+  });
+  return result;
+}
+
+function contentCommandPair(id, item, beforeState, afterState) {
+  if (!item || !beforeState || !afterState) return null;
+  if (item.type === "text" || item.type === "quote") {
+    return {
+      command: { type: DOCUMENT_COMMANDS.UPDATE_CONTENT, id, patch: { html: afterState.html || "", content: afterState.content || "" } },
+      inverse: { type: DOCUMENT_COMMANDS.UPDATE_CONTENT, id, patch: { html: beforeState.html || "", content: beforeState.content || "" } },
+    };
+  }
+  if (item.type === "header" || item.type === "card") {
+    return {
+      command: { type: DOCUMENT_COMMANDS.UPDATE_CONTENT, id, patch: { content: structuredClone(afterState.content || {}) } },
+      inverse: { type: DOCUMENT_COMMANDS.UPDATE_CONTENT, id, patch: { content: structuredClone(beforeState.content || {}) } },
+    };
+  }
+  return null;
+}
+
 function commitStyleChange(selected, kind, beforeValue, afterValue) {
   const property = STYLE_PROPERTY_BY_KIND[kind];
   if (!selected || !property) {
     commitAndSave(kind);
     return;
   }
-  commitAndSave(kind, {
-    id: selected.id,
-    property,
-    beforeValue,
-    afterValue,
-  });
+  recordDocumentCommand(
+    { type: DOCUMENT_COMMANDS.UPDATE_STYLE, id: selected.id, patch: { [property]: afterValue } },
+    { type: DOCUMENT_COMMANDS.UPDATE_STYLE, id: selected.id, patch: { [property]: beforeValue } },
+  );
 }
 
 function syncRestoredHistoryState() {
@@ -990,7 +1037,7 @@ async function loadBuildWeekExample() {
   syncAppliedDocState({ hydrate: false, pushInitialHistory: true });
   await flushSaveSession();
   renderDocDrawer();
-  showToast("Example loaded. Edit any block, then generate the finished design.");
+  showToast("Example loaded. Edit any block, then export the finished draft.");
 }
 
 toolbarMenus.forEach((menu) => {
@@ -1068,29 +1115,40 @@ function updateEditableStateFromDom(editable) {
   if (!host) return false;
   const current = getElement(host.dataset.id);
   if (!current) return false;
-  if (editable.classList.contains("content")) {
-    current.html = editable.innerHTML || "";
-    current.content = editable.innerText || "";
-  }
-  if (editable.classList.contains("quote-content")) {
-    current.html = editable.innerHTML || "";
-    current.content = editable.innerText || "";
+  if (editable.classList.contains("content") || editable.classList.contains("quote-content")) {
+    applyDocumentCommandState({
+      type: DOCUMENT_COMMANDS.UPDATE_CONTENT,
+      id: current.id,
+      patch: { html: editable.innerHTML || "", content: editable.innerText || "" },
+    });
   }
   if (editable.classList.contains("card-title")) {
-    current.content.titleHtml = editable.innerHTML || "";
-    current.content.title = editable.innerText || "";
+    applyDocumentCommandState({
+      type: DOCUMENT_COMMANDS.UPDATE_CONTENT,
+      id: current.id,
+      patch: { content: { ...current.content, titleHtml: editable.innerHTML || "", title: editable.innerText || "" } },
+    });
   }
   if (editable.classList.contains("card-body")) {
-    current.content.bodyHtml = editable.innerHTML || "";
-    current.content.body = editable.innerText || "";
+    applyDocumentCommandState({
+      type: DOCUMENT_COMMANDS.UPDATE_CONTENT,
+      id: current.id,
+      patch: { content: { ...current.content, bodyHtml: editable.innerHTML || "", body: editable.innerText || "" } },
+    });
   }
   if (editable.classList.contains("header-title")) {
-    current.content.titleHtml = editable.innerHTML || "";
-    current.content.title = editable.innerText || "";
+    applyDocumentCommandState({
+      type: DOCUMENT_COMMANDS.UPDATE_CONTENT,
+      id: current.id,
+      patch: { content: { ...current.content, titleHtml: editable.innerHTML || "", title: editable.innerText || "" } },
+    });
   }
   if (editable.classList.contains("header-meta")) {
-    current.content.metaHtml = editable.innerHTML || "";
-    current.content.meta = editable.innerText || "";
+    applyDocumentCommandState({
+      type: DOCUMENT_COMMANDS.UPDATE_CONTENT,
+      id: current.id,
+      patch: { content: { ...current.content, metaHtml: editable.innerHTML || "", meta: editable.innerText || "" } },
+    });
   }
   return true;
 }
@@ -1319,13 +1377,15 @@ function applyInlineFormat(command, value = null) {
   updateCanvasHeight();
   updateViewportMetrics();
   syncInspector();
-  commitAndSave("content.richTextFormat", current ? {
-    id: current.id,
-    beforeContentState,
-    afterContentState: captureElementContentState(current),
-    beforeLayout,
-    afterLayout: captureElementLayoutState(),
-  } : null);
+  const currentAfterFormat = current ? getElement(current.id) : null;
+  const afterContentState = captureElementContentState(currentAfterFormat);
+  const commandPair = contentCommandPair(currentAfterFormat?.id, currentAfterFormat, beforeContentState, afterContentState);
+  if (commandPair) {
+    recordDocumentCommand(commandPair.command, commandPair.inverse, {
+      beforeLayout,
+      afterLayout: captureElementLayoutState(),
+    });
+  }
   beginEditableSession(active);
   return true;
 }
@@ -1436,13 +1496,13 @@ function finishEditableSession(editable, { restart = false } = {}) {
   const afterContentState = captureElementContentState(current);
   const changed = !contentStateEqual(session.beforeContentState, afterContentState);
   if (changed) {
-    commitAndSave("content.edit", {
-      id: current.id,
-      beforeContentState: session.beforeContentState,
-      afterContentState,
-      beforeLayout: session.beforeLayout,
-      afterLayout: captureElementLayoutState(),
-    });
+    const commandPair = contentCommandPair(current.id, current, session.beforeContentState, afterContentState);
+    if (commandPair) {
+      recordDocumentCommand(commandPair.command, commandPair.inverse, {
+        beforeLayout: session.beforeLayout,
+        afterLayout: captureElementLayoutState(),
+      });
+    }
   }
 
   state.editSession = restart ? {
@@ -1474,21 +1534,14 @@ function addElement(item) {
   if (anchor) {
     const anchorIndex = state.elements.findIndex((entry) => entry.id === anchor.id);
     insertedIndex = anchorIndex + 1;
-    state.elements.splice(insertedIndex, 0, item);
+    // The command reducer owns the insertion below.
   } else {
     insertedIndex = state.elements.length;
-    state.elements.push(item);
   }
-  state.selectedId = item.id;
-  if (state.layoutLocked) reflowFrom(0);
-  render();
+  dispatchDocumentCommand({ type: DOCUMENT_COMMANDS.INSERT, index: insertedIndex, block: item });
   requestAnimationFrame(() => {
     const node = getElementNode(item.id);
     node?.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
-  });
-  commitAndSave("structure.insert", {
-    index: insertedIndex,
-    item,
   });
 }
 
@@ -1644,6 +1697,18 @@ function finishPointerInteraction(ev) {
     commitAndSave(interactionKind);
     return;
   }
+  if (interactionKind === "layout.move") {
+    const finalIndex = state.elements.findIndex((item) => item.id === activeId);
+    recordDocumentCommand(
+      { type: DOCUMENT_COMMANDS.MOVE, id: activeId, toIndex: finalIndex },
+      { type: DOCUMENT_COMMANDS.MOVE, id: activeId, toIndex: interaction.baseIndex },
+      {
+        beforeLayout: interaction.beforeLayout,
+        afterLayout: captureElementLayoutState(),
+      },
+    );
+    return;
+  }
   commitAndSave(interactionKind, {
     id: activeId,
     before: interactionBefore,
@@ -1702,15 +1767,7 @@ document.addEventListener("keydown", (ev) => {
 
   if ((ev.key === "Delete" || ev.key === "Backspace") && !isEditing) {
     if (!selected) return;
-    const deletedIndex = state.elements.findIndex((item) => item.id === selected.id);
-    const deletedItem = deletedIndex >= 0 ? state.elements[deletedIndex] : null;
-    state.elements = state.elements.filter((item) => item.id !== selected.id);
-    state.selectedId = null;
-    render();
-    commitAndSave("structure.delete", deletedItem ? {
-      index: deletedIndex,
-      item: deletedItem,
-    } : null);
+    dispatchDocumentCommand({ type: DOCUMENT_COMMANDS.DELETE, id: selected.id });
     ev.preventDefault();
     return;
   }
@@ -1724,9 +1781,10 @@ document.addEventListener("keydown", (ev) => {
     if (!selected) return;
     const current = Number(selected.style.fontWeight || 300);
     const beforeValue = selected.style.fontWeight;
-    selected.style.fontWeight = current >= 500 ? 300 : 500;
+    const afterValue = current >= 500 ? 300 : 500;
+    applyDocumentCommandState({ type: DOCUMENT_COMMANDS.UPDATE_STYLE, id: selected.id, patch: { fontWeight: afterValue } });
     render();
-    commitStyleChange(selected, "style.fontWeightToggle", beforeValue, selected.style.fontWeight);
+    commitStyleChange(selected, "style.fontWeightToggle", beforeValue, afterValue);
     ev.preventDefault();
   }
 
@@ -1777,6 +1835,99 @@ document.getElementById("btn-add-quote").addEventListener("click", () => {
 
 document.getElementById("btn-add-card")?.addEventListener("click", () => {
   addElement(createElement("card", { spacingBefore: "section" }));
+});
+
+function safeImportedImageSource(value) {
+  const source = String(value || "").trim();
+  if (!source) return "";
+  try {
+    const url = new URL(source, window.location.href);
+    if (["http:", "https:", "blob:"].includes(url.protocol)) return url.href;
+    if (url.protocol === "data:" && /^data:image\//i.test(source)) return source;
+  } catch {}
+  return "";
+}
+
+const IMPORTED_STYLE_PROPERTIES = new Set([
+  "fontSize", "fontFamily", "fontWeight", "color", "radius", "rotation",
+  "brightness", "contrast", "saturation", "warmth", "grayscale", "frame",
+]);
+
+function supportedImportedStyle(style) {
+  if (!style || typeof style !== "object") return {};
+  return Object.fromEntries(Object.entries(style).filter(([property]) => IMPORTED_STYLE_PROPERTIES.has(property)));
+}
+
+function materializeImportedBlock(block) {
+  const type = block.type;
+  const patch = {};
+  if (["tight", "normal", "section"].includes(block.spacingBefore)) patch.spacingBefore = block.spacingBefore;
+  const item = createElement(type, patch);
+  item.style = { ...item.style, ...supportedImportedStyle(block.style) };
+
+  if (type === "text" || type === "quote") {
+    item.content = String(block.content || "");
+    item.html = sanitizeEditableHtml(block.html || block.content || "");
+  } else if (type === "header") {
+    const content = block.content && typeof block.content === "object" ? block.content : {};
+    item.content = {
+      title: String(content.title || ""),
+      titleHtml: sanitizeEditableHtml(content.titleHtml || content.title || ""),
+      meta: String(content.meta || ""),
+      metaHtml: sanitizeEditableHtml(content.metaHtml || content.meta || ""),
+    };
+  } else if (type === "card") {
+    const content = block.content && typeof block.content === "object" ? block.content : {};
+    item.content = {
+      title: String(content.title || ""),
+      titleHtml: sanitizeEditableHtml(content.titleHtml || content.title || ""),
+      body: String(content.body || ""),
+      bodyHtml: sanitizeEditableHtml(content.bodyHtml || content.body || ""),
+    };
+  } else if (type === "image") {
+    item.src = safeImportedImageSource(block.src);
+    item.assetId = String(block.assetId || "") || undefined;
+    item.alt = String(block.alt || "");
+    item.aspectRatio = Number(block.aspectRatio) > 0 ? Number(block.aspectRatio) : 16 / 9;
+    item.height = Math.max(120, Math.floor(item.width / item.aspectRatio));
+  }
+  return item;
+}
+
+function applyImportedCanvas(canvasSettings = {}) {
+  const width = Number(canvasSettings.width);
+  if (Number.isFinite(width) && width >= 480 && width <= 2400) {
+    if (width === 1080 || width === 1200) {
+      widthSelect.value = String(width);
+    } else {
+      widthSelect.value = "custom";
+      customWidth.value = String(Math.round(width));
+    }
+    applyCanvasWidth();
+  }
+  if (canvasSettings.background) applyCanvasBackground(canvasSettings.background);
+}
+
+function importStructuredDocument(documentData) {
+  applyImportedCanvas(documentData.canvas);
+  state.selectedId = null;
+  for (const block of documentData.blocks) addElement(materializeImportedBlock(block));
+  void hydrateAssetSources(state.elements, state.assetLoadToken);
+  showToast(`${documentData.blocks.length} block${documentData.blocks.length === 1 ? "" : "s"} imported from ${documentData.title}.`);
+}
+
+inputDocument?.addEventListener("change", async (ev) => {
+  const file = ev.target.files?.[0];
+  if (!file) return;
+  try {
+    const imported = parseDocumentImport(await file.text(), file.name);
+    importStructuredDocument(imported);
+  } catch (err) {
+    console.error("Document import failed", err);
+    showToast(err?.message || "The document could not be imported.", "error");
+  } finally {
+    ev.target.value = "";
+  }
 });
 
 document.getElementById("input-image").addEventListener("change", async (ev) => {
@@ -1854,15 +2005,7 @@ importQuality?.addEventListener("input", () => {
 
 document.getElementById("btn-delete").addEventListener("click", () => {
   if (!state.selectedId) return;
-  const deletedIndex = state.elements.findIndex((item) => item.id === state.selectedId);
-  const deletedItem = deletedIndex >= 0 ? state.elements[deletedIndex] : null;
-  state.elements = state.elements.filter((item) => item.id !== state.selectedId);
-  state.selectedId = null;
-  render();
-  commitAndSave("structure.delete", deletedItem ? {
-    index: deletedIndex,
-    item: deletedItem,
-  } : null);
+  dispatchDocumentCommand({ type: DOCUMENT_COMMANDS.DELETE, id: state.selectedId });
 });
 
 function wireInspectorNumber(input, updater) {
@@ -1872,9 +2015,17 @@ function wireInspectorNumber(input, updater) {
     const kind = input.dataset.historyKind || "style.numeric";
     const property = STYLE_PROPERTY_BY_KIND[kind];
     const beforeValue = property ? selected.style[property] : null;
-    updater(selected, Number(input.value));
+    const draft = { ...selected, style: { ...selected.style } };
+    updater(draft, Number(input.value));
+    const afterValue = property ? draft.style[property] : null;
+    if (property) {
+      applyDocumentCommandState({
+        type: DOCUMENT_COMMANDS.UPDATE_STYLE,
+        id: selected.id,
+        patch: { [property]: afterValue },
+      });
+    }
     render();
-    const afterValue = property ? selected.style[property] : null;
     commitStyleChange(selected, kind, beforeValue, afterValue);
   });
 }
@@ -1921,22 +2072,19 @@ function captureImageStyle(style, properties) {
   return Object.fromEntries(properties.map((property) => [property, style[property] ?? IMAGE_STYLE_DEFAULTS[property]]));
 }
 
-function applyImageStyle(selected, nextStyle, properties = IMAGE_LOOK_PROPERTIES) {
-  properties.forEach((property) => {
-    selected.style[property] = nextStyle[property];
-  });
-}
-
 imagePresetButtons.forEach((button) => {
   button.addEventListener("click", () => {
     const selected = getElement(state.selectedId);
     const preset = imagePresetById(button.dataset.imagePreset);
     if (!selected || selected.type !== "image" || !preset) return;
     const beforeStyle = captureImageStyle(selected.style, IMAGE_LOOK_PROPERTIES);
-    applyImageStyle(selected, preset);
-    const afterStyle = captureImageStyle(selected.style, IMAGE_LOOK_PROPERTIES);
+    const afterStyle = captureImageStyle(preset, IMAGE_LOOK_PROPERTIES);
+    applyDocumentCommandState({ type: DOCUMENT_COMMANDS.UPDATE_STYLE, id: selected.id, patch: afterStyle });
     render();
-    commitAndSave("style.imageLook", { id: selected.id, beforeStyle, afterStyle });
+    recordDocumentCommand(
+      { type: DOCUMENT_COMMANDS.UPDATE_STYLE, id: selected.id, patch: afterStyle },
+      { type: DOCUMENT_COMMANDS.UPDATE_STYLE, id: selected.id, patch: beforeStyle },
+    );
     showToast(`${preset.label} applied.`);
   });
 });
@@ -1945,10 +2093,13 @@ btnImageReset.addEventListener("click", () => {
   const selected = getElement(state.selectedId);
   if (!selected || selected.type !== "image") return;
   const beforeStyle = captureImageStyle(selected.style, IMAGE_RESET_PROPERTIES);
-  applyImageStyle(selected, IMAGE_STYLE_DEFAULTS, IMAGE_RESET_PROPERTIES);
-  const afterStyle = captureImageStyle(selected.style, IMAGE_RESET_PROPERTIES);
+  const afterStyle = captureImageStyle(IMAGE_STYLE_DEFAULTS, IMAGE_RESET_PROPERTIES);
+  applyDocumentCommandState({ type: DOCUMENT_COMMANDS.UPDATE_STYLE, id: selected.id, patch: afterStyle });
   render();
-  commitAndSave("style.imageLook", { id: selected.id, beforeStyle, afterStyle });
+  recordDocumentCommand(
+    { type: DOCUMENT_COMMANDS.UPDATE_STYLE, id: selected.id, patch: afterStyle },
+    { type: DOCUMENT_COMMANDS.UPDATE_STYLE, id: selected.id, patch: beforeStyle },
+  );
   showToast("Image adjustments reset.");
 });
 
@@ -1957,28 +2108,31 @@ propFontSizePreset.addEventListener("change", () => {
   if (!selected) return;
   if (!propFontSizePreset.value) return;
   const beforeValue = selected.style.fontSize;
-  selected.style.fontSize = clamp(Number(propFontSizePreset.value), 12, 128);
-  propFontSize.value = String(selected.style.fontSize);
+  const afterValue = clamp(Number(propFontSizePreset.value), 12, 128);
+  applyDocumentCommandState({ type: DOCUMENT_COMMANDS.UPDATE_STYLE, id: selected.id, patch: { fontSize: afterValue } });
+  propFontSize.value = String(afterValue);
   render();
-  commitStyleChange(selected, "style.fontSizePreset", beforeValue, selected.style.fontSize);
+  commitStyleChange(selected, "style.fontSizePreset", beforeValue, afterValue);
 });
 
 propFontFamily.addEventListener("change", () => {
   const selected = getElement(state.selectedId);
   if (!selected) return;
   const beforeValue = selected.style.fontFamily;
-  selected.style.fontFamily = propFontFamily.value;
+  const afterValue = propFontFamily.value;
+  applyDocumentCommandState({ type: DOCUMENT_COMMANDS.UPDATE_STYLE, id: selected.id, patch: { fontFamily: afterValue } });
   render();
-  commitStyleChange(selected, "style.fontFamily", beforeValue, selected.style.fontFamily);
+  commitStyleChange(selected, "style.fontFamily", beforeValue, afterValue);
 });
 
 propFontWeight.addEventListener("change", () => {
   const selected = getElement(state.selectedId);
   if (!selected) return;
   const beforeValue = selected.style.fontWeight;
-  selected.style.fontWeight = clamp(Number(propFontWeight.value) || 300, 200, 700);
+  const afterValue = clamp(Number(propFontWeight.value) || 300, 200, 700);
+  applyDocumentCommandState({ type: DOCUMENT_COMMANDS.UPDATE_STYLE, id: selected.id, patch: { fontWeight: afterValue } });
   render();
-  commitStyleChange(selected, "style.fontWeight", beforeValue, selected.style.fontWeight);
+  commitStyleChange(selected, "style.fontWeight", beforeValue, afterValue);
 });
 
 propSpacingBefore.addEventListener("change", () => {
@@ -2002,19 +2156,21 @@ propColor.addEventListener("input", () => {
   const selected = getElement(state.selectedId);
   if (!selected) return;
   const beforeValue = selected.style.color;
-  selected.style.color = normalizeTextColor(propColor.value);
+  const afterValue = normalizeTextColor(propColor.value);
+  applyDocumentCommandState({ type: DOCUMENT_COMMANDS.UPDATE_STYLE, id: selected.id, patch: { color: afterValue } });
   render();
   updateCanvasPaletteUi();
-  commitStyleChange(selected, "style.color", beforeValue, selected.style.color);
+  commitStyleChange(selected, "style.color", beforeValue, afterValue);
 });
 
 propFrame.addEventListener("change", () => {
   const selected = getElement(state.selectedId);
   if (!selected) return;
   const beforeValue = selected.style.frame;
-  selected.style.frame = propFrame.value;
+  const afterValue = propFrame.value;
+  applyDocumentCommandState({ type: DOCUMENT_COMMANDS.UPDATE_STYLE, id: selected.id, patch: { frame: afterValue } });
   render();
-  commitStyleChange(selected, "style.imageFrame", beforeValue, selected.style.frame);
+  commitStyleChange(selected, "style.imageFrame", beforeValue, afterValue);
 });
 
 function applyCanvasWidth() {
@@ -2088,7 +2244,7 @@ document.getElementById("btn-export").addEventListener("click", async () => {
     showToast(`${exportFormat.value.toUpperCase()} exported successfully to your downloads.`);
   } catch (err) {
     console.error(err);
-    showToast("Generation failed. Try PNG first, or use Export HTML from the menu.", "error");
+    showToast("Export failed. Try PNG first, or use Export HTML from the menu.", "error");
   } finally {
     setGenerateButtonState(false);
   }
@@ -2242,9 +2398,11 @@ async function initApp() {
   }
   syncAppliedDocState({ hydrate: true, pushInitialHistory: true });
   syncResponsiveShell();
+  document.body.dataset.appReady = "true";
 }
 
 initApp().catch((err) => {
+  document.body.dataset.appReady = "error";
   console.error("Failed to initialize app", err);
 });
 

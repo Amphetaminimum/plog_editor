@@ -256,13 +256,14 @@ Status:
 - the remaining `style.zoom` fallback path has been removed from `shell-manager`
 - zoom persistence and fit/manual mode switching still exist, but this area still needs browser regression testing before being called done
 
-#### Not done yet: Add tests
+#### In progress: Add tests
 
 Status:
 
 - a minimal `node:test` harness now exists and can run via `node --test`
-- current automated coverage includes `canvas-layout` helpers and mixed-mode history behavior for `structure.insert/delete`, `layout.canvasWidth`, `layout.lockToggle`, `content.edit`, and `content.richTextFormat`
-- broader UI interaction and persistence regression coverage still needs to be added
+- current automated coverage includes canvas layout, versioned document commands, command-backed history, restricted Markdown/JSON import, image filter behavior, export-frame geometry goldens, browser storage, and the macOS native bridge
+- a real headless-Chrome flow now covers loading the Build Week example, inserting and undoing a block, and importing Markdown
+- broader visual export goldens, accessibility checks, and long-document performance coverage still need to be added
 
 ## Commit Map
 

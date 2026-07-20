@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <title>Plog — Long content to polished design</title>
+    <title>Plog — Image-led stories on a long canvas</title>
     <link rel="icon" href="./favicon.svg?v=20260720-001" type="image/svg+xml" />
     <link rel="stylesheet" href="./styles.css?v=20260721-001" />
   </head>
@@ -23,7 +23,7 @@
         <ol class="flow-steps" aria-label="Workflow">
           <li><span>1</span> Add content</li>
           <li><span>2</span> Format</li>
-          <li class="is-current"><span>3</span> Generate design</li>
+          <li class="is-current"><span>3</span> Export draft</li>
         </ol>
         <div class="actions">
           <button id="btn-load-example-top" class="btn shell-link-btn" type="button">Load example</button>
@@ -85,8 +85,8 @@
                 <button id="btn-export-html" class="btn menu-btn">Export HTML</button>
               </div>
             </details>
-            <button id="btn-export" class="btn btn-primary btn-generate" data-idle-label="Generate design" type="button">
-              <span class="btn-generate-label">Generate design</span>
+            <button id="btn-export" class="btn btn-primary btn-generate" data-idle-label="Export image" type="button">
+              <span class="btn-generate-label">Export image</span>
               <small>PNG</small>
             </button>
           </div>
@@ -133,7 +133,7 @@
           </div>
           <section class="panel-section panel-section-emphasis">
             <p class="panel-kicker">Start here</p>
-            <h2>Long content, one design</h2>
+            <h2>One editable visual story</h2>
             <p class="panel-intro">Paste into a paragraph or load the demo. Plog keeps every block in a clean vertical flow as the canvas grows.</p>
             <button id="btn-load-example" class="btn btn-demo" type="button">Load example</button>
             <p class="demo-note">Replaces the current canvas with an original 60-second demo story.</p>
@@ -154,6 +154,10 @@
               <label class="file-btn">
                 Add image
                 <input id="input-image" type="file" accept="image/*,.hif,.heif,.heic,image/heif,image/heic" />
+              </label>
+              <label class="file-btn">
+                Import document
+                <input id="input-document" type="file" accept=".md,.markdown,.json,text/markdown,application/json" />
               </label>
               <label class="import-quality-control">
                 Import Quality <span id="import-quality-value">96</span>
@@ -203,7 +207,7 @@
         <section class="canvas-wrap">
           <div class="canvas-context-bar">
             <div>
-              <strong>Live design preview</strong>
+              <strong>Live document preview</strong>
               <span id="layout-status">Auto layout keeps blocks stacked and extends the canvas.</span>
             </div>
             <span id="canvas-summary" class="canvas-summary">0 blocks</span>

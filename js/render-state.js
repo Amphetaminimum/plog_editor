@@ -1,5 +1,6 @@
 import { imageFilterCss } from "./image-filters.js";
 import { headerMetaBaselineY } from "./header-format.js";
+import { imageExportLayout } from "./export-layout.js";
 
 export function createStateRenderer({
   getCanvasMetrics,
@@ -57,6 +58,20 @@ export function createStateRenderer({
     ctx.restore();
   }
 
+  function drawImageFrame(ctx, layout) {
+    if (!layout.frameStyle) return;
+    ctx.save();
+    if (layout.frameStyle.shadow === "soft") {
+      ctx.shadowColor = "rgba(35, 25, 10, 0.15)";
+      ctx.shadowBlur = 28;
+      ctx.shadowOffsetY = 14;
+    }
+    ctx.fillStyle = layout.frameStyle.fill;
+    roundRect(ctx, layout.bounds.x, layout.bounds.y, layout.bounds.width, layout.bounds.height, layout.frameStyle.radius);
+    ctx.fill();
+    ctx.restore();
+  }
+
   async function renderCanvasFromState(scale, format) {
     const { width, height } = getCanvasMetrics();
     const palette = getPalette();
@@ -76,13 +91,15 @@ export function createStateRenderer({
           image.onerror = reject;
           image.src = item.src;
         });
+        const layout = imageExportLayout(item);
+        drawImageFrame(ctx, layout);
         ctx.save();
-        const centerX = item.x + item.width / 2;
-        const centerY = item.y + item.height / 2;
+        const centerX = layout.image.x + layout.image.width / 2;
+        const centerY = layout.image.y + layout.image.height / 2;
         ctx.translate(centerX, centerY);
         ctx.rotate(((item.style.rotation ?? 0) * Math.PI) / 180);
         ctx.filter = imageFilterCss(item.style);
-        drawRoundedImage(ctx, img, -item.width / 2, -item.height / 2, item.width, item.height, item.style.radius ?? 0);
+        drawRoundedImage(ctx, img, -layout.image.width / 2, -layout.image.height / 2, layout.image.width, layout.image.height, item.style.radius ?? 0);
         ctx.restore();
         ctx.filter = "none";
         continue;

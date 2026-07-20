@@ -18,6 +18,7 @@ export function createEditorRenderManager({
   saveSession,
   updateCanvasHeight,
   updateViewportMetrics,
+  updateBlockContent,
 }) {
   function syncInspector() {
     const selected = getElement(state.selectedId);
@@ -88,23 +89,25 @@ export function createEditorRenderManager({
       }
 
       if (editable.classList.contains("content")) {
-        current.html = cleanHtml;
-        current.content = editable.innerText || "";
+        updateBlockContent(current.id, { html: cleanHtml, content: editable.innerText || "" });
       } else if (editable.classList.contains("quote-content")) {
-        current.html = cleanHtml;
-        current.content = editable.innerText || "";
+        updateBlockContent(current.id, { html: cleanHtml, content: editable.innerText || "" });
       } else if (editable.classList.contains("header-title")) {
-        current.content.title = editable.innerText || "";
-        current.content.titleHtml = cleanHtml;
+        updateBlockContent(current.id, {
+          content: { ...current.content, title: editable.innerText || "", titleHtml: cleanHtml },
+        });
       } else if (editable.classList.contains("header-meta")) {
-        current.content.meta = editable.innerText || "";
-        current.content.metaHtml = cleanHtml;
+        updateBlockContent(current.id, {
+          content: { ...current.content, meta: editable.innerText || "", metaHtml: cleanHtml },
+        });
       } else if (editable.classList.contains("card-title")) {
-        current.content.title = editable.innerText || "";
-        current.content.titleHtml = cleanHtml;
+        updateBlockContent(current.id, {
+          content: { ...current.content, title: editable.innerText || "", titleHtml: cleanHtml },
+        });
       } else if (editable.classList.contains("card-body")) {
-        current.content.body = editable.innerText || "";
-        current.content.bodyHtml = cleanHtml;
+        updateBlockContent(current.id, {
+          content: { ...current.content, body: editable.innerText || "", bodyHtml: cleanHtml },
+        });
       }
 
       reflowAfterElement(current.id);
@@ -226,6 +229,15 @@ export function createEditorRenderManager({
         baseY: item.y,
         baseWidth: item.width,
         baseHeight: item.height,
+        baseIndex: state.elements.findIndex((entry) => entry.id === item.id),
+        beforeLayout: state.elements.map((entry) => ({
+          id: entry.id,
+          x: entry.x,
+          y: entry.y,
+          width: entry.width,
+          height: entry.height,
+          spacingBefore: entry.spacingBefore || "normal",
+        })),
         canvasLeft: canvasRect.left,
         canvasTop: canvasRect.top,
         pointerId: ev.pointerId,

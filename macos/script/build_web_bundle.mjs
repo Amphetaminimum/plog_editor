@@ -19,10 +19,13 @@ if (!root || !out) {
 const moduleOrder = [
   "js/html-sanitize.js",
   "js/canvas-layout.js",
+  "js/document-commands.js",
+  "js/document-import.js",
   "js/storage.js",
   "js/dialog.js",
   "js/history-manager.js",
   "js/image-filters.js",
+  "js/export-layout.js",
   "js/render-state.js",
   "js/editor-render.js",
   "js/export-manager.js",

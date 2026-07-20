@@ -1,0 +1,29 @@
+[
+  {
+    "name": "plain",
+    "layout": {
+      "frame": "none",
+      "bounds": { "x": 48, "y": 100, "width": 1104, "height": 736 },
+      "frameStyle": null,
+      "image": { "x": 48, "y": 100, "width": 1104, "height": 736 }
+    }
+  },
+  {
+    "name": "polaroid",
+    "layout": {
+      "frame": "polaroid",
+      "bounds": { "x": 48, "y": 100, "width": 1104, "height": 736 },
+      "frameStyle": { "fill": "#fffaf4", "radius": 0, "shadow": "soft" },
+      "image": { "x": 62, "y": 114, "width": 1076, "height": 674 }
+    }
+  },
+  {
+    "name": "card",
+    "layout": {
+      "frame": "card",
+      "bounds": { "x": 48, "y": 100, "width": 1104, "height": 736 },
+      "frameStyle": { "fill": "#fff6ea", "radius": 18, "shadow": "soft" },
+      "image": { "x": 60, "y": 112, "width": 1080, "height": 712 }
+    }
+  }
+]

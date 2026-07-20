@@ -225,6 +225,23 @@ test("structure.delete undo and redo restore and remove the deleted element", ()
   assert.equal(state.elements.find((item) => item.id === "b"), undefined);
 });
 
+test("document.command history replays inverse and forward reducer commands", () => {
+  const { state, manager } = createHarness();
+  manager.pushHistory("initial");
+
+  const inserted = { id: "b", type: "text", content: "B", html: "B", x: 48, y: 182, width: 1104, height: 52, style: {} };
+  state.elements.splice(1, 0, inserted);
+  manager.commitMutation("document.command", {
+    command: { type: "block.insert", index: 1, block: inserted },
+    inverse: { type: "block.delete", id: "b" },
+  });
+
+  assert.equal(manager.undoHistory(), true);
+  assert.deepEqual(state.elements.map((item) => item.id), ["a"]);
+  assert.equal(manager.redoHistory(), true);
+  assert.deepEqual(state.elements.map((item) => item.id), ["a", "b"]);
+});
+
 test("content.richTextFormat undo and redo restore formatted block state", () => {
   const { state, manager } = createHarness();
   state.elements[0].type = "text";

@@ -1,3 +1,5 @@
+import { reduceDocumentBlocks } from "./document-commands.js";
+
 const MAX_HISTORY_ENTRIES = 120;
 
 function cloneForHistory(value) {
@@ -138,6 +140,16 @@ export function createHistoryManager({
   function applyOperation(operation, direction) {
     state.suppressHistory = true;
     state.editSession = null;
+    if (operation.kind === "document.command") {
+      const command = direction === "undo" ? operation.inverse : operation.command;
+      state.elements = reduceDocumentBlocks(state.elements, command);
+      const layout = direction === "undo" ? operation.beforeLayout : operation.afterLayout;
+      if (layout) applyLayoutState(layout);
+      const affectedId = command.id || command.block?.id || null;
+      state.selectedId = command.type === "block.delete" ? null : affectedId;
+      state.suppressHistory = false;
+      return true;
+    }
     if (operation.kind === "structure.insert") {
       if (direction === "undo") {
         state.elements = state.elements.filter((item) => item.id !== operation.item.id);

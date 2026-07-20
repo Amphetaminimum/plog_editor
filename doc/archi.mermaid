@@ -8,6 +8,8 @@ flowchart TB
         D["js/dialog.js<br/>In-app modal dialog"]
         ST["js/storage.js<br/>IndexedDB adapter"]
         CL["js/canvas-layout.js<br/>Canvas width + fit calculations"]
+        DC["js/document-commands.js<br/>Pure block reducer + inverse commands"]
+        DI["js/document-import.js<br/>Restricted Markdown + JSON import"]
         DS["js/doc-store.js<br/>Document persistence manager"]
         ER["js/editor-render.js<br/>DOM render + inspector sync manager"]
         EX["js/export-manager.js<br/>Export manager"]
@@ -22,6 +24,8 @@ flowchart TB
     A --> D
     A --> ST
     A --> CL
+    A --> DC
+    A --> DI
     A --> DS
     A --> ER
     A --> EX
@@ -35,6 +39,7 @@ flowchart TB
         F["Formatting<br/>Bold / Italic / Clear"]
         HI["History<br/>Snapshot capture + undo / redo"]
         L["Layout Engine<br/>Flow placement + reflow"]
+        CMD["Document Commands<br/>Insert / delete / move / content / style"]
         E["Export Engine<br/>DOM export + canvas fallback"]
         SR["State Renderer<br/>Canvas snapshot from editor state"]
         R["Responsive Shell<br/>Mobile panels + auto-fit zoom"]
@@ -46,6 +51,8 @@ flowchart TB
     A --> F
     HM --> HI
     A --> L
+    DC --> CMD
+    DI --> CMD
     EX --> E
     RS --> SR
     SH --> R
