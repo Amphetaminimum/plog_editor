@@ -129,7 +129,8 @@ export function createHistoryManager({
     controls.exportAppearance.value = snapshot.ui?.exportAppearance || controls.exportAppearance.value;
     state.zoomMode = snapshot.ui?.zoomMode === "manual" ? "manual" : "fit";
     state.themeMode = snapshot.ui?.themeMode === "day" ? "day" : "night";
-    controls.exportButton.textContent = `Export ${controls.exportFormat.value.toUpperCase()}`;
+    const formatLabel = controls.exportButton.querySelector?.("small");
+    if (formatLabel) formatLabel.textContent = controls.exportFormat.value.toUpperCase();
     state.suppressHistory = false;
     return true;
   }

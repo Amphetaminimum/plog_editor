@@ -54,3 +54,4 @@ await writeFile(path.join(out, "app.bundle.js"), bundleParts.join("\n"));
 
 await cp(path.join(root, "styles.css"), path.join(out, "styles.css"));
 await cp(path.join(root, "favicon.svg"), path.join(out, "favicon.svg"));
+await cp(path.join(root, "assets"), path.join(out, "assets"), { recursive: true });

@@ -1,6 +1,6 @@
 const BOLD_TAGS = new Set(["b", "strong"]);
 const ITALIC_TAGS = new Set(["em", "i"]);
-const BLOCK_TAGS = new Set(["div", "p", "section", "article", "header", "footer", "blockquote", "ul", "ol", "li"]);
+const BLOCK_TAGS = new Set(["div", "p", "section", "article", "header", "footer", "blockquote"]);
 
 function appendBreak(target) {
   const last = target.lastChild;
@@ -29,6 +29,22 @@ function sanitizeNodeInto(target, node) {
     if (wrapper.childNodes.length > 0) {
       target.appendChild(wrapper);
     }
+    return;
+  }
+
+  if (tag === "ul" || tag === "ol") {
+    const list = document.createElement(tag);
+    Array.from(node.children)
+      .filter((child) => child.tagName.toLowerCase() === "li")
+      .forEach((child) => sanitizeNodeInto(list, child));
+    if (list.children.length > 0) target.appendChild(list);
+    return;
+  }
+
+  if (tag === "li") {
+    const item = document.createElement("li");
+    Array.from(node.childNodes).forEach((child) => sanitizeNodeInto(item, child));
+    if (item.childNodes.length > 0) target.appendChild(item);
     return;
   }
 

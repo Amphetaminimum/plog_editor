@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">A quiet morning walk</title>
+  <desc id="desc">An original editorial illustration of a path, sunrise, trees, and distant hills.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d8ccff"/>
+      <stop offset="0.58" stop-color="#ffd9bd"/>
+      <stop offset="1" stop-color="#f6e9cf"/>
+    </linearGradient>
+    <linearGradient id="hill" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#756b9a"/>
+      <stop offset="1" stop-color="#443f65"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <circle cx="1190" cy="250" r="108" fill="#fff3c4" opacity=".95"/>
+  <path d="M0 530C250 420 410 438 620 530s420 74 590-32c158-99 274-70 390-18v420H0Z" fill="#a99dbd"/>
+  <path d="M0 610c242-72 444-58 662 36 225 97 478 83 938-64v318H0Z" fill="url(#hill)"/>
+  <path d="M666 900c40-164 120-267 244-348 57-37 107-63 152-81-75 81-111 162-114 243-2 61 15 123 51 186Z" fill="#e9d9bd"/>
+  <g fill="#26233b">
+    <path d="M158 637h23v179h-23z"/>
+    <circle cx="169" cy="572" r="82"/>
+    <circle cx="110" cy="612" r="54"/>
+    <circle cx="220" cy="619" r="62"/>
+    <path d="M1394 560h20v155h-20z"/>
+    <circle cx="1404" cy="510" r="68"/>
+    <circle cx="1357" cy="545" r="46"/>
+    <circle cx="1448" cy="548" r="51"/>
+  </g>
+  <g transform="translate(844 595)" fill="#26233b">
+    <circle cx="0" cy="0" r="19"/>
+    <path d="M-14 24c8-14 20-21 34-17 21 6 31 26 23 51l-15 48H-5L-20 65c-7-19-5-31 6-41Z"/>
+    <path d="m-4 103-13 92h22l15-92zm30 0 18 92h22l-10-92z"/>
+  </g>
+  <text x="92" y="112" fill="#312c4b" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="600" letter-spacing="5">SUNDAY · 06:42</text>
+</svg>

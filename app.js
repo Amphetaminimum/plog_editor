@@ -1,5 +1,5 @@
 import { createTextDialog } from "./js/dialog.js";
-import { authoredCanvasWidthFromControls, canvasLayoutForWidth } from "./js/canvas-layout.js";
+import { authoredCanvasWidthFromControls, canvasLayoutForWidth, flowVerticalElements, requiredCanvasHeight } from "./js/canvas-layout.js";
 import { createDocStoreManager } from "./js/doc-store.js";
 import { createEditorRenderManager } from "./js/editor-render.js";
 import { createExportManager } from "./js/export-manager.js";
@@ -86,6 +86,8 @@ const btnUndo = document.getElementById("btn-undo");
 const btnRedo = document.getElementById("btn-redo");
 const btnBold = document.getElementById("btn-bold");
 const btnItalic = document.getElementById("btn-italic");
+const btnBulletList = document.getElementById("btn-bullet-list");
+const btnNumberList = document.getElementById("btn-number-list");
 const btnClearFormat = document.getElementById("btn-clear-format");
 const btnThemeMode = document.getElementById("btn-theme-mode");
 const btnDocDrawer = document.getElementById("btn-doc-drawer");
@@ -123,6 +125,11 @@ const dialogFields = document.getElementById("dialog-fields");
 const dialogCancel = document.getElementById("dialog-cancel");
 const dialogConfirm = document.getElementById("dialog-confirm");
 const toolbarMenus = [...document.querySelectorAll(".toolbar-menu")];
+const btnLoadExample = document.getElementById("btn-load-example");
+const btnLoadExampleTop = document.getElementById("btn-load-example-top");
+const appToast = document.getElementById("app-toast");
+const canvasSummary = document.getElementById("canvas-summary");
+let toastTimer = null;
 const STYLE_PROPERTY_BY_KIND = {
   "style.color": "color",
   "style.fontFamily": "fontFamily",
@@ -200,6 +207,23 @@ function createAssetId() {
 
 function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
+}
+
+function showToast(message, tone = "success") {
+  if (!appToast) return;
+  if (toastTimer) window.clearTimeout(toastTimer);
+  appToast.textContent = message;
+  appToast.classList.remove("hidden", "is-success", "is-error");
+  appToast.classList.add(tone === "error" ? "is-error" : "is-success");
+  toastTimer = window.setTimeout(() => appToast.classList.add("hidden"), 4200);
+}
+
+function setGenerateButtonState(loading) {
+  const label = btnExport?.querySelector(".btn-generate-label");
+  if (!btnExport || !label) return;
+  btnExport.disabled = loading;
+  btnExport.classList.toggle("is-loading", loading);
+  label.textContent = loading ? "Generating…" : "Generate design";
 }
 
 function closeToolbarMenus({ except = null } = {}) {
@@ -732,6 +756,7 @@ const docStore = createDocStoreManager({
   onEditableBlur: (editable) => finishEditableSession(editable),
   onEditableFocus: (editable) => beginEditableSession(editable),
   reflowAfterElement,
+  reflowAll: () => reflowFrom(0),
   saveSession: (...args) => saveSession(...args),
   updateCanvasHeight,
   updateViewportMetrics: (...args) => updateViewportMetrics(...args),
@@ -860,6 +885,74 @@ function syncRestoredHistoryState() {
   renderDocDrawer();
 }
 
+async function loadBuildWeekExample() {
+  await flushSaveSession();
+  let doc = state.docs.find((entry) => entry.name === "Build Week Demo");
+  if (!doc) {
+    doc = createDocRecord("Build Week Demo");
+    state.docs.push(doc);
+  }
+
+  state.currentDocId = doc.id;
+  applyDocData(createDefaultDocData());
+  state.elements = [];
+  state.selectedId = null;
+  state.seq = Math.max(state.seq, 100);
+
+  const addDemoElement = (item) => state.elements.push(item);
+  addDemoElement(createElement("header", {
+    content: {
+      title: "The Walk Before the City Wakes",
+      titleHtml: "The Walk Before the City Wakes",
+      meta: "06:42 · Sunday",
+      metaHtml: "06:42 · Sunday",
+    },
+    spacingBefore: "normal",
+    style: { fontSize: 74, color: "#232038", radius: 0, fontFamily: "sans", fontWeight: 600 },
+  }));
+  addDemoElement(createElement("text", {
+    content: "At 6:42, the streets were still holding their breath. I left my phone on silent and followed the light toward the old reservoir.",
+    html: "At <strong>6:42</strong>, the streets were still holding their breath. I left my phone on silent and followed the light toward the <em>old reservoir</em>.",
+    spacingBefore: "section",
+    style: { fontSize: 38, color: "#232038", radius: 0, fontFamily: "sans", fontWeight: 400 },
+  }));
+  addDemoElement(createElement("image", {
+    src: new URL("./assets/build-week-demo.svg", window.location.href).href,
+    aspectRatio: 16 / 9,
+    spacingBefore: "normal",
+    style: { radius: 18, rotation: 0, brightness: 100, contrast: 100, grayscale: 0, frame: "none" },
+  }));
+  addDemoElement(createElement("text", {
+    content: "What I noticed:\nThe first bus sounded farther away than usual.\nA baker unlocked the corner shop.\nSunlight arrived before the crowd did.",
+    html: "<strong>What I noticed</strong><ul><li>The first bus sounded farther away than usual.</li><li>A baker unlocked the corner shop.</li><li>Sunlight arrived before the crowd did.</li></ul>",
+    spacingBefore: "section",
+    style: { fontSize: 36, color: "#232038", radius: 0, fontFamily: "sans", fontWeight: 400 },
+  }));
+  addDemoElement(createElement("quote", {
+    content: "A long story should feel composed, not assembled.",
+    html: "A long story should feel <em>composed</em>, not assembled.",
+    spacingBefore: "section",
+    style: { fontSize: 42, color: "#4a416b", radius: 0, fontFamily: "sans", fontWeight: 500 },
+  }));
+  addDemoElement(createElement("text", {
+    content: "By the time the city became loud again, the page was already complete: every block in order, every gap intentional, and the canvas exactly as long as the story needed.",
+    html: "By the time the city became loud again, the page was already complete: every block in order, every gap intentional, and the canvas exactly as long as the story needed.",
+    spacingBefore: "section",
+    style: { fontSize: 38, color: "#232038", radius: 0, fontFamily: "sans", fontWeight: 400 },
+  }));
+
+  setLayoutLocked(true);
+  applyThemeMode("day");
+  applyThemePalette("day");
+  reflowFrom(0);
+  state.history = [];
+  state.historyIndex = -1;
+  syncAppliedDocState({ hydrate: false, pushInitialHistory: true });
+  await flushSaveSession();
+  renderDocDrawer();
+  showToast("Example loaded. Edit any block, then generate the finished design.");
+}
+
 toolbarMenus.forEach((menu) => {
   menu.addEventListener("toggle", () => {
     if (menu.open) closeToolbarMenus({ except: menu });
@@ -870,6 +963,12 @@ toolbarMenus.forEach((menu) => {
     if (target.closest("button")) {
       menu.removeAttribute("open");
     }
+  });
+});
+
+[btnLoadExample, btnLoadExampleTop].forEach((button) => {
+  button?.addEventListener("click", () => {
+    void loadBuildWeekExample();
   });
 });
 
@@ -1192,11 +1291,11 @@ function applyInlineFormat(command, value = null) {
 }
 
 function updateCanvasHeight() {
-  let maxBottom = 1000;
-  for (const item of state.elements) {
-    maxBottom = Math.max(maxBottom, item.y + item.height + 160);
+  canvas.style.minHeight = `${requiredCanvasHeight(state.elements)}px`;
+  if (canvasSummary) {
+    const height = requiredCanvasHeight(state.elements);
+    canvasSummary.textContent = `${state.elements.length} block${state.elements.length === 1 ? "" : "s"} · ${height}px tall`;
   }
-  canvas.style.minHeight = `${maxBottom}px`;
 }
 
 function familyCss(item) {
@@ -1383,24 +1482,11 @@ function stickyY(rawY, movingId) {
 
 function reflowFrom(startIndex) {
   const layout = canvasLayout();
-  const ordered = state.elements;
-  if (!ordered.length) return;
-  let currentY = layout.topPad;
-  for (let i = 0; i < ordered.length; i += 1) {
-    const item = ordered[i];
-    item.x = layout.contentX;
-    if (item.width >= layout.contentWidth - 60) {
-      item.width = layout.contentWidth;
-      if (item.type === "image" && item.aspectRatio) {
-        item.height = Math.max(120, Math.floor(item.width / item.aspectRatio));
-      }
-    }
-    if (i > 0) {
-      currentY += SPACING_MAP[item.spacingBefore || "normal"] || SPACING_MAP.normal;
-    }
-    if (i >= startIndex) item.y = currentY;
-    currentY = item.y + item.height;
-  }
+  const geometry = flowVerticalElements(state.elements, layout, SPACING_MAP);
+  geometry.forEach((next, index) => {
+    if (index < startIndex && state.elements[index].y === next.y) return;
+    Object.assign(state.elements[index], next);
+  });
 }
 
 function reorderDraggedByThreshold(id, draggedY) {
@@ -1655,7 +1741,7 @@ document.getElementById("input-image").addEventListener("change", async (ev) => 
     assetBlob = await normalizeImageAsset(file, { quality });
   } catch (err) {
     console.error("Failed to normalize image asset", err);
-    alert("This HIF/HEIF image could not be converted in the browser. Check the network connection and try again.");
+    showToast("That HEIF image could not be converted. Try JPG or PNG for the demo.", "error");
     ev.target.value = "";
     return;
   }
@@ -1676,7 +1762,7 @@ document.getElementById("input-image").addEventListener("change", async (ev) => 
       originalType: file.type || "",
       normalizedType: assetBlob.type || "",
     }, err);
-    alert("This image could not be displayed after import.");
+    showToast("That image could not be displayed. Try a JPG, PNG, or WebP file.", "error");
     ev.target.value = "";
     return;
   } finally {
@@ -1693,6 +1779,7 @@ document.getElementById("input-image").addEventListener("change", async (ev) => 
     await idbSetAsset(assetId, assetBlob);
   } catch (err) {
     console.error("Failed to persist image asset", err);
+    showToast("The image could not be saved locally. Check browser storage and try again.", "error");
     ev.target.value = "";
     return;
   }
@@ -1710,6 +1797,7 @@ document.getElementById("input-image").addEventListener("change", async (ev) => 
       style: { radius: 0, fontSize: 60, color: defaultTextColorForTheme(), fontFamily: "fangzheng" },
     }),
   );
+  showToast("Image added. The canvas has been extended automatically.");
   ev.target.value = "";
 });
 
@@ -1894,11 +1982,17 @@ btnCanvasBgReset?.addEventListener("click", () => {
   applyThemePalette(state.themeMode, { persist: true });
 });
 
-document.getElementById("btn-export").addEventListener("click", () => {
-  exportRaster().catch((err) => {
+document.getElementById("btn-export").addEventListener("click", async () => {
+  setGenerateButtonState(true);
+  try {
+    await exportRaster();
+    showToast(`${exportFormat.value.toUpperCase()} exported successfully to your downloads.`);
+  } catch (err) {
     console.error(err);
-    alert("Export failed. Try PNG first, or use Export HTML.");
-  });
+    showToast("Generation failed. Try PNG first, or use Export HTML from the menu.", "error");
+  } finally {
+    setGenerateButtonState(false);
+  }
 });
 
 document.getElementById("btn-export-html").addEventListener("click", () => {
@@ -1948,6 +2042,16 @@ btnBold.addEventListener("mouseup", (ev) => {
 btnItalic.addEventListener("mousedown", (ev) => {
   ev.preventDefault();
   applyInlineFormat("italic");
+});
+
+btnBulletList?.addEventListener("mousedown", (ev) => {
+  ev.preventDefault();
+  applyInlineFormat("insertUnorderedList");
+});
+
+btnNumberList?.addEventListener("mousedown", (ev) => {
+  ev.preventDefault();
+  applyInlineFormat("insertOrderedList");
 });
 
 btnClearFormat.addEventListener("mousedown", (ev) => {
@@ -2009,7 +2113,8 @@ btnDocDelete.addEventListener("click", async () => {
 });
 
 exportFormat.addEventListener("change", () => {
-  document.getElementById("btn-export").textContent = `Export ${exportFormat.value.toUpperCase()}`;
+  const formatLabel = btnExport.querySelector("small");
+  if (formatLabel) formatLabel.textContent = exportFormat.value.toUpperCase();
   saveSession();
 });
 

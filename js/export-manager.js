@@ -99,25 +99,7 @@ export function createExportManager({
     const scale = Math.max(1, Math.min(3, Number(exportScale.value) || 2));
     const format = exportFormat.value || "png";
     const quality = Math.max(0.5, Math.min(1, Number(exportQuality.value) || 0.9));
-    const width = canvas.clientWidth;
-    const height = canvas.offsetHeight;
-    let out;
-    try {
-      const clone = cloneCanvasForExport();
-      const markup = buildExportSvgMarkup(width, height, scale, clone);
-      const { image, url } = await loadSvgIntoImage(markup);
-      out = document.createElement("canvas");
-      out.width = width * scale;
-      out.height = height * scale;
-      const ctx = out.getContext("2d");
-      ctx.fillStyle = exportPalette().background;
-      ctx.fillRect(0, 0, out.width, out.height);
-      ctx.drawImage(image, 0, 0);
-      if (url) URL.revokeObjectURL(url);
-    } catch (err) {
-      console.warn("DOM export failed, falling back to state renderer", err);
-      out = await renderCanvasFromState(scale, format);
-    }
+    const out = await renderCanvasFromState(scale, format);
 
     const mime = format === "jpg" ? "image/jpeg" : format === "webp" ? "image/webp" : "image/png";
     const ext = format === "jpg" ? "jpg" : format;

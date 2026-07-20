@@ -25,3 +25,33 @@ export function fitZoomRatioForStage({ stageClientWidth, paddingLeft, paddingRig
 export function isMobileViewport(viewportWidth) {
   return viewportWidth <= 900;
 }
+
+export function flowVerticalElements(elements, layout, spacingMap) {
+  let currentY = layout.topPad;
+  return elements.map((item, index) => {
+    const spacingBefore = spacingMap[item.spacingBefore] ?? spacingMap.normal;
+    if (index > 0) currentY += spacingBefore;
+
+    const width = item.width >= layout.contentWidth - 60
+      ? layout.contentWidth
+      : Math.min(item.width, layout.contentWidth);
+    const height = item.type === "image" && item.aspectRatio
+      ? Math.max(120, Math.floor(width / item.aspectRatio))
+      : item.height;
+    const geometry = {
+      id: item.id,
+      x: layout.contentX,
+      y: Math.round(currentY),
+      width,
+      height,
+    };
+    currentY = geometry.y + geometry.height;
+    return geometry;
+  });
+}
+
+export function requiredCanvasHeight(elements, { minimum = 1000, bottomPad = 96 } = {}) {
+  if (!elements.length) return minimum;
+  const lastBottom = Math.max(...elements.map((item) => item.y + item.height));
+  return Math.max(minimum, Math.ceil(lastBottom + bottomPad));
+}

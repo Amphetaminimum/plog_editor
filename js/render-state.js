@@ -102,7 +102,7 @@ export function createStateRenderer({
         const metaHtml = item.content?.metaHtml || item.content?.meta || "";
         const metaText = plainTextFromHtml(metaHtml);
         ctx.textAlign = "right";
-        drawText(ctx, metaText, item.x + item.width, item.y + 62, 60, resolveTextColor(item.style.color ?? "#1f1f22"), "500", resolveFontFamily(item));
+        drawText(ctx, metaText, item.x + item.width, item.y + 42, Math.max(18, Math.round((item.style.fontSize ?? 62) * 0.4)), resolveTextColor(item.style.color ?? "#1f1f22"), "500", resolveFontFamily(item));
         ctx.textAlign = "left";
         continue;
       }
@@ -225,6 +225,25 @@ export function createStateRenderer({
       if (tag === "br") {
         tokens.push({ text: "\n", weight: current.weight, italic: current.italic });
         return;
+      }
+
+      if (tag === "ul" || tag === "ol") {
+        const items = Array.from(node.children).filter((child) => child.tagName.toLowerCase() === "li");
+        items.forEach((child, index) => {
+          if (tokens.length && tokens[tokens.length - 1].text !== "\n") {
+            tokens.push({ text: "\n", weight: current.weight, italic: current.italic });
+          }
+          pushText(tag === "ol" ? `${index + 1}. ` : "• ", current);
+          Array.from(child.childNodes).forEach((grandchild) => walk(grandchild, current));
+          if (tokens.length && tokens[tokens.length - 1].text !== "\n") {
+            tokens.push({ text: "\n", weight: current.weight, italic: current.italic });
+          }
+        });
+        return;
+      }
+
+      if (tag === "li") {
+        pushText("• ", current);
       }
 
       const blockLike = tag === "div" || tag === "p";

@@ -13,6 +13,7 @@ export function createEditorRenderManager({
   onEditableBlur,
   onEditableFocus,
   reflowAfterElement,
+  reflowAll,
   saveSession,
   updateCanvasHeight,
   updateViewportMetrics,
@@ -284,13 +285,14 @@ export function createEditorRenderManager({
         title.style.color = item.style.color ?? "#1f1f22";
         title.style.fontFamily = familyCss(item);
         title.style.fontWeight = String(item.style.fontWeight ?? 500);
+        title.style.maxWidth = `${Math.max(180, layout.contentWidth - 300)}px`;
         meta.style.fontFamily = familyCss(item);
         meta.style.fontWeight = "500";
+        meta.style.fontSize = `${Math.max(18, Math.round((item.style.fontSize ?? 62) * 0.4))}px`;
         node.style.borderRadius = `${item.style.radius ?? 0}px`;
         const titleH = Math.max(40, Math.ceil(title.scrollHeight));
         const metaH = Math.max(58, Math.ceil(meta.scrollHeight));
         item.height = Math.max(90, Math.max(titleH, metaH) + 20);
-        title.style.maxWidth = `${Math.max(180, layout.contentWidth - 300)}px`;
       }
 
       if (item.type === "quote") {
@@ -335,6 +337,18 @@ export function createEditorRenderManager({
         node.remove();
       }
     });
+
+    if (state.layoutLocked) {
+      reflowAll();
+      state.elements.forEach((item) => {
+        const node = getElementNode(item.id);
+        if (!node) return;
+        node.style.left = `${item.x}px`;
+        node.style.top = `${item.y}px`;
+        node.style.width = `${item.width}px`;
+        node.style.height = `${item.height}px`;
+      });
+    }
 
     updateCanvasHeight();
     updateViewportMetrics();

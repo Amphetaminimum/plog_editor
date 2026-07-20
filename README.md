@@ -1,6 +1,6 @@
 # Long Canvas Plog Editor
 
-A local-first long-canvas editor for image-led visual blogs.
+A local-first long-content composer that turns editable text and images into a stable, automatically flowing design.
 
 ## Stack
 
@@ -15,7 +15,7 @@ A local-first long-canvas editor for image-led visual blogs.
 python3 -m http.server 5173
 ```
 
-Open [http://localhost:5173](http://localhost:5173).
+Open [http://localhost:5173/editor.html](http://localhost:5173/editor.html).
 
 ## Repo Structure
 
@@ -52,8 +52,11 @@ Open [http://localhost:5173](http://localhost:5173).
 Current scope:
 
 - long canvas editing
+- deterministic vertical auto-layout and canvas height growth
 - local documents
 - text, image, divider, header, quote, card
+- bold, italic, bulleted list, and numbered list formatting
+- original Build Week demo content
 - PNG/JPG/WebP export
 - HTML export
 

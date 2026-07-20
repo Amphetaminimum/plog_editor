@@ -175,7 +175,8 @@ export function createDocStoreManager({
     controls.exportQuality.value = payload.ui?.exportQuality || "0.9";
     controls.exportAppearance.value = payload.ui?.exportAppearance || "match";
     state.zoomMode = payload.ui?.zoomMode === "manual" ? "manual" : "fit";
-    controls.exportButton.textContent = `Export ${controls.exportFormat.value.toUpperCase()}`;
+    const formatLabel = controls.exportButton.querySelector?.("small");
+    if (formatLabel) formatLabel.textContent = controls.exportFormat.value.toUpperCase();
     state.suppressHistory = false;
   }
 
