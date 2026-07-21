@@ -1,6 +1,8 @@
 .DS_Store
 Thumbs.db
 doc/*-private.md
+doc/private/
+.playwright-cli/
 .build/
 build-week-video/
 dist/
