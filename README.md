@@ -27,7 +27,7 @@ The AI request does **not** upload the original files individually. For 2–12 s
 - local documents and Blob-backed image assets in IndexedDB
 - Markdown and structured JSON import
 - mixed operation/snapshot undo and redo
-- GPT‑5.6 Terra six-image story planning with Structured Outputs
+- GPT‑5.6 Terra story planning for 2–12 images with Structured Outputs
 - explicit Preview / Apply / Cancel flow and one-step undo for an AI draft
 - PNG, JPG, WebP, and standalone HTML export
 - browser and macOS storage paths
@@ -73,8 +73,8 @@ JSON ──────┤                              │
 GPT plan ──┘                              ├──> deterministic layout ──> editable DOM
                                            └──> raster / HTML export
 
-six local images ──> compressed contact sheet ──> server endpoint ──> GPT‑5.6 plan
-       originals remain local                     API key stays here
+2–12 local images ──> compressed contact sheet ──> server endpoint ──> GPT‑5.6 plan
+         originals remain local                     API key stays here
 ```
 
 Important modules:
@@ -98,7 +98,7 @@ The schema and command boundary is documented in [`doc/ADR-001-document-schema-a
 - **Codex during Build Week:** audited and refactored the existing editor into a tested command boundary, implemented the contact-sheet and server pipeline, added atomic AI transactions, repaired export and responsive UX, wrote tests and documentation, and validated the complete browser flow.
 - **Key product decision:** AI is a reversible planner, not an autonomous publisher. Preview and user approval are mandatory.
 
-This repository existed before Build Week as a local-first long-canvas editor. The Build Week work added the programmable command layer, Markdown/JSON path, image export improvements, six-image GPT‑5.6 workflow, server-side key boundary, automated tests, and deployable Sites configuration. Add the `/feedback` Codex Session ID to the Devpost submission form as required by the event.
+This repository existed before Build Week as a local-first long-canvas editor. The Build Week work added the programmable command layer, Markdown/JSON path, image export improvements, adaptive 2–12-image GPT‑5.6 workflow, server-side key boundary, automated tests, and deployable Sites configuration. Add the `/feedback` Codex Session ID to the Devpost submission form as required by the event.
 
 ## Honest Scope
 

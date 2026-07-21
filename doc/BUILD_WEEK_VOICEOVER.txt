@@ -1,13 +1,15 @@
-After a trip, I have photos, fragments of memory, and no patience for turning them into a coherent story. Plog is a local-first picture-story composer that keeps the result editable instead of returning a flattened AI artifact.
+After a trip, I have hundreds of photos and fragments of memory, but little patience to shape them into a story. Plog is a local-first picture-story composer. It creates an editable design, not a flattened AI image.
 
-Under the interface is a versioned block model and a deterministic layout engine. Text height, image aspect ratio, block flow, and canvas growth are recalculated so the same document can drive the editor and export renderer.
+Plog uses versioned content blocks and deterministic layout. Text height, image ratio, spacing, flow, and canvas growth are recalculated together, so manual editing, AI, and export share one document state.
 
-For this Build Week flow, the browser reduces six local images to one labeled, compressed contact sheet. Only that low-detail sheet, my notes, and optional voice guidance reach a server-side GPT-5.6 Terra call. Structured Outputs returns a bounded story plan: title, chapters, copy, and photo order. My API key never reaches the browser, and nothing has changed yet.
+Now I ask GPT-5.6 Terra for a first draft. Instead of uploading every original separately, the browser creates one labeled, compressed contact sheet from two to twelve images. Only that sheet, my notes, and tone direction reach the server-side model. The API key never enters the browser, and the document is still unchanged.
 
-I review before applying. The plan is compiled into the same document commands the manual interface uses. The result is ordinary editable blocks, not special AI output. The entire application is one atomic history operation, so one Undo restores the six original image blocks.
+The response is a structured plan: title, introduction, chapters, copy, and photo order. I review it first. Apply draft turns the proposal into ordinary Plog blocks, not a special AI-only result.
 
-Plog then renders the state to a shareable JPEG, PNG, WebP, or standalone editable HTML file. The layout and export path existed first; GPT-5.6 adds a reversible planning layer on top.
+Applying the AI plan is one atomic document command. One Undo restores the six original image blocks, and Redo brings the draft back. AI is a reversible planner, not an autonomous publisher.
 
-Codex helped turn an existing prototype into this tested workflow. It audited the architecture, introduced the command boundary and atomic batches, built the secure Responses API and contact-sheet pipeline, improved mobile export, wrote integration tests, and documented the product boundary.
+I can export JPEG, PNG, WebP, or standalone editable HTML. The export is rendered from the same blocks and automatic layout as the editor.
 
-Plog does not yet organize a thousand-photo library. Today it proves the smaller, useful loop: six moments in, one editable story out.
+Codex helped turn my frontend prototype into this tested workflow. It introduced versioned commands and atomic history, built the contact-sheet and secure Responses API path, repaired export and mobile behavior, added integration tests, and documented the boundary between working features and roadmap.
+
+Plog does not yet organize a thousand-photo library. Today it proves a smaller useful loop: selected moments in, one grounded, editable story out.

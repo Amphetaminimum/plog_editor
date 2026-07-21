@@ -4,7 +4,7 @@
 
 - [x] Recommended category: **Apps for your life**
 - [x] Working editor and export flow
-- [x] GPT‑5.6 six-image story planning flow in source
+- [x] GPT‑5.6 story planning flow for 2–12 images in source
 - [x] Public live demo URL in README
 - [x] Public repository with MIT license
 - [x] Setup instructions and bundled six-frame sample
@@ -16,8 +16,8 @@
 ## Video
 
 - [x] Under-three-minute English script and shot list prepared
-- [x] 1:49 English voiceover draft generated locally
-- [ ] Record screen and voiceover
+- [x] Under-three-minute presenter transcript with exact click directions
+- [ ] Record the screen while reading the transcript in your own voice
 - [ ] Confirm the video demonstrates the working GPT call
 - [ ] Mention both Codex and GPT‑5.6 in audio
 - [ ] Upload publicly to YouTube
@@ -35,4 +35,4 @@
 
 ## Suggested Short Description
 
-Plog is a local-first, block-based composer that turns six visual moments into an editable long-form story. The browser sends GPT‑5.6 one compressed contact sheet—not the original files—then previews its title, chapter, copy, and photo-order proposal. After approval, the plan becomes the same reversible document commands used by manual editing, deterministic layout, and export.
+Plog is a local-first, block-based composer that turns selected visual moments into an editable long-form story. The browser sends GPT‑5.6 one compressed contact sheet—not the original files—then previews its title, chapters, copy, and photo-order proposal. After approval, the plan becomes the same reversible document commands used by manual editing, deterministic layout, and export.
