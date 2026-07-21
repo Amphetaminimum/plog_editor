@@ -153,9 +153,10 @@
           <section class="panel-section panel-section-emphasis">
             <p class="panel-kicker">Start here</p>
             <h2>One editable visual story</h2>
-            <p class="panel-intro">Paste into a paragraph or load the demo. Plog keeps every block in a clean vertical flow as the canvas grows.</p>
+            <p class="panel-intro">Load six visual frames, then let GPT‑5.6 propose an editable first draft. Nothing changes until you apply it.</p>
             <button id="btn-load-example" class="btn btn-demo" type="button">Load example</button>
-            <p class="demo-note">Replaces the current canvas with an original 60-second demo story.</p>
+            <button id="btn-ai-draft" class="btn btn-primary btn-ai-draft" type="button">Draft with GPT‑5.6</button>
+            <p class="demo-note">The demo uses six crops from an original illustration. AI sends one compressed contact sheet—not six originals.</p>
           </section>
 
           <section class="panel-section">
@@ -394,6 +395,31 @@
         <div class="dialog-actions">
           <button id="dialog-cancel" class="btn">Cancel</button>
           <button id="dialog-confirm" class="btn btn-primary">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="ai-dialog-backdrop" class="dialog-backdrop hidden">
+      <div class="dialog-card ai-dialog-card" role="dialog" aria-modal="true" aria-labelledby="ai-dialog-title">
+        <p class="panel-kicker">AI draft · preview first</p>
+        <h3 id="ai-dialog-title">Turn six photos into a story plan</h3>
+        <p class="dialog-message">Plog creates one small 3×2 contact sheet for GPT‑5.6. Your original image files stay in this browser. Apply replaces the current document as one undoable action.</p>
+        <div id="ai-dialog-form" class="ai-dialog-form">
+          <label>
+            Trip notes
+            <textarea id="ai-trip-notes" rows="4" maxlength="2000" placeholder="Where were you? What actually happened? Add details the photos cannot show."></textarea>
+          </label>
+          <label>
+            Your voice
+            <textarea id="ai-voice-sample" rows="3" maxlength="2000" placeholder="Paste a short sample, or describe the tone: quiet, precise, first person..."></textarea>
+          </label>
+        </div>
+        <div id="ai-plan-preview" class="ai-plan-preview hidden" aria-live="polite"></div>
+        <p id="ai-dialog-status" class="ai-dialog-status" role="status"></p>
+        <div class="dialog-actions">
+          <button id="ai-dialog-cancel" class="btn" type="button">Cancel</button>
+          <button id="ai-dialog-generate" class="btn btn-primary" type="button">Generate preview</button>
+          <button id="ai-dialog-apply" class="btn btn-primary hidden" type="button">Apply draft</button>
         </div>
       </div>
     </div>

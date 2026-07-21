@@ -734,6 +734,11 @@ body.theme-dark .panel-section-emphasis {
   font-weight: 700;
 }
 
+.btn.btn-ai-draft {
+  width: 100%;
+  margin-top: 8px;
+}
+
 .demo-note {
   margin: 8px 2px 0;
   color: var(--muted);
@@ -2158,6 +2163,99 @@ body.theme-dark .image-filter-preset {
 .dialog-card h3 {
   margin: 0 0 8px;
   font-size: 24px;
+}
+
+.ai-dialog-card {
+  width: min(680px, calc(100vw - 32px));
+  max-height: min(760px, calc(100dvh - 32px));
+  overflow: auto;
+}
+
+.ai-dialog-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.ai-dialog-form label {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.ai-dialog-form textarea {
+  width: 100%;
+  min-height: 108px;
+  margin-top: 6px;
+  padding: 12px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel-strong);
+  color: var(--ink);
+  font: inherit;
+  line-height: 1.45;
+}
+
+.ai-plan-preview {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--line));
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+
+.ai-plan-preview h4 {
+  margin: 0 0 5px;
+  font-size: 20px;
+}
+
+.ai-plan-preview > p {
+  margin: 0 0 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.ai-plan-section {
+  padding: 11px 0;
+  border-top: 1px solid var(--line);
+}
+
+.ai-plan-section strong,
+.ai-plan-section span {
+  display: block;
+}
+
+.ai-plan-section span {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.ai-photo-order {
+  margin-top: 7px;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ai-dialog-status {
+  min-height: 20px;
+  margin: 12px 2px 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.ai-dialog-status[data-tone="error"] {
+  color: #c9463d;
+}
+
+@media (max-width: 640px) {
+  .ai-dialog-form {
+    grid-template-columns: 1fr;
+  }
 }
 
 .dialog-message {

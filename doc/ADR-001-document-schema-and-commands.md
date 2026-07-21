@@ -38,6 +38,7 @@ The stable command names are:
 - `block.move` — `{ id, toIndex }`
 - `block.updateContent` — `{ id, patch }`
 - `block.updateStyle` — `{ id, patch }`
+- `document.batch` — `{ commands }`, an ordered atomic group with one inverse
 
 Commands are applied by a pure reducer. Each successful command produces an inverse command for the existing history manager. UI controls, Markdown import, and JSON import must create the same commands rather than implement their own block mutations.
 

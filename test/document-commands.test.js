@@ -56,3 +56,20 @@ test("document snapshots expose a versioned external schema", () => {
   assert.equal(snapshot.title, "Trip");
   assert.notEqual(snapshot.blocks, blocks());
 });
+
+test("batch commands apply atomically and expose one inverse batch", () => {
+  const original = blocks();
+  const command = {
+    type: DOCUMENT_COMMANDS.BATCH,
+    commands: [
+      { type: DOCUMENT_COMMANDS.DELETE, id: "a" },
+      { type: DOCUMENT_COMMANDS.MOVE, id: "b", toIndex: 0 },
+      { type: DOCUMENT_COMMANDS.INSERT, index: 1, block: { id: "c", type: "text", content: "C", style: {} } },
+    ],
+  };
+
+  const result = executeDocumentCommand(original, command);
+  assert.deepEqual(result.blocks.map((item) => item.id), ["b", "c"]);
+  assert.equal(result.inverse.type, DOCUMENT_COMMANDS.BATCH);
+  assert.deepEqual(reduceDocumentBlocks(result.blocks, result.inverse), original);
+});

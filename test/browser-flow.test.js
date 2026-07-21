@@ -163,6 +163,38 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
   await evaluate("document.querySelector('#btn-load-example').click()");
   await waitInPage("document.querySelectorAll('#canvas .el').length === 6");
 
+  await evaluate(`(() => {
+    window.fetch = async (input, options) => {
+      if (String(input) !== '/api/story-plan') throw new Error('unexpected fetch: ' + input);
+      const request = JSON.parse(options.body);
+      window.__aiRequest = {
+        photoCount: request.photoIds.length,
+        contactSheetPrefix: request.contactSheet.slice(0, 23),
+      };
+      return new Response(JSON.stringify({
+        model: 'gpt-5.6-terra',
+        plan: {
+          title: 'Six Frames Before Sunrise',
+          dek: 'A short walk through changing light.',
+          sections: [
+            { heading: 'First light', body: 'The path was almost empty.', photoIds: ['photo-1', 'photo-2', 'photo-3'] },
+            { heading: 'The city returns', body: 'Warm light gathered near the road.', photoIds: ['photo-4', 'photo-5', 'photo-6'] }
+          ]
+        }
+      }), { status: 200, headers: { 'content-type': 'application/json' } });
+    };
+    document.querySelector('#btn-ai-draft').click();
+    document.querySelector('#ai-dialog-generate').click();
+  })()`);
+  await waitInPage("!document.querySelector('#ai-dialog-apply').classList.contains('hidden')");
+  const aiRequest = await evaluate("window.__aiRequest");
+  assert.equal(aiRequest.photoCount, 6);
+  assert.equal(aiRequest.contactSheetPrefix, "data:image/jpeg;base64,");
+  await evaluate("document.querySelector('#ai-dialog-apply').click()");
+  await waitInPage("document.querySelectorAll('#canvas .el').length === 10");
+  await evaluate("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', metaKey: true, bubbles: true }))");
+  await waitInPage("document.querySelectorAll('#canvas .el').length === 6");
+
   await evaluate("document.querySelector('#btn-add-text').click()");
   await waitInPage("document.querySelectorAll('#canvas .el').length === 7");
   await evaluate("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', metaKey: true, bubbles: true }))");

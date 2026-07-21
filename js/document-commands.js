@@ -1,6 +1,7 @@
 export const DOCUMENT_SCHEMA_VERSION = 1;
 
 export const DOCUMENT_COMMANDS = Object.freeze({
+  BATCH: "document.batch",
   INSERT: "block.insert",
   DELETE: "block.delete",
   MOVE: "block.move",
@@ -26,6 +27,11 @@ function requireBlockId(command) {
 export function reduceDocumentBlocks(blocks, command) {
   const source = Array.isArray(blocks) ? blocks : [];
   if (!command || typeof command !== "object") throw new Error("document command must be an object");
+
+  if (command.type === DOCUMENT_COMMANDS.BATCH) {
+    const commands = Array.isArray(command.commands) ? command.commands : [];
+    return commands.reduce((current, child) => reduceDocumentBlocks(current, child), source.map(clone));
+  }
 
   if (command.type === DOCUMENT_COMMANDS.INSERT) {
     const block = clone(command.block);
@@ -80,6 +86,26 @@ export function reduceDocumentBlocks(blocks, command) {
 export function executeDocumentCommand(blocks, command) {
   const source = Array.isArray(blocks) ? blocks : [];
   let inverse;
+
+  if (command.type === DOCUMENT_COMMANDS.BATCH) {
+    const commands = Array.isArray(command.commands) ? command.commands : [];
+    let current = source.map(clone);
+    const inverses = [];
+    let changed = false;
+
+    for (const child of commands) {
+      const result = executeDocumentCommand(current, child);
+      current = result.blocks;
+      changed ||= result.changed;
+      if (result.inverse) inverses.unshift(result.inverse);
+    }
+
+    return {
+      blocks: current,
+      changed,
+      inverse: changed ? { type: DOCUMENT_COMMANDS.BATCH, commands: inverses } : null,
+    };
+  }
 
   if (command.type === DOCUMENT_COMMANDS.INSERT) {
     inverse = { type: DOCUMENT_COMMANDS.DELETE, id: requireBlockId(command) };

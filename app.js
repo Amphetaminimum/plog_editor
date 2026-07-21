@@ -6,12 +6,14 @@ import { parseDocumentImport } from "./js/document-import.js";
 import { createEditorRenderManager } from "./js/editor-render.js";
 import { createExportManager } from "./js/export-manager.js";
 import { createHistoryManager } from "./js/history-manager.js";
+import { createContactSheet } from "./js/contact-sheet.js";
 import { sanitizeEditableHtml } from "./js/html-sanitize.js";
 import { formatMonthYearLabel } from "./js/header-format.js";
 import { DEFAULT_IMAGE_LOOK, imagePresetById } from "./js/image-filters.js";
 import { createStateRenderer } from "./js/render-state.js";
 import { createShellManager } from "./js/shell-manager.js";
 import { idbDeleteAsset, idbGetAsset, idbSetAsset, normalizeImageAsset } from "./js/storage.js";
+import { compileStoryPlanBatch, normalizeStoryPlan } from "./js/story-plan.js";
 
 const FONT_MAP = {
   fangzheng: '"方正清刻本悦宋", "FZQKBYSJW--GB1-0", "Songti SC", "STSong", "Noto Serif SC", serif',
@@ -148,9 +150,22 @@ const dialogConfirm = document.getElementById("dialog-confirm");
 const toolbarMenus = [...document.querySelectorAll(".toolbar-menu")];
 const btnLoadExample = document.getElementById("btn-load-example");
 const btnLoadExampleTop = document.getElementById("btn-load-example-top");
+const btnAiDraft = document.getElementById("btn-ai-draft");
+const aiDialogBackdrop = document.getElementById("ai-dialog-backdrop");
+const aiDialogForm = document.getElementById("ai-dialog-form");
+const aiTripNotes = document.getElementById("ai-trip-notes");
+const aiVoiceSample = document.getElementById("ai-voice-sample");
+const aiPlanPreview = document.getElementById("ai-plan-preview");
+const aiDialogStatus = document.getElementById("ai-dialog-status");
+const aiDialogCancel = document.getElementById("ai-dialog-cancel");
+const aiDialogGenerate = document.getElementById("ai-dialog-generate");
+const aiDialogApply = document.getElementById("ai-dialog-apply");
 const appToast = document.getElementById("app-toast");
 const canvasSummary = document.getElementById("canvas-summary");
 let toastTimer = null;
+let aiAbortController = null;
+let pendingAiDraft = null;
+let pendingAiPhotoBlocks = null;
 const STYLE_PROPERTY_BY_KIND = {
   "style.color": "color",
   "style.fontFamily": "fontFamily",
@@ -988,47 +1003,23 @@ async function loadBuildWeekExample() {
   state.selectedId = null;
   state.seq = Math.max(state.seq, 100);
 
-  const addDemoElement = (item) => state.elements.push(item);
-  addDemoElement(createElement("header", {
-    content: {
-      title: "The Walk Before the City Wakes",
-      titleHtml: "The Walk Before the City Wakes",
-      meta: "[July 26]",
-      metaHtml: "[July 26]",
-    },
-    spacingBefore: "normal",
-    style: { fontSize: 62, color: "#232038", radius: 0, fontFamily: "fangzheng", fontWeight: 500 },
-  }));
-  addDemoElement(createElement("text", {
-    content: "At 6:42, the streets were still holding their breath. I left my phone on silent and followed the light toward the old reservoir.",
-    html: "At <strong>6:42</strong>, the streets were still holding their breath. I left my phone on silent and followed the light toward the <em>old reservoir</em>.",
-    spacingBefore: "section",
-    style: { fontSize: 38, color: "#232038", radius: 0, fontFamily: "fangzheng", fontWeight: 400 },
-  }));
-  addDemoElement(createElement("image", {
-    src: new URL("./assets/build-week-demo.svg", window.location.href).href,
-    aspectRatio: 16 / 9,
-    spacingBefore: "normal",
-    style: { radius: 18, rotation: 0, brightness: 100, contrast: 100, grayscale: 0, frame: "none" },
-  }));
-  addDemoElement(createElement("text", {
-    content: "What I noticed:\nThe first bus sounded farther away than usual.\nA baker unlocked the corner shop.\nSunlight arrived before the crowd did.",
-    html: "<strong>What I noticed</strong><ul><li>The first bus sounded farther away than usual.</li><li>A baker unlocked the corner shop.</li><li>Sunlight arrived before the crowd did.</li></ul>",
-    spacingBefore: "section",
-    style: { fontSize: 36, color: "#232038", radius: 0, fontFamily: "fangzheng", fontWeight: 400 },
-  }));
-  addDemoElement(createElement("quote", {
-    content: "A long story should feel composed, not assembled.",
-    html: "A long story should feel <em>composed</em>, not assembled.",
-    spacingBefore: "section",
-    style: { fontSize: 42, color: "#4a416b", radius: 0, fontFamily: "fangzheng", fontWeight: 500 },
-  }));
-  addDemoElement(createElement("text", {
-    content: "By the time the city became loud again, the page was already complete: every block in order, every gap intentional, and the canvas exactly as long as the story needed.",
-    html: "By the time the city became loud again, the page was already complete: every block in order, every gap intentional, and the canvas exactly as long as the story needed.",
-    spacingBefore: "section",
-    style: { fontSize: 38, color: "#232038", radius: 0, fontFamily: "fangzheng", fontWeight: 400 },
-  }));
+  const demoViews = [
+    "0,0,800,600",
+    "800,0,800,600",
+    "0,300,800,600",
+    "800,300,800,600",
+    "360,120,800,600",
+    "620,260,600,600",
+  ];
+  demoViews.forEach((viewBox, index) => {
+    state.elements.push(createElement("image", {
+      id: `demo-photo-${index + 1}`,
+      src: new URL(`./assets/build-week-demo.svg#svgView(viewBox(${viewBox}))`, window.location.href).href,
+      aspectRatio: index === 5 ? 1 : 4 / 3,
+      spacingBefore: index === 0 ? "normal" : "tight",
+      style: { radius: 16, rotation: 0, brightness: 100, contrast: 100, saturation: 100, warmth: 0, grayscale: 0, frame: "none" },
+    }));
+  });
 
   setLayoutLocked(true);
   applyThemeMode("day");
@@ -1039,7 +1030,133 @@ async function loadBuildWeekExample() {
   syncAppliedDocState({ hydrate: false, pushInitialHistory: true });
   await flushSaveSession();
   renderDocDrawer();
-  showToast("Example loaded. Edit any block, then export the finished draft.");
+  showToast("Six-frame demo loaded. Choose Draft with GPT‑5.6 to generate a preview.");
+}
+
+function setAiDialogBusy(busy) {
+  aiDialogGenerate.disabled = busy;
+  aiDialogCancel.textContent = busy ? "Stop" : "Cancel";
+  aiDialogGenerate.textContent = busy ? "Creating contact sheet…" : "Generate preview";
+  aiDialogGenerate.classList.toggle("is-loading", busy);
+}
+
+function closeAiDialog() {
+  aiAbortController?.abort();
+  aiAbortController = null;
+  pendingAiDraft = null;
+  pendingAiPhotoBlocks = null;
+  setAiDialogBusy(false);
+  aiDialogBackdrop.classList.add("hidden");
+}
+
+function openAiDialog() {
+  const images = state.elements.filter((item) => item.type === "image");
+  if (images.length !== 6) {
+    showToast("This Build Week flow uses exactly six image blocks. Load the demo or adjust the canvas first.", "error");
+    return;
+  }
+  pendingAiDraft = null;
+  pendingAiPhotoBlocks = null;
+  aiDialogForm.classList.remove("hidden");
+  aiPlanPreview.classList.add("hidden");
+  aiPlanPreview.replaceChildren();
+  aiDialogApply.classList.add("hidden");
+  aiDialogGenerate.classList.remove("hidden");
+  aiDialogStatus.textContent = "Six image blocks are ready. Apply replaces this document as one undoable action.";
+  aiDialogStatus.dataset.tone = "neutral";
+  aiDialogBackdrop.classList.remove("hidden");
+  requestAnimationFrame(() => aiTripNotes.focus());
+}
+
+function renderAiPlanPreview(plan, model) {
+  aiPlanPreview.replaceChildren();
+  const title = document.createElement("h4");
+  title.textContent = plan.title;
+  const dek = document.createElement("p");
+  dek.textContent = plan.dek;
+  aiPlanPreview.append(title, dek);
+  plan.sections.forEach((section) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "ai-plan-section";
+    const heading = document.createElement("strong");
+    heading.textContent = section.heading;
+    const body = document.createElement("span");
+    body.textContent = section.body;
+    const photos = document.createElement("div");
+    photos.className = "ai-photo-order";
+    photos.textContent = section.photoIds.map((id) => id.replace("photo-", "Photo ")).join(" · ");
+    wrapper.append(heading, body, photos);
+    aiPlanPreview.appendChild(wrapper);
+  });
+  aiPlanPreview.classList.remove("hidden");
+  aiDialogStatus.textContent = `Preview generated by ${model || "GPT‑5.6"}. Review it before applying.`;
+}
+
+async function generateAiDraftPreview() {
+  const sourceImages = state.elements.filter((item) => item.type === "image").slice(0, 6);
+  if (sourceImages.length !== 6) return;
+  aiAbortController?.abort();
+  aiAbortController = new AbortController();
+  setAiDialogBusy(true);
+  aiDialogStatus.dataset.tone = "neutral";
+  aiDialogStatus.textContent = "Preparing one compressed contact sheet locally…";
+
+  try {
+    await Promise.all(sourceImages.map(async (item) => {
+      if (!item.src && item.assetId) item.src = await ensureAssetUrl(item.assetId);
+    }));
+    const contactSheet = await createContactSheet(sourceImages);
+    pendingAiPhotoBlocks = contactSheet.photos.map(({ id, block }) => ({ ...structuredClone(block), id }));
+    aiDialogGenerate.textContent = "Asking GPT‑5.6…";
+    aiDialogStatus.textContent = "GPT‑5.6 is grouping the six frames and drafting chapters…";
+    const response = await fetch("/api/story-plan", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      signal: aiAbortController.signal,
+      body: JSON.stringify({
+        contactSheet: contactSheet.dataUrl,
+        photoIds: contactSheet.photos.map((photo) => photo.id),
+        tripNotes: aiTripNotes.value,
+        voiceSample: aiVoiceSample.value,
+      }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || "The AI draft could not be generated.");
+    pendingAiDraft = normalizeStoryPlan(payload.plan, contactSheet.photos.map((photo) => photo.id));
+    renderAiPlanPreview(pendingAiDraft, payload.model);
+    aiDialogForm.classList.add("hidden");
+    aiDialogGenerate.classList.add("hidden");
+    aiDialogApply.classList.remove("hidden");
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      aiDialogStatus.textContent = "Generation stopped. No document changes were made.";
+    } else {
+      aiDialogStatus.textContent = error?.message || "The AI draft could not be generated.";
+      aiDialogStatus.dataset.tone = "error";
+    }
+  } finally {
+    aiAbortController = null;
+    setAiDialogBusy(false);
+  }
+}
+
+function applyAiDraft() {
+  if (!pendingAiDraft || !pendingAiPhotoBlocks) return;
+  const result = compileStoryPlanBatch({
+    existingBlocks: state.elements,
+    imageBlocks: pendingAiPhotoBlocks,
+    plan: pendingAiDraft,
+    meta: formatMonthYearLabel(),
+    createBlock: (type, patch) => {
+      const block = createElement(type, patch);
+      if (type === "header") block.style = { ...block.style, fontSize: 62, fontWeight: 500 };
+      if (type === "text") block.style = { ...block.style, fontSize: 38, fontWeight: 400 };
+      return block;
+    },
+  });
+  dispatchDocumentCommand(result.command, { select: false });
+  closeAiDialog();
+  showToast("AI draft applied as one undoable document command.");
 }
 
 toolbarMenus.forEach((menu) => {
@@ -1059,6 +1176,14 @@ toolbarMenus.forEach((menu) => {
   button?.addEventListener("click", () => {
     void loadBuildWeekExample();
   });
+});
+
+btnAiDraft?.addEventListener("click", openAiDialog);
+aiDialogGenerate?.addEventListener("click", () => void generateAiDraftPreview());
+aiDialogApply?.addEventListener("click", applyAiDraft);
+aiDialogCancel?.addEventListener("click", closeAiDialog);
+aiDialogBackdrop?.addEventListener("mousedown", (event) => {
+  if (event.target === aiDialogBackdrop) closeAiDialog();
 });
 
 document.addEventListener("pointerdown", (ev) => {
@@ -1750,6 +1875,11 @@ document.addEventListener("selectionchange", () => {
 });
 
 document.addEventListener("keydown", (ev) => {
+  if (ev.key === "Escape" && !aiDialogBackdrop?.classList.contains("hidden")) {
+    closeAiDialog();
+    ev.preventDefault();
+    return;
+  }
   const active = document.activeElement;
   const isEditing = active && active.getAttribute && active.getAttribute("contenteditable") === "true";
   const selected = getElement(state.selectedId);
