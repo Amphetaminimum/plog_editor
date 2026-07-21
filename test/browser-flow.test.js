@@ -165,8 +165,8 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
   assert.equal(desktopControls.canvasResetHidden, true);
   await evaluate("document.querySelector('#btn-load-example').click()");
   await waitInPage("document.querySelectorAll('#canvas .el').length === 12");
-  assert.equal(await evaluate("document.querySelector('#export-pagination').value"), "split");
-  assert.match(await evaluate("document.querySelector('#export-options-summary').textContent"), /2 files/);
+  assert.equal(await evaluate("document.querySelector('#export-pagination')"), null);
+  assert.match(await evaluate("document.querySelector('#export-options-summary').textContent"), /JPG · 2×/);
 
   await evaluate(`(() => {
     window.fetch = async (input) => {
@@ -232,11 +232,10 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
     document.querySelector('#btn-export').click();
   })()`);
   await waitInPage("document.querySelector('#app-toast').textContent.includes('exported successfully')");
-  assert.match(await evaluate("document.querySelector('#app-toast').textContent"), /2 JPG files/);
+  assert.match(await evaluate("document.querySelector('#app-toast').textContent"), /JPG · .*exported successfully/);
   await waitForValue(async () => {
     const names = (await readdir(downloadDir)).filter((name) => name.endsWith(".jpg"));
-    return names.some((name) => name.includes("story-1-of-2"))
-      && names.some((name) => name.includes("story-2-of-2"));
+    return names.length === 1 && names[0].endsWith("-2x.jpg") && !names[0].includes("story-");
   });
   const aiExportText = await evaluate(`(() => {
     CanvasRenderingContext2D.prototype.fillText = window.__originalFillText;
@@ -309,9 +308,10 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
     });
     document.querySelector('#btn-mobile-export').click();
   })()`);
-  await waitInPage("window.__sharedExport?.fileCount === 2");
+  await waitInPage("window.__sharedExport?.fileCount === 1");
   const mobileExport = await evaluate("window.__sharedExport");
   assert.equal(mobileExport.type, "image/jpeg");
   assert.match(mobileExport.name, /\.jpg$/);
-  assert.deepEqual(mobileExport.names.map((name) => name.match(/story-\d-of-2/)?.[0]), ["story-1-of-2", "story-2-of-2"]);
+  assert.equal(mobileExport.names.length, 1);
+  assert.doesNotMatch(mobileExport.name, /story-\d-of-\d/);
 });

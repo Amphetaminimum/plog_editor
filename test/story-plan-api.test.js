@@ -31,8 +31,8 @@ test("story plan API accepts up to twelve photos and rejects larger batches", as
     }), { status: 200, headers: { "content-type": "application/json" } });
   });
   assert.equal(accepted.status, 200);
-  assert.match(upstreamBody.input[0].content[0].text, /exactly 2 coherent chapters/);
-  assert.match(upstreamBody.input[0].content[0].text, /distribute the photos as evenly/);
+  assert.match(upstreamBody.input[0].content[0].text, /2-4 coherent chapters/);
+  assert.match(upstreamBody.input[0].content[0].text, /not a fixed export page count/);
 
   const rejected = await handleStoryPlanRequest(validRequest(13), { OPENAI_API_KEY: "test-key" }, async () => {
     throw new Error("invalid requests must not reach OpenAI");

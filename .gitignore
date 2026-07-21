@@ -12,5 +12,6 @@ node_modules/
 .env.*
 !.env.example
 public/
+output/
 assets/demo/DSC*.jpg
 *.tsbuildinfo

@@ -18,7 +18,7 @@ OpenAI Build Week track: **Apps for your life** — travel, personal creativity,
 4. Choose **Apply draft**. The plan becomes ordinary editable Plog blocks.
 5. Press `Cmd/Ctrl+Z` once to undo the entire AI operation, or continue editing and export JPG, PNG, or WebP.
 
-The AI request does **not** upload the original files individually. For 2–12 selected images, the browser first creates one labeled, compressed, adaptive contact sheet and sends that low-detail image to a server-side OpenAI Responses API endpoint. The API key never enters client JavaScript. The bundled demo begins after human curation: twelve selected Kyoto photographs are organized into one editable story. Its two-sheet delivery setting re-composes complete chapters into two self-contained JPGs, each with a header and its own text and photos.
+The AI request does **not** upload the original files individually. For 2–12 selected images, the browser first creates one labeled, compressed, adaptive contact sheet—a single grid of numbered previews—and sends that low-detail image to a server-side OpenAI Responses API endpoint. The API key never enters client JavaScript. The bundled demo begins after human curation: twelve selected Kyoto photographs are organized into one editable story and exported as one continuous long image.
 
 ## What Works Today
 
@@ -31,7 +31,7 @@ The AI request does **not** upload the original files individually. For 2–12 s
 - mixed operation/snapshot undo and redo
 - GPT‑5.6 Terra story planning for 2–12 images with Structured Outputs
 - explicit Preview / Apply / Cancel flow and one-step undo for an AI draft
-- PNG, JPG, and WebP export, as one long image or two self-contained story sheets
+- continuous long-image export as PNG, JPG, or WebP
 - browser and macOS storage paths
 
 ## Run Locally

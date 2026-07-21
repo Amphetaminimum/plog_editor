@@ -61,7 +61,7 @@ The transcript alone does not satisfy this requirement.
 
 ## Validation snapshot
 
-- `npm test`: 45 passing tests, including the twelve-photo browser flow and two-file export.
+- `npm test`: covers the twelve-photo browser flow and continuous long-image export.
 - `npm run lint`: passes.
 - `npm run build`: passes.
 - `swift test`: 5 passing tests.

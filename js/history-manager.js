@@ -67,7 +67,6 @@ export function createHistoryManager({
           exportScale: controls.exportScale.value,
           exportFormat: controls.exportFormat.value,
           exportQuality: controls.exportQuality.value,
-          exportPagination: controls.exportPagination?.value || "single",
           exportAppearance: controls.exportAppearance.value,
           zoomMode: state.zoomMode,
           themeMode: state.themeMode,
@@ -129,7 +128,6 @@ export function createHistoryManager({
     controls.exportScale.value = snapshot.ui?.exportScale || controls.exportScale.value;
     controls.exportFormat.value = snapshot.ui?.exportFormat || controls.exportFormat.value;
     controls.exportQuality.value = snapshot.ui?.exportQuality || controls.exportQuality.value;
-    if (controls.exportPagination) controls.exportPagination.value = snapshot.ui?.exportPagination || controls.exportPagination.value;
     controls.exportAppearance.value = snapshot.ui?.exportAppearance || controls.exportAppearance.value;
     state.zoomMode = snapshot.ui?.zoomMode === "manual" ? "manual" : "fit";
     state.themeMode = snapshot.ui?.themeMode === "day" ? "day" : "night";

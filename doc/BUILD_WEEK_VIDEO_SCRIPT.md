@@ -1,8 +1,8 @@
 # Build Week Demo — Presenter Script and Click Guide
 
-Target length: **2:25–2:45**. Read only the English under **Say**. The instructions under **Do** are not spoken.
+Target length: **2:30–2:50**. Read only the English under **Say**. The instructions under **Do** are not spoken.
 
-The clean narration rehearsal was **1:55** (about **134 words per minute**). That is a comfortable pace. The remaining 30–50 seconds should come from visible actions, short review pauses, and one edited cut across model waiting—not from adding filler to the script.
+The original clean narration rehearsal was **1:55** (about **134 words per minute**). The revised narration is 276 words, or roughly **2:04** at the same comfortable pace. The remaining 25–45 seconds should come from visible actions, short review pauses, and one edited cut across model waiting—not from adding filler to the script.
 
 ## Before recording
 
@@ -12,7 +12,7 @@ The clean narration rehearsal was **1:55** (about **134 words per minute**). Tha
 4. Copy this Trip note so it can be pasted quickly:
    `A quiet autumn walk through Kyoto temples and gardens after rain, from tiled rooftops and moss paths to shaded wooden corridors.`
 5. Leave **Writing style · optional** empty. The demo does not claim that the API remembers the user or has learned a personal voice.
-6. Keep both exported JPGs ready for the final shots. It is fine to cut most of the model waiting time, but leave about one second of the loading state.
+6. Keep the exported long JPG ready for the final shot. It is fine to cut most of the model waiting time, but leave about one second of the loading state.
 
 ## 0:00–0:20 — The problem
 
@@ -50,7 +50,7 @@ The clean narration rehearsal was **1:55** (about **134 words per minute**). Tha
 
 **Say**
 
-> I add a short note with context the photos cannot explain by themselves. The browser combines the twelve photos into one compressed contact sheet, and GPT‑5.6 uses that sheet and my notes to propose chapters, photo order, and a concise first draft. Nothing has changed yet.
+> I add a short note with context the photos cannot explain by themselves. The browser combines the twelve photos into one compressed contact sheet—a labeled grid of small previews—and GPT‑5.6 uses it with my notes to propose chapters, photo order, and a concise first draft. Nothing has changed yet.
 
 ## 1:08–1:35 — Review, apply, and keep editing
 
@@ -76,21 +76,21 @@ The clean narration rehearsal was **1:55** (about **134 words per minute**). Tha
 
 > AI gives me a useful starting point, but I remain in control of the document and can undo any change.
 
-## 1:47–2:12 — Export two finished story sheets
+## 1:47–2:10 — Export the continuous story
 
 **Do**
 
 - Open the arrow beside **Export**.
-- Briefly show **Balanced · recommended**, **Two self-contained story sheets**, **2x**, and **JPG**.
+- Briefly show **Balanced · recommended**, **2x**, and **JPG**.
 - Close the options and click **Export**.
-- After the success message, show both JPGs side by side or one after the other.
-- Pause briefly at the top of each file so viewers can see that both begin with a header and contain a complete chapter.
+- After the success message, show the exported long JPG.
+- Show the title and first chapter, jump briefly to the middle, then finish on the final section. Do not slowly scroll through every photograph.
 
 **Say**
 
-> Instead of cutting one long image in half, Plog exports two self-contained JPEG story sheets. Each keeps a header, its own chapter text, and its own photos. I can also export one long image as PNG, JPEG, or WebP.
+> I can export the same editable document as one continuous JPEG. The long image preserves the full reading flow, while PNG and WebP remain available for different sharing needs.
 
-## 2:12–2:28 — Codex contribution
+## 2:10–2:26 — Codex contribution
 
 **Do**
 
@@ -100,21 +100,21 @@ The clean narration rehearsal was **1:55** (about **134 words per minute**). Tha
 
 > I built and refined Plog with Codex, from the block-based editing workflow to the secure GPT‑5.6 integration, reversible editing, browser testing, and reliable long-image export.
 
-## 2:28–2:44 — Honest next step
+## 2:26–2:50 — Honest next step
 
 **Do**
 
-- Hold on the finished story or the two exported JPGs.
+- Hold on the finished story or the exported long JPG.
 
 **Say**
 
-> Today, Plog starts with photos I have already selected. The next step is local filtering and clustering, so even a thousand-photo trip can be reduced before AI helps draft the story.
+> Today, Plog starts with photos I have already selected. The next step is to use timestamps, GPS, duplicate and blur detection, and burst clustering locally. Only small contact sheets of representative candidates would reach AI for final selection, chapter planning, and an editable draft.
 
 ## Recording checks
 
 - Total duration is below 3:00.
 - Your spoken narration is audible throughout; background music is optional and much quieter than speech.
-- The recording visibly shows **Load example**, the twelve selected photos, **Generate preview**, the returned plan, **Apply draft**, a manual text edit, Undo/Redo, and both self-contained story-sheet exports.
+- The recording visibly shows **Load example**, the twelve selected photos, **Generate preview**, the returned plan, **Apply draft**, a manual text edit, Undo/Redo, and the continuous long-image export.
 - The narration explicitly says **GPT‑5.6** and **Codex**.
 - It never claims that photo selection, long-term writing-style memory, or the thousand-photo pipeline already works.
 - No API key, `.dev.vars`, API dashboard, terminal secret, or Network request body appears on screen.

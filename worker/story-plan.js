@@ -109,7 +109,7 @@ export async function handleStoryPlanRequest(request, env, fetchImpl = fetch) {
   const notes = String(body.tripNotes || "").trim() || "No trip notes were provided. Infer only visible atmosphere; do not invent factual events.";
   const voice = String(body.voiceSample || "").trim() || "Use concise first-person travel-journal prose. Avoid clichés and unsupported facts.";
   const chapterGuidance = photoIds.length >= 9
-    ? "Group the photos into exactly 2 coherent chapters and distribute the photos as evenly as the story allows."
+    ? "Group the photos into 2-4 coherent chapters based on the visual story, not a fixed export page count."
     : photoIds.length >= 5
       ? "Group the photos into 2-3 coherent chapters."
       : "Group the photos into exactly 2 coherent chapters.";

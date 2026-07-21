@@ -1,7 +1,4 @@
-import { createTwoStorySheets } from "./export-sheets.js";
-
 export function createExportManager({
-  canvas,
   flushRender,
   hydrateAssetSources,
   getElements,
@@ -9,9 +6,6 @@ export function createExportManager({
   exportScale,
   exportFormat,
   exportQuality,
-  exportPagination,
-  currentExportAppearance,
-  exportPalette,
   docName,
   renderCanvasFromState,
 }) {
@@ -71,10 +65,9 @@ export function createExportManager({
     return { method: "download", mobile, filenames: outputs.map((output) => output.filename), count: outputs.length, size: totalSize };
   }
 
-  function filenameForExport(ext, scale, story = null, count = 1) {
+  function filenameForExport(ext, scale) {
     const stamp = new Date().toISOString().slice(0, 10);
-    const suffix = story == null ? "" : `-story-${story}-of-${count}`;
-    return `${docName().replace(/\s+/g, "-").toLowerCase() || "plog"}-${stamp}-${scale}x${suffix}.${ext}`;
+    return `${docName().replace(/\s+/g, "-").toLowerCase() || "plog"}-${stamp}-${scale}x.${ext}`;
   }
 
   async function exportRaster() {
@@ -85,18 +78,9 @@ export function createExportManager({
     const quality = Math.max(0.5, Math.min(1, Number(exportQuality.value) || 0.9));
     const mime = format === "jpg" ? "image/jpeg" : format === "webp" ? "image/webp" : "image/png";
     const ext = format === "jpg" ? "jpg" : format;
-    const shouldSplit = exportPagination?.value === "split";
-    const storySheets = shouldSplit
-      ? createTwoStorySheets(getElements(), canvas.clientWidth, { title: docName() })
-      : null;
-    const outputCanvases = storySheets
-      ? await Promise.all(storySheets.map((sheet) => renderCanvasFromState(scale, format, sheet)))
-      : [await renderCanvasFromState(scale, format)];
-    const blobs = await Promise.all(outputCanvases.map((output) => canvasToBlob(output, mime, quality)));
-    const outputs = blobs.map((blob, index) => ({
-      blob,
-      filename: filenameForExport(ext, scale, outputCanvases.length > 1 ? index + 1 : null, outputCanvases.length),
-    }));
+    const outputCanvas = await renderCanvasFromState(scale, format);
+    const blob = await canvasToBlob(outputCanvas, mime, quality);
+    const outputs = [{ blob, filename: filenameForExport(ext, scale) }];
     return deliverRasters(outputs, mime);
   }
 

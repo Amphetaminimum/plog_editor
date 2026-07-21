@@ -36,4 +36,4 @@
 
 ## Suggested Short Description
 
-Plog is a local-first, block-based composer that turns selected visual moments into an editable long-form story. The browser sends GPT‑5.6 one compressed contact sheet—not the original files—then previews its title, chapters, copy, and photo-order proposal. After approval, the plan becomes the same reversible document commands used by manual editing, deterministic layout, and export.
+Plog is a local-first, block-based composer that turns selected visual moments into an editable long-form story. The browser sends GPT‑5.6 one compressed contact sheet—a labeled grid of small previews, not the original files—then previews its title, chapters, copy, and photo-order proposal. After approval, the plan becomes the same reversible document commands used by manual editing, deterministic layout, and continuous long-image export.

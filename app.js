@@ -111,7 +111,6 @@ const exportFormat = document.getElementById("export-format");
 const exportQuality = document.getElementById("export-quality");
 const exportAppearance = document.getElementById("export-appearance");
 const exportPreset = document.getElementById("export-preset");
-const exportPagination = document.getElementById("export-pagination");
 const exportOptionsSummary = document.getElementById("export-options-summary");
 const exportQualityField = document.getElementById("export-quality-field");
 const canvasBgInput = document.getElementById("canvas-bg");
@@ -216,7 +215,6 @@ function createDefaultDocData() {
       exportScale: "2",
       exportFormat: "jpg",
       exportQuality: "0.88",
-      exportPagination: "single",
       zoomMode: "fit",
       themeMode: "night",
     },
@@ -733,7 +731,6 @@ const docStore = createDocStoreManager({
     exportAppearance,
     exportButton: btnExport,
     exportFormat,
-    exportPagination,
     exportQuality,
     exportScale,
     widthSelect,
@@ -829,7 +826,6 @@ const docStore = createDocStoreManager({
 }));
 
 const exportManager = createExportManager({
-  canvas,
   flushRender,
   hydrateAssetSources,
   getElements: () => state.elements,
@@ -837,9 +833,6 @@ const exportManager = createExportManager({
   exportScale,
   exportFormat,
   exportQuality,
-  exportPagination,
-  currentExportAppearance,
-  exportPalette,
   docName,
   renderCanvasFromState,
 });
@@ -854,7 +847,6 @@ const exportManager = createExportManager({
     exportAppearance,
     exportButton: btnExport,
     exportFormat,
-    exportPagination,
     exportQuality,
     exportScale,
     widthSelect,
@@ -1032,9 +1024,6 @@ async function loadBuildWeekExample() {
     }));
   });
 
-  exportPagination.value = "split";
-  syncExportOptionsUi();
-
   setLayoutLocked(true);
   applyThemeMode("day");
   applyThemePalette("day");
@@ -1044,7 +1033,7 @@ async function loadBuildWeekExample() {
   syncAppliedDocState({ hydrate: false, pushInitialHistory: true });
   await flushSaveSession();
   renderDocDrawer();
-  showToast("Twelve-photo Kyoto demo loaded as one Plog. Export is set to two balanced JPGs.");
+  showToast("Twelve-photo Kyoto demo loaded as one continuous Plog.");
 }
 
 function setAiDialogBusy(busy) {
@@ -2384,13 +2373,13 @@ document.getElementById("btn-export").addEventListener("click", async () => {
     const delivery = await exportRaster();
     const sizeLabel = delivery.size ? `${(delivery.size / (1024 * 1024)).toFixed(1)} MB` : "";
     if (delivery.method === "share") {
-      showToast(`${delivery.count === 2 ? "Two images" : "Image"} ready${sizeLabel ? ` · ${sizeLabel}` : ""}. Use the share menu to save ${delivery.count === 2 ? "both files" : "it"}.`);
+      showToast(`Image ready${sizeLabel ? ` · ${sizeLabel}` : ""}. Use the share menu to save it.`);
     } else if (delivery.method === "cancelled") {
       showToast("Export cancelled.");
     } else if (delivery.mobile) {
-      showToast(`${delivery.count === 2 ? "Two images" : "Image"} ready${sizeLabel ? ` · ${sizeLabel}` : ""}. If it opens in a tab, use Share → Save Image.`);
+      showToast(`Image ready${sizeLabel ? ` · ${sizeLabel}` : ""}. If it opens in a tab, use Share → Save Image.`);
     } else {
-      showToast(`${delivery.count === 2 ? "2 " : ""}${exportFormat.value.toUpperCase()}${delivery.count === 2 ? " files" : ""} · ${sizeLabel} exported successfully to your downloads.`);
+      showToast(`${exportFormat.value.toUpperCase()} · ${sizeLabel} exported successfully to your downloads.`);
     }
   } catch (err) {
     console.error(err);
@@ -2529,8 +2518,7 @@ btnDocDelete.addEventListener("click", async () => {
 function syncExportOptionsUi() {
   const format = exportFormat.value.toUpperCase();
   const scale = `${exportScale.value}×`;
-  const delivery = exportPagination?.value === "split" ? " · 2 files" : "";
-  if (exportOptionsSummary) exportOptionsSummary.textContent = `${format} · ${scale}${delivery}`;
+  if (exportOptionsSummary) exportOptionsSummary.textContent = `${format} · ${scale}`;
   exportQualityField?.classList.toggle("hidden", exportFormat.value === "png");
   if (!exportPreset) return;
   const signature = `${exportFormat.value}:${exportScale.value}:${exportQuality.value}`;
@@ -2569,10 +2557,6 @@ exportScale.addEventListener("change", () => {
   saveSession();
 });
 exportQuality.addEventListener("change", saveSession);
-exportPagination?.addEventListener("change", () => {
-  syncExportOptionsUi();
-  saveSession();
-});
 exportAppearance.addEventListener("change", saveSession);
 
 setLayoutLocked(true);

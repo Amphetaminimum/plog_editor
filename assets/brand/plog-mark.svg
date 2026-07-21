@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Plog story canvas mark</title>
+  <desc id="desc">A vertical story canvas containing photo and text blocks.</desc>
+  <rect width="256" height="256" rx="64" fill="#8b5cf6"/>
+  <rect x="72" y="36" width="112" height="184" rx="28" fill="#fff8ec"/>
+  <rect x="88" y="56" width="80" height="56" rx="14" fill="#25202d"/>
+  <circle cx="148" cy="74" r="8" fill="#f39a66"/>
+  <path d="M96 101l22-23 16 16 12-11 14 18H96z" fill="#d7c9ff"/>
+  <rect x="88" y="132" width="64" height="10" rx="5" fill="#25202d"/>
+  <rect x="88" y="151" width="80" height="8" rx="4" fill="#9c92a7"/>
+  <rect x="88" y="167" width="54" height="8" rx="4" fill="#9c92a7"/>
+  <rect x="88" y="192" width="80" height="12" rx="6" fill="#f06f46"/>
+</svg>

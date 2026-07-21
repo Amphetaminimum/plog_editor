@@ -33,13 +33,13 @@ flowchart LR
 - simple blur/exposure scores
 - burst detection and coarse time/location clusters
 
-These steps are cheaper, faster, and more private than sending every original to a multimodal model. They reduce 1,000 originals to tens of groups and a much smaller representative set.
+These steps are cheaper, faster, and more private than sending every original to a multimodal model. They reduce 1,000 originals to tens of time-and-place event groups and a much smaller representative set. Each event group can be reviewed as a bounded contact sheet instead of placing every candidate into one model request.
 
 ## Where Models Add Real Value
 
 - compare a small number of representatives when conventional quality scores disagree
 - describe semantic differences between otherwise similar clusters
-- propose chapter boundaries from selected images plus user-supplied facts
+- merge or rename time-and-place event groups into chapter boundaries using selected images plus user-supplied facts
 - draft editable copy in the user’s voice
 - optionally suggest non-destructive edits; actual image generation/editing requires separate consent and cost controls
 
