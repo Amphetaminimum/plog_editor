@@ -6,6 +6,8 @@ Plog is a local-first, block-based picture-story composer. A user can arrange an
 
 Live demo: [plog-editor.renovacyoun.chatgpt.site](https://plog-editor.renovacyoun.chatgpt.site)
 
+The public build demonstrates the editor, bundled Kyoto example, local document workflow, and export. Its GPT endpoint is intentionally unconfigured so a personal paid API key is not exposed to unauthenticated public usage. Run locally with a server-side key for the real GPT‑5.6 step shown in the submission video.
+
 OpenAI Build Week track: **Apps for your life** — travel, personal creativity, and memory keeping.
 
 ## Build Week Demo
@@ -104,7 +106,7 @@ This repository existed before Build Week as a local-first long-canvas editor. T
 
 Plog does not currently ingest or cluster a 1,000-photo library, run local CV models, retouch images with an image-to-image model, publish a blog, or collaborate in the cloud. Those are not hidden demo features. The proposed large-library pipeline is documented as future work in [`doc/PHOTO_PIPELINE_ROADMAP.md`](doc/PHOTO_PIPELINE_ROADMAP.md).
 
-The public AI endpoint has intentionally small request/output limits and a lightweight per-client demo limit. That is adequate for a judged demo, not production abuse prevention. A production release would need durable rate limits, authentication or quotas, consent and retention controls, and usage monitoring.
+When the AI endpoint is configured, it has intentionally small request/output limits and a lightweight per-client demo limit. That is adequate for a controlled judged demo, not production abuse prevention. A production release would need durable rate limits, authentication or quotas, consent and retention controls, and usage monitoring.
 
 ## License
 

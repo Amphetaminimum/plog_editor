@@ -21,7 +21,7 @@ This audit separates implemented and verified requirements from the one delivera
 - `.dev.vars` and `.env*` are ignored by Git.
 - Missing server credentials return an explicit 503 response and are covered by a test.
 
-The public Sites deployment intentionally has no production key yet. Adding a personal paid key to a public demo requires a separate decision about durable quotas or authentication.
+The public Sites deployment intentionally has no production key. The README now states that the public build demonstrates the editor and export, while the real GPT‑5.6 step is recorded locally with a server-side key. Adding a personal paid key to an unauthenticated public demo remains out of scope without durable quotas or authentication.
 
 ## P0 — README explains the Build Week project
 
@@ -61,7 +61,7 @@ The transcript alone does not satisfy this requirement.
 
 ## Validation snapshot
 
-- `npm test`: 41 passing tests, including the browser flow.
+- `npm test`: 45 passing tests, including the twelve-photo browser flow and two-file export.
 - `npm run lint`: passes.
 - `npm run build`: passes.
 - `swift test`: 5 passing tests.
