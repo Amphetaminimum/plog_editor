@@ -16,9 +16,9 @@ OpenAI Build Week track: **Apps for your life** — travel, personal creativity,
 2. Choose **Draft with GPT‑5.6**, add optional trip notes and a writing sample, then generate.
 3. Review the proposed title, chapters, copy, and image order. The document has not changed yet.
 4. Choose **Apply draft**. The plan becomes ordinary editable Plog blocks.
-5. Press `Cmd/Ctrl+Z` once to undo the entire AI operation, or continue editing and export JPG, PNG, WebP, or HTML.
+5. Press `Cmd/Ctrl+Z` once to undo the entire AI operation, or continue editing and export JPG, PNG, or WebP.
 
-The AI request does **not** upload the original files individually. For 2–12 selected images, the browser first creates one labeled, compressed, adaptive contact sheet and sends that low-detail image to a server-side OpenAI Responses API endpoint. The API key never enters client JavaScript. The bundled demo begins after human curation: twelve selected Kyoto photographs are organized into one editable story. Its delivery setting exports that single document as two balanced JPGs without cutting through a block; it does not create a second draft.
+The AI request does **not** upload the original files individually. For 2–12 selected images, the browser first creates one labeled, compressed, adaptive contact sheet and sends that low-detail image to a server-side OpenAI Responses API endpoint. The API key never enters client JavaScript. The bundled demo begins after human curation: twelve selected Kyoto photographs are organized into one editable story. Its two-sheet delivery setting re-composes complete chapters into two self-contained JPGs, each with a header and its own text and photos.
 
 ## What Works Today
 
@@ -31,7 +31,7 @@ The AI request does **not** upload the original files individually. For 2–12 s
 - mixed operation/snapshot undo and redo
 - GPT‑5.6 Terra story planning for 2–12 images with Structured Outputs
 - explicit Preview / Apply / Cancel flow and one-step undo for an AI draft
-- PNG, JPG, WebP, and standalone HTML export
+- PNG, JPG, and WebP export, as one long image or two self-contained story sheets
 - browser and macOS storage paths
 
 ## Run Locally
@@ -73,7 +73,7 @@ manual UI ─┐
 Markdown ──┼──> document commands ──> versioned blocks
 JSON ──────┤                              │
 GPT plan ──┘                              ├──> deterministic layout ──> editable DOM
-                                           └──> raster / HTML export
+                                           └──> raster export
 
 2–12 local images ──> compressed contact sheet ──> server endpoint ──> GPT‑5.6 plan
          originals remain local                     API key stays here

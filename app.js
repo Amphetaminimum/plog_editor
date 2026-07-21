@@ -708,7 +708,6 @@ let renameCurrentDocument;
 let restoreSession;
 let saveSession;
 let switchDocument;
-let exportHtml;
 let exportRaster;
 let applyZoom;
 let bindShellEvents;
@@ -845,7 +844,7 @@ const exportManager = createExportManager({
   renderCanvasFromState,
 });
 
-({ exportHtml, exportRaster } = exportManager);
+({ exportRaster } = exportManager);
 
 ({ commitMutation, pushHistory, redoHistory, undoHistory } = createHistoryManager({
   state,
@@ -2395,7 +2394,7 @@ document.getElementById("btn-export").addEventListener("click", async () => {
     }
   } catch (err) {
     console.error(err);
-    showToast("Export failed. Try PNG first, or use Export HTML from the menu.", "error");
+    showToast("Export failed. Try PNG at 1x, then export again.", "error");
   } finally {
     setGenerateButtonState(false);
   }
@@ -2408,10 +2407,6 @@ btnMobileExport?.addEventListener("click", () => {
 
 mobileSheetCloseButtons.forEach((button) => {
   button.addEventListener("click", closeMobilePanels);
-});
-
-document.getElementById("btn-export-html").addEventListener("click", () => {
-  void exportHtml();
 });
 
 btnToggleLock.addEventListener("click", () => {

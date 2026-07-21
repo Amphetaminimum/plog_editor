@@ -235,8 +235,8 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
   assert.match(await evaluate("document.querySelector('#app-toast').textContent"), /2 JPG files/);
   await waitForValue(async () => {
     const names = (await readdir(downloadDir)).filter((name) => name.endsWith(".jpg"));
-    return names.some((name) => name.includes("part-1-of-2"))
-      && names.some((name) => name.includes("part-2-of-2"));
+    return names.some((name) => name.includes("story-1-of-2"))
+      && names.some((name) => name.includes("story-2-of-2"));
   });
   const aiExportText = await evaluate(`(() => {
     CanvasRenderingContext2D.prototype.fillText = window.__originalFillText;
@@ -313,5 +313,5 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
   const mobileExport = await evaluate("window.__sharedExport");
   assert.equal(mobileExport.type, "image/jpeg");
   assert.match(mobileExport.name, /\.jpg$/);
-  assert.deepEqual(mobileExport.names.map((name) => name.match(/part-\d-of-2/)?.[0]), ["part-1-of-2", "part-2-of-2"]);
+  assert.deepEqual(mobileExport.names.map((name) => name.match(/story-\d-of-2/)?.[0]), ["story-1-of-2", "story-2-of-2"]);
 });

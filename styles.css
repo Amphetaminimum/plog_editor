@@ -368,12 +368,6 @@ body.theme-dark .export-options-menu[open] .export-options-trigger.btn {
   line-height: 1.45;
 }
 
-.export-html-btn {
-  margin-top: 2px;
-  color: var(--muted);
-  font-size: 12px;
-}
-
 .toolbar-menu[open] summary.btn {
   border-color: #b89e75;
   background: #f6ede0;

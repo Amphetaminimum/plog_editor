@@ -72,8 +72,9 @@ export function createStateRenderer({
     ctx.restore();
   }
 
-  async function renderCanvasFromState(scale, format) {
-    const { width, height } = getCanvasMetrics();
+  async function renderCanvasFromState(scale, format, renderState = null) {
+    const { width, height } = renderState || getCanvasMetrics();
+    const elements = renderState?.elements || getElements();
     const palette = getPalette();
     const out = document.createElement("canvas");
     out.width = width * scale;
@@ -83,7 +84,7 @@ export function createStateRenderer({
     ctx.fillStyle = palette.background;
     ctx.fillRect(0, 0, width, height);
 
-    for (const item of getElements()) {
+    for (const item of elements) {
       if (item.type === "image" && item.src) {
         const img = await new Promise((resolve, reject) => {
           const image = new Image();

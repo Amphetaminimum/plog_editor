@@ -1,6 +1,8 @@
 # Build Week Demo — Presenter Script and Click Guide
 
-Target length: **2:20–2:40**. Read only the English under **Say**. The instructions under **Do** are not spoken.
+Target length: **2:25–2:45**. Read only the English under **Say**. The instructions under **Do** are not spoken.
+
+The clean narration rehearsal was **1:55** (about **134 words per minute**). That is a comfortable pace. The remaining 30–50 seconds should come from visible actions, short review pauses, and one edited cut across model waiting—not from adding filler to the script.
 
 ## Before recording
 
@@ -74,20 +76,21 @@ Target length: **2:20–2:40**. Read only the English under **Say**. The instruc
 
 > AI gives me a useful starting point, but I remain in control of the document and can undo any change.
 
-## 1:47–2:07 — Export the finished story
+## 1:47–2:12 — Export two finished story sheets
 
 **Do**
 
 - Open the arrow beside **Export**.
-- Briefly show **Balanced · recommended**, **Two files · balanced split**, **2x**, and **JPG**.
+- Briefly show **Balanced · recommended**, **Two self-contained story sheets**, **2x**, and **JPG**.
 - Close the options and click **Export**.
-- After the success message, show the first JPG and then the continuation JPG, scrolling each one slightly.
+- After the success message, show both JPGs side by side or one after the other.
+- Pause briefly at the top of each file so viewers can see that both begin with a header and contain a complete chapter.
 
 **Say**
 
-> I can export the same editable story as two balanced JPEGs for sharing, or as PNG, WebP, or standalone HTML for a different workflow.
+> Instead of cutting one long image in half, Plog exports two self-contained JPEG story sheets. Each keeps a header, its own chapter text, and its own photos. I can also export one long image as PNG, JPEG, or WebP.
 
-## 2:07–2:23 — Codex contribution
+## 2:12–2:28 — Codex contribution
 
 **Do**
 
@@ -97,7 +100,7 @@ Target length: **2:20–2:40**. Read only the English under **Say**. The instruc
 
 > I built and refined Plog with Codex, from the block-based editing workflow to the secure GPT‑5.6 integration, reversible editing, browser testing, and reliable long-image export.
 
-## 2:23–2:39 — Honest next step
+## 2:28–2:44 — Honest next step
 
 **Do**
 
@@ -111,7 +114,7 @@ Target length: **2:20–2:40**. Read only the English under **Say**. The instruc
 
 - Total duration is below 3:00.
 - Your spoken narration is audible throughout; background music is optional and much quieter than speech.
-- The recording visibly shows **Load example**, the twelve selected photos, **Generate preview**, the returned plan, **Apply draft**, a manual text edit, Undo/Redo, and two-file Export.
+- The recording visibly shows **Load example**, the twelve selected photos, **Generate preview**, the returned plan, **Apply draft**, a manual text edit, Undo/Redo, and both self-contained story-sheet exports.
 - The narration explicitly says **GPT‑5.6** and **Codex**.
 - It never claims that photo selection, long-term writing-style memory, or the thousand-photo pipeline already works.
 - No API key, `.dev.vars`, API dashboard, terminal secret, or Network request body appears on screen.
