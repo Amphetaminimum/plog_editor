@@ -1,10 +1,8 @@
 /** Cloudflare Worker entry point for the vinext-starter template. */
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
-import { handleStoryPlanRequest } from "./story-plan.js";
 
 interface Env {
-  OPENAI_API_KEY?: string;
   ASSETS: Fetcher;
   DB: D1Database;
   IMAGES: {
@@ -40,10 +38,6 @@ const worker = {
           return result.response();
         },
       }, allowedWidths);
-    }
-
-    if (url.pathname === "/api/story-plan") {
-      return handleStoryPlanRequest(request, env);
     }
 
     return handler.fetch(request, env, ctx);
