@@ -96,7 +96,7 @@ The schema and command boundary is documented in [`doc/ADR-001-document-schema-a
 
 ## How GPT‑5.6 and Codex Are Used
 
-- **GPT‑5.6 Terra at runtime:** reads one low-detail contact sheet plus optional notes and voice guidance, then returns a strict JSON story plan. It proposes grouping, order, headings, and a concise draft; it does not mutate the document directly.
+- **GPT‑5.6 Terra at runtime:** reads one low-detail contact sheet plus optional trip notes and writing-style guidance for that request, then returns a strict JSON story plan. It has no persistent memory of the user, proposes grouping, order, headings, and a concise draft, and does not mutate the document directly.
 - **Codex during Build Week:** audited and refactored the existing editor into a tested command boundary, implemented the contact-sheet and server pipeline, added atomic AI transactions, repaired export and responsive UX, wrote tests and documentation, and validated the complete browser flow.
 - **Key product decision:** AI is a reversible planner, not an autonomous publisher. Preview and user approval are mandatory.
 

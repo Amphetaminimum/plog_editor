@@ -1,120 +1,118 @@
 # Build Week Demo — Presenter Script and Click Guide
 
-Target length: **2:30–2:45**. The English under **Say** is the transcript to read in your own voice. The Chinese under **Do** is not spoken; it tells you exactly what to show.
+Target length: **2:20–2:40**. Read only the English under **Say**. The instructions under **Do** are not spoken.
 
 ## Before recording
 
 1. Record at 1920×1080 if possible. Keep browser zoom at 100% and use the Day theme.
-2. Run the app locally with `npm run dev`; use the local URL because `.dev.vars` contains the server-side API key. Never show the terminal, `.dev.vars`, API dashboard, or Network panel in the recording.
-3. Create a clean Plog, then return to the editor before recording.
-4. Copy these two inputs so you can paste them quickly:
-   - Trip notes: `A quiet autumn walk through Kyoto temples and gardens after rain, from tiled rooftops and moss paths to shaded wooden corridors.`
-   - Your voice: `First person, observant and restrained. Keep the prose concrete.`
-5. Open the GitHub README in a second tab. Keep both exported JPGs available for the final shots.
-6. It is fine to cut out the model waiting time. Do not cut between **Apply draft** and **Undo**, because that interaction is important evidence.
+2. Run the app locally with `npm run dev`; `.dev.vars` supplies the API key to the server. Never show the terminal, `.dev.vars`, the API dashboard, or the Network panel.
+3. Start on a clean Plog editor screen.
+4. Copy this Trip note so it can be pasted quickly:
+   `A quiet autumn walk through Kyoto temples and gardens after rain, from tiled rooftops and moss paths to shaded wooden corridors.`
+5. Leave **Writing style · optional** empty. The demo does not claim that the API remembers the user or has learned a personal voice.
+6. Keep both exported JPGs ready for the final shots. It is fine to cut most of the model waiting time, but leave about one second of the loading state.
 
-## 0:00–0:18 — Problem and product
-
-**Do**
-
-- Start on the clean editor.
-- At “after a trip,” click **Load example**.
-- Let the twelve selected Kyoto photographs finish loading.
-
-**Say**
-
-> After a trip, I have hundreds of photos and fragments of memory, but little patience to shape them into a story. Plog is a local-first picture-story composer. It creates an editable design, not a flattened AI image.
-
-## 0:18–0:40 — Existing layout engine
+## 0:00–0:20 — The problem
 
 **Do**
 
-- Click one photo on the canvas.
-- In the right panel, click the **Portra** image preset.
-- Scroll a little so the long canvas and following blocks move into view.
+- Start on the empty editor.
+- Click **Load example**.
+- Let all twelve Kyoto photographs appear.
 
 **Say**
 
-> Plog uses versioned content blocks and deterministic layout. Text height, image ratio, spacing, flow, and canvas growth are recalculated together, so manual editing, AI, and export share one document state.
+> After a trip, I usually have hundreds of photos and fragments of memory, but very little patience to turn them into something I can share. Plog helps me turn selected moments into one editable visual story.
 
-## 0:40–1:08 — Generate a real GPT‑5.6 preview
+## 0:20–0:38 — Start with selected photos
+
+**Do**
+
+- Scroll through several of the loaded photos.
+- Select one photo and apply the **Portra** image preset.
+
+**Say**
+
+> For this demo, I am starting with twelve Kyoto photos I have already selected. I can arrange and style them manually, while Plog keeps the long page flowing as the content changes.
+
+## 0:38–1:08 — Ask GPT‑5.6 for a first draft
 
 **Do**
 
 - Click **Draft with GPT‑5.6**.
-- Paste the prepared text into **Trip notes** and **Your voice**.
+- Paste the prepared text into **Trip notes**.
+- Leave **Writing style · optional** empty.
 - Click **Generate preview**.
-- Cut out most of the waiting time, but leave about one second of the loading state.
-- Pause on the completed preview so the title, sections, and photo numbers can be read.
+- Keep about one second of the loading state, then cut to the completed Preview.
+- Pause so the proposed title, chapters, and photo numbers can be read.
 
 **Say**
 
-> Now I ask GPT‑5.6 Terra for a first draft. Instead of uploading every original separately, the browser creates one labeled, compressed contact sheet from two to twelve images. Only that sheet, my notes, and tone direction reach the server-side model. The API key never enters the browser, and the document is still unchanged.
+> I add a short note with context the photos cannot explain by themselves. The browser combines the twelve photos into one compressed contact sheet, and GPT‑5.6 uses that sheet and my notes to propose chapters, photo order, and a concise first draft. Nothing has changed yet.
 
-## 1:08–1:30 — Review and apply
+## 1:08–1:35 — Review, apply, and keep editing
 
 **Do**
 
-- Point briefly at the proposed title and the chapter photo numbers.
+- Point briefly at the proposed title and chapter photo numbers.
 - Click **Apply draft**.
-- Slowly scroll through the generated title, chapter copy, and reordered photos.
+- Scroll through the generated story.
+- Click inside one generated chapter heading or paragraph, make one small text edit, then click outside it.
 
 **Say**
 
-> The response is a structured plan: title, introduction, chapters, copy, and photo order. I review it first. Apply draft turns the proposal into ordinary Plog blocks, not a special AI-only result.
+> I review the proposal before applying it. Once applied, the result is not a flattened AI image or a locked template. It becomes ordinary Plog content, so I can rewrite the text, change the image treatment, or rearrange the story myself.
 
-## 1:30–1:51 — Prove reversibility
+## 1:35–1:47 — A quick reversibility check
 
 **Do**
 
-- Click an empty part of the canvas so no text cursor is active.
-- Press `Cmd+Z` once. Pause on the restored twelve-photo document.
-- Press `Cmd+Shift+Z` once to restore the AI draft.
+- Undo the small text edit once, then redo it.
+- Do not pause on keyboard shortcuts or explain the underlying command system.
 
 **Say**
 
-> Applying the AI plan is one atomic document command. One Undo restores the twelve selected image blocks, and Redo brings the draft back. AI is a reversible planner, not an autonomous publisher.
+> AI gives me a useful starting point, but I remain in control of the document and can undo any change.
 
-## 1:51–2:09 — Export the result
+## 1:47–2:07 — Export the finished story
 
 **Do**
 
-- Open the arrow beside **Export** and briefly show **Balanced · recommended**, **Two files · balanced split**, **2x**, and **JPG**.
+- Open the arrow beside **Export**.
+- Briefly show **Balanced · recommended**, **Two files · balanced split**, **2x**, and **JPG**.
 - Close the options and click **Export**.
-- Briefly show the two downloaded JPGs side by side. Explain that they are two delivery files from one editable Plog, not two saved drafts.
-- After the success message, show the first exported JPG, then the second continuation JPG, and scroll each one slightly.
+- After the success message, show the first JPG and then the continuation JPG, scrolling each one slightly.
 
 **Say**
 
-> I can export JPEG, PNG, WebP, or standalone editable HTML. The export is rendered from the same blocks and automatic layout as the editor.
+> I can export the same editable story as two balanced JPEGs for sharing, or as PNG, WebP, or standalone HTML for a different workflow.
 
-## 2:09–2:34 — Codex and technical contribution
+## 2:07–2:23 — Codex contribution
 
 **Do**
 
-- Switch to the GitHub README tab.
-- Scroll through **Architecture** and **How GPT‑5.6 and Codex Are Used**.
-- Briefly show the architecture diagram or the passing-test command, without opening secrets.
+- Stay on the finished Plog. There is no need to switch to source code or explain individual modules.
 
 **Say**
 
-> Codex helped turn my frontend prototype into this tested workflow. It introduced versioned commands and atomic history, built the contact-sheet and secure Responses API path, repaired export and mobile behavior, added integration tests, and documented the boundary between working features and roadmap.
+> I built and refined Plog with Codex, from the block-based editing workflow to the secure GPT‑5.6 integration, reversible editing, browser testing, and reliable long-image export.
 
-## 2:34–2:47 — Honest ending
+## 2:23–2:39 — Honest next step
 
 **Do**
 
-- Return to the finished story and hold the frame.
+- Hold on the finished story or the two exported JPGs.
 
 **Say**
 
-> Plog does not yet organize a thousand-photo library. Today it proves a smaller useful loop: selected moments in, one grounded, editable story out.
+> Today, Plog starts with photos I have already selected. The next step is local filtering and clustering, so even a thousand-photo trip can be reduced before AI helps draft the story.
 
 ## Recording checks
 
 - Total duration is below 3:00.
-- Your voice is audible throughout; background music is optional and much quieter than speech.
-- The recording visibly shows **Generate preview**, the real returned preview, **Apply draft**, one-step **Undo**, **Redo**, and **Export**.
-- The narration explicitly says **GPT‑5.6 Terra** and **Codex**.
-- No API key, `.dev.vars`, dashboard balance, terminal secret, or Network request body appears on screen.
+- Your spoken narration is audible throughout; background music is optional and much quieter than speech.
+- The recording visibly shows **Load example**, the twelve selected photos, **Generate preview**, the returned plan, **Apply draft**, a manual text edit, Undo/Redo, and two-file Export.
+- The narration explicitly says **GPT‑5.6** and **Codex**.
+- It never claims that photo selection, long-term writing-style memory, or the thousand-photo pipeline already works.
+- No API key, `.dev.vars`, API dashboard, terminal secret, or Network request body appears on screen.
 - Watch the exported MP4 once before uploading it publicly to YouTube.
