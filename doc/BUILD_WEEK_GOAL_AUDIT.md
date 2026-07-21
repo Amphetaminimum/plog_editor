@@ -6,11 +6,11 @@ This audit separates implemented and verified requirements from the one delivera
 
 **Status: verified.**
 
-- The bundled example loads six image blocks.
+- The bundled example loads twelve selected Kyoto image blocks.
 - The browser creates one compressed labeled contact sheet and the server requests a strict GPT‑5.6 Terra JSON plan.
 - `compileStoryPlanBatch()` converts the plan into normal document blocks as one atomic command.
-- The browser integration test covers Preview, Apply, raster export, and one-step Undo back to the six original blocks.
-- The current implementation also accepts 2–12 photos; the six-photo path remains the recording demo.
+- The browser integration test covers Preview, Apply, raster export, and one-step Undo back to the twelve selected blocks.
+- The current implementation accepts 2–12 photos; the twelve-photo path is the recording demo.
 
 ## P0 — API key remains server-side
 
@@ -39,8 +39,7 @@ The repository contains an MIT `LICENSE`, and the README links to it.
 
 **Status: pending presenter recording.**
 
-- `BUILD_WEEK_VIDEO_SCRIPT.md` provides a timed click guide and exact English lines.
-- `BUILD_WEEK_VOICEOVER.txt` contains the 272-word teleprompter transcript.
+- `BUILD_WEEK_VIDEO_SCRIPT.md` provides the timed click guide and exact English transcript to read aloud.
 - Required final evidence is a presenter-recorded MP4 shorter than three minutes with audible narration, followed by a public YouTube URL.
 
 The transcript alone does not satisfy this requirement.
@@ -51,7 +50,7 @@ The transcript alone does not satisfy this requirement.
 
 - The dialog exposes loading text, Stop/Cancel, Preview, and Apply states.
 - No command is dispatched until the user chooses Apply.
-- The browser integration test now simulates a 502 AI failure and asserts that all six original blocks remain and Apply stays unavailable.
+- The browser integration test simulates a 502 AI failure and asserts that all twelve original blocks remain and Apply stays unavailable.
 - Successful Apply is one undoable command.
 
 ## P2 — 1,000-photo architecture is an honest roadmap

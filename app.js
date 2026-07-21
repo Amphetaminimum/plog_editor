@@ -111,6 +111,7 @@ const exportFormat = document.getElementById("export-format");
 const exportQuality = document.getElementById("export-quality");
 const exportAppearance = document.getElementById("export-appearance");
 const exportPreset = document.getElementById("export-preset");
+const exportPagination = document.getElementById("export-pagination");
 const exportOptionsSummary = document.getElementById("export-options-summary");
 const exportQualityField = document.getElementById("export-quality-field");
 const canvasBgInput = document.getElementById("canvas-bg");
@@ -215,6 +216,7 @@ function createDefaultDocData() {
       exportScale: "2",
       exportFormat: "jpg",
       exportQuality: "0.88",
+      exportPagination: "single",
       zoomMode: "fit",
       themeMode: "night",
     },
@@ -732,6 +734,7 @@ const docStore = createDocStoreManager({
     exportAppearance,
     exportButton: btnExport,
     exportFormat,
+    exportPagination,
     exportQuality,
     exportScale,
     widthSelect,
@@ -835,6 +838,7 @@ const exportManager = createExportManager({
   exportScale,
   exportFormat,
   exportQuality,
+  exportPagination,
   currentExportAppearance,
   exportPalette,
   docName,
@@ -851,6 +855,7 @@ const exportManager = createExportManager({
     exportAppearance,
     exportButton: btnExport,
     exportFormat,
+    exportPagination,
     exportQuality,
     exportScale,
     widthSelect,
@@ -1005,22 +1010,31 @@ async function loadBuildWeekExample() {
   state.seq = Math.max(state.seq, 100);
 
   const demoPhotos = [
-    "kyoto-01-temple-gate.jpg",
-    "kyoto-02-maple-lantern.jpg",
-    "kyoto-03-rainy-lane.jpg",
-    "kyoto-04-coffee-window.jpg",
-    "kyoto-05-kamo-river.jpg",
-    "kyoto-06-lantern-alley.jpg",
+    { filename: "kyoto-demo-01-temple-rooftops.jpg", aspectRatio: 2600 / 1462 },
+    { filename: "kyoto-demo-02-red-umbrella.jpg", aspectRatio: 2600 / 1462 },
+    { filename: "kyoto-demo-03-moss-courtyard.jpg", aspectRatio: 1462 / 2600 },
+    { filename: "kyoto-demo-04-moss-path.jpg", aspectRatio: 1462 / 2600 },
+    { filename: "kyoto-demo-05-lantern-teahouse.jpg", aspectRatio: 2600 / 1462 },
+    { filename: "kyoto-demo-06-city-overlook.jpg", aspectRatio: 2600 / 1462 },
+    { filename: "kyoto-demo-07-dry-garden.jpg", aspectRatio: 2600 / 1462 },
+    { filename: "kyoto-demo-08-azalea-stones.jpg", aspectRatio: 1462 / 2600 },
+    { filename: "kyoto-demo-09-garden-gate.jpg", aspectRatio: 1462 / 2600 },
+    { filename: "kyoto-demo-10-shadow-corridor.jpg", aspectRatio: 2600 / 1462 },
+    { filename: "kyoto-demo-11-red-maple-roof.jpg", aspectRatio: 2600 / 1462 },
+    { filename: "kyoto-demo-12-forest-villa.jpg", aspectRatio: 2600 / 1462 },
   ];
-  demoPhotos.forEach((filename, index) => {
+  demoPhotos.forEach(({ filename, aspectRatio }, index) => {
     state.elements.push(createElement("image", {
       id: `demo-photo-${index + 1}`,
       src: new URL(`./assets/demo/${filename}`, window.location.href).href,
-      aspectRatio: 3 / 2,
+      aspectRatio,
       spacingBefore: index === 0 ? "normal" : "tight",
       style: { radius: 16, rotation: 0, brightness: 100, contrast: 100, saturation: 100, warmth: 0, grayscale: 0, frame: "none" },
     }));
   });
+
+  exportPagination.value = "split";
+  syncExportOptionsUi();
 
   setLayoutLocked(true);
   applyThemeMode("day");
@@ -1031,7 +1045,7 @@ async function loadBuildWeekExample() {
   syncAppliedDocState({ hydrate: false, pushInitialHistory: true });
   await flushSaveSession();
   renderDocDrawer();
-  showToast("Six-frame demo loaded. Choose Draft with GPT‑5.6 to generate a preview.");
+  showToast("Twelve-photo Kyoto demo loaded as one Plog. Export is set to two balanced JPGs.");
 }
 
 function setAiDialogBusy(busy) {
@@ -2371,13 +2385,13 @@ document.getElementById("btn-export").addEventListener("click", async () => {
     const delivery = await exportRaster();
     const sizeLabel = delivery.size ? `${(delivery.size / (1024 * 1024)).toFixed(1)} MB` : "";
     if (delivery.method === "share") {
-      showToast(`Image ready${sizeLabel ? ` · ${sizeLabel}` : ""}. Use the share menu to save it.`);
+      showToast(`${delivery.count === 2 ? "Two images" : "Image"} ready${sizeLabel ? ` · ${sizeLabel}` : ""}. Use the share menu to save ${delivery.count === 2 ? "both files" : "it"}.`);
     } else if (delivery.method === "cancelled") {
       showToast("Export cancelled.");
     } else if (delivery.mobile) {
-      showToast(`Image ready${sizeLabel ? ` · ${sizeLabel}` : ""}. If it opens in a tab, use Share → Save Image.`);
+      showToast(`${delivery.count === 2 ? "Two images" : "Image"} ready${sizeLabel ? ` · ${sizeLabel}` : ""}. If it opens in a tab, use Share → Save Image.`);
     } else {
-      showToast(`${exportFormat.value.toUpperCase()} · ${sizeLabel} exported successfully to your downloads.`);
+      showToast(`${delivery.count === 2 ? "2 " : ""}${exportFormat.value.toUpperCase()}${delivery.count === 2 ? " files" : ""} · ${sizeLabel} exported successfully to your downloads.`);
     }
   } catch (err) {
     console.error(err);
@@ -2520,7 +2534,8 @@ btnDocDelete.addEventListener("click", async () => {
 function syncExportOptionsUi() {
   const format = exportFormat.value.toUpperCase();
   const scale = `${exportScale.value}×`;
-  if (exportOptionsSummary) exportOptionsSummary.textContent = `${format} · ${scale}`;
+  const delivery = exportPagination?.value === "split" ? " · 2 files" : "";
+  if (exportOptionsSummary) exportOptionsSummary.textContent = `${format} · ${scale}${delivery}`;
   exportQualityField?.classList.toggle("hidden", exportFormat.value === "png");
   if (!exportPreset) return;
   const signature = `${exportFormat.value}:${exportScale.value}:${exportQuality.value}`;
@@ -2559,6 +2574,10 @@ exportScale.addEventListener("change", () => {
   saveSession();
 });
 exportQuality.addEventListener("change", saveSession);
+exportPagination?.addEventListener("change", () => {
+  syncExportOptionsUi();
+  saveSession();
+});
 exportAppearance.addEventListener("change", saveSession);
 
 setLayoutLocked(true);

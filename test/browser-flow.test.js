@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
-import { mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -164,7 +164,9 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
   assert.equal(desktopControls.mobileAppearanceDisplay, "none");
   assert.equal(desktopControls.canvasResetHidden, true);
   await evaluate("document.querySelector('#btn-load-example').click()");
-  await waitInPage("document.querySelectorAll('#canvas .el').length === 6");
+  await waitInPage("document.querySelectorAll('#canvas .el').length === 12");
+  assert.equal(await evaluate("document.querySelector('#export-pagination').value"), "split");
+  assert.match(await evaluate("document.querySelector('#export-options-summary').textContent"), /2 files/);
 
   await evaluate(`(() => {
     window.fetch = async (input) => {
@@ -183,7 +185,7 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
     applyHidden: document.querySelector('#ai-dialog-apply').classList.contains('hidden'),
     message: document.querySelector('#ai-dialog-status').textContent
   })`);
-  assert.equal(failedDraftState.blockCount, 6);
+  assert.equal(failedDraftState.blockCount, 12);
   assert.equal(failedDraftState.applyHidden, true);
   assert.match(failedDraftState.message, /could not be generated/i);
   await evaluate("document.querySelector('#ai-dialog-cancel').click()");
@@ -199,11 +201,12 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
       return new Response(JSON.stringify({
         model: 'gpt-5.6-terra',
         plan: {
-          title: 'Six Frames Before Sunrise',
+          title: 'Kyoto in Twelve Frames',
           dek: 'A short walk through changing light.',
           sections: [
-            { heading: 'First light', body: 'The path was almost empty.', photoIds: ['photo-1', 'photo-2', 'photo-3'] },
-            { heading: 'The city returns', body: 'Warm light gathered near the road.', photoIds: ['photo-4', 'photo-5', 'photo-6'] }
+            { heading: 'First light', body: 'The path was almost empty.', photoIds: ['photo-1', 'photo-2', 'photo-3', 'photo-4'] },
+            { heading: 'Green rooms', body: 'Gardens gathered around the old buildings.', photoIds: ['photo-5', 'photo-6', 'photo-7', 'photo-8'] },
+            { heading: 'Warm details', body: 'Small red accents held the final light.', photoIds: ['photo-9', 'photo-10', 'photo-11', 'photo-12'] }
           ]
         }
       }), { status: 200, headers: { 'content-type': 'application/json' } });
@@ -213,10 +216,10 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
   })()`);
   await waitInPage("!document.querySelector('#ai-dialog-apply').classList.contains('hidden')");
   const aiRequest = await evaluate("window.__aiRequest");
-  assert.equal(aiRequest.photoCount, 6);
+  assert.equal(aiRequest.photoCount, 12);
   assert.equal(aiRequest.contactSheetPrefix, "data:image/jpeg;base64,");
   await evaluate("document.querySelector('#ai-dialog-apply').click()");
-  await waitInPage("document.querySelectorAll('#canvas .el').length === 10");
+  await waitInPage("document.querySelectorAll('#canvas .el').length === 17");
   await evaluate(`(() => {
     const prototype = CanvasRenderingContext2D.prototype;
     window.__originalFillText = prototype.fillText;
@@ -229,18 +232,24 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
     document.querySelector('#btn-export').click();
   })()`);
   await waitInPage("document.querySelector('#app-toast').textContent.includes('exported successfully')");
+  assert.match(await evaluate("document.querySelector('#app-toast').textContent"), /2 JPG files/);
+  await waitForValue(async () => {
+    const names = (await readdir(downloadDir)).filter((name) => name.endsWith(".jpg"));
+    return names.some((name) => name.includes("part-1-of-2"))
+      && names.some((name) => name.includes("part-2-of-2"));
+  });
   const aiExportText = await evaluate(`(() => {
     CanvasRenderingContext2D.prototype.fillText = window.__originalFillText;
     return window.__aiExportText.join(' ');
   })()`);
-  assert.match(aiExportText.replace(/\s+/g, " "), /Six Frames Before Sunrise/);
+  assert.match(aiExportText.replace(/\s+/g, " "), /Kyoto in Twelve Frames/);
   await evaluate("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', metaKey: true, bubbles: true }))");
-  await waitInPage("document.querySelectorAll('#canvas .el').length === 6");
+  await waitInPage("document.querySelectorAll('#canvas .el').length === 12");
 
   await evaluate("document.querySelector('#btn-add-text').click()");
-  await waitInPage("document.querySelectorAll('#canvas .el').length === 7");
+  await waitInPage("document.querySelectorAll('#canvas .el').length === 13");
   await evaluate("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', metaKey: true, bubbles: true }))");
-  await waitInPage("document.querySelectorAll('#canvas .el').length === 6");
+  await waitInPage("document.querySelectorAll('#canvas .el').length === 12");
 
   await evaluate(`(() => {
     const input = document.querySelector('#input-document');
@@ -249,7 +258,7 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
     Object.defineProperty(input, 'files', { value: transfer.files, configurable: true });
     input.dispatchEvent(new Event('change', { bubbles: true }));
   })()`);
-  await waitInPage("document.querySelectorAll('#canvas .el').length === 8");
+  await waitInPage("document.querySelectorAll('#canvas .el').length === 14");
 
   await evaluate(`(() => {
     document.querySelector('#canvas .el-image').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerId: 1 }));
@@ -268,8 +277,8 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
     exportMessage: document.querySelector('#app-toast').textContent,
     exportSucceeded: document.querySelector('#app-toast').textContent.includes('exported successfully')
   })`);
-  assert.equal(result.count, 8);
-  assert.match(result.summary, /8 blocks/);
+  assert.equal(result.count, 14);
+  assert.match(result.summary, /14 blocks/);
   assert.equal(result.importedText, true);
   assert.equal(result.exportSucceeded, true, result.exportMessage);
 
@@ -294,13 +303,15 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
           fileCount: payload.files.length,
           name: payload.files[0].name,
           type: payload.files[0].type,
+          names: payload.files.map((file) => file.name),
         };
       },
     });
     document.querySelector('#btn-mobile-export').click();
   })()`);
-  await waitInPage("window.__sharedExport?.fileCount === 1");
+  await waitInPage("window.__sharedExport?.fileCount === 2");
   const mobileExport = await evaluate("window.__sharedExport");
   assert.equal(mobileExport.type, "image/jpeg");
   assert.match(mobileExport.name, /\.jpg$/);
+  assert.deepEqual(mobileExport.names.map((name) => name.match(/part-\d-of-2/)?.[0]), ["part-1-of-2", "part-2-of-2"]);
 });

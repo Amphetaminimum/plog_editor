@@ -7,7 +7,7 @@
 - [x] GPT‑5.6 story planning flow for 2–12 images in source
 - [x] Public live demo URL in README
 - [x] Public repository with MIT license
-- [x] Setup instructions and bundled six-frame sample
+- [x] Setup instructions and bundled twelve-photo Kyoto sample
 - [x] README explains where Codex and GPT‑5.6 were used
 - [x] Honest current/future capability boundary
 - [ ] Add a production `OPENAI_API_KEY` secret and redeploy

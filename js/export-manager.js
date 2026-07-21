@@ -1,4 +1,5 @@
 import { escapeHtml } from "./html-sanitize.js";
+import { twoSheetRanges } from "./export-sheets.js";
 
 export function createExportManager({
   canvas,
@@ -9,6 +10,7 @@ export function createExportManager({
   exportScale,
   exportFormat,
   exportQuality,
+  exportPagination,
   currentExportAppearance,
   exportPalette,
   docName,
@@ -104,10 +106,11 @@ export function createExportManager({
     return mobileUserAgent || touchFirstDevice;
   }
 
-  async function deliverRaster(blob, filename, mime) {
+  async function deliverRasters(outputs, mime) {
     const mobile = isMobileShareContext();
-    const file = new File([blob], filename, { type: mime });
-    const shareData = { files: [file], title: docName() };
+    const files = outputs.map(({ blob, filename }) => new File([blob], filename, { type: mime }));
+    const shareData = { files, title: docName() };
+    const totalSize = outputs.reduce((sum, output) => sum + output.blob.size, 0);
     let canShareFiles = false;
     if (typeof navigator.share === "function") {
       try {
@@ -120,21 +123,33 @@ export function createExportManager({
     if (mobile && canShareFiles) {
       try {
         await navigator.share(shareData);
-        return { method: "share", mobile, filename, size: blob.size };
+        return { method: "share", mobile, filenames: outputs.map((output) => output.filename), count: outputs.length, size: totalSize };
       } catch (error) {
-        if (error?.name === "AbortError") return { method: "cancelled", mobile, filename, size: blob.size };
+        if (error?.name === "AbortError") return { method: "cancelled", mobile, filenames: outputs.map((output) => output.filename), count: outputs.length, size: totalSize };
       }
     }
 
-    const url = URL.createObjectURL(blob);
-    triggerDownload(url, filename);
-    window.setTimeout(() => URL.revokeObjectURL(url), 30000);
-    return { method: "download", mobile, filename, size: blob.size };
+    outputs.forEach(({ blob, filename }) => {
+      const url = URL.createObjectURL(blob);
+      triggerDownload(url, filename);
+      window.setTimeout(() => URL.revokeObjectURL(url), 30000);
+    });
+    return { method: "download", mobile, filenames: outputs.map((output) => output.filename), count: outputs.length, size: totalSize };
   }
 
-  function filenameForExport(ext, scale) {
+  function filenameForExport(ext, scale, part = null, count = 1) {
     const stamp = new Date().toISOString().slice(0, 10);
-    return `${docName().replace(/\s+/g, "-").toLowerCase() || "plog"}-${stamp}-${scale}x.${ext}`;
+    const suffix = part == null ? "" : `-part-${part}-of-${count}`;
+    return `${docName().replace(/\s+/g, "-").toLowerCase() || "plog"}-${stamp}-${scale}x${suffix}.${ext}`;
+  }
+
+  function cropCanvas(source, start, end) {
+    const output = document.createElement("canvas");
+    output.width = source.width;
+    output.height = Math.max(1, end - start);
+    const context = output.getContext("2d");
+    context.drawImage(source, 0, start, source.width, output.height, 0, 0, source.width, output.height);
+    return output;
   }
 
   async function exportRaster() {
@@ -147,8 +162,20 @@ export function createExportManager({
 
     const mime = format === "jpg" ? "image/jpeg" : format === "webp" ? "image/webp" : "image/png";
     const ext = format === "jpg" ? "jpg" : format;
-    const blob = await canvasToBlob(out, mime, quality);
-    return deliverRaster(blob, filenameForExport(ext, scale), mime);
+    const shouldSplit = exportPagination?.value === "split";
+    const authoredHeight = out.height / scale;
+    const ranges = shouldSplit ? twoSheetRanges(getElements(), authoredHeight) : [{ start: 0, end: authoredHeight }];
+    const outputCanvases = ranges.map(({ start, end }) => {
+      const pixelStart = Math.max(0, Math.min(out.height - 1, Math.round(start * scale)));
+      const pixelEnd = Math.max(pixelStart + 1, Math.min(out.height, Math.round(end * scale)));
+      return ranges.length === 1 ? out : cropCanvas(out, pixelStart, pixelEnd);
+    });
+    const blobs = await Promise.all(outputCanvases.map((output) => canvasToBlob(output, mime, quality)));
+    const outputs = blobs.map((blob, index) => ({
+      blob,
+      filename: filenameForExport(ext, scale, ranges.length > 1 ? index + 1 : null, ranges.length),
+    }));
+    return deliverRasters(outputs, mime);
   }
 
   async function exportHtml() {

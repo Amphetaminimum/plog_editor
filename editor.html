@@ -71,6 +71,13 @@
                   </label>
                   <p class="export-preset-hint">Balanced is tuned for sharing. Final size still depends on the photos and canvas length.</p>
                   <label class="export-scale-label menu-field">
+                    Delivery
+                    <select id="export-pagination">
+                      <option value="single" selected>One long image</option>
+                      <option value="split">Two files · balanced split</option>
+                    </select>
+                  </label>
+                  <label class="export-scale-label menu-field">
                     Resolution
                     <select id="export-scale">
                       <option value="1">1x</option>
@@ -156,7 +163,7 @@
             <p class="panel-intro">Load 2–12 visual frames, then let GPT‑5.6 propose an editable first draft. Nothing changes until you apply it.</p>
             <button id="btn-load-example" class="btn btn-demo" type="button">Load example</button>
             <button id="btn-ai-draft" class="btn btn-primary btn-ai-draft" type="button">Draft with GPT‑5.6</button>
-            <p class="demo-note">The demo starts with six original sample photographs. AI sends one compressed contact sheet—not the individual originals.</p>
+            <p class="demo-note">The demo starts with twelve selected Kyoto photographs. AI sends one compressed contact sheet—not the individual originals.</p>
           </section>
 
           <section class="panel-section">

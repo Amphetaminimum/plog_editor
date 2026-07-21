@@ -129,6 +129,7 @@ export function createDocStoreManager({
         exportScale: controls.exportScale.value,
         exportFormat: controls.exportFormat.value,
         exportQuality: controls.exportQuality.value,
+        exportPagination: controls.exportPagination?.value || "single",
         exportAppearance: controls.exportAppearance.value,
         zoomMode: state.zoomMode,
         themeMode: state.themeMode,
@@ -191,6 +192,7 @@ export function createDocStoreManager({
     controls.exportScale.value = payload.ui?.exportScale || "2";
     controls.exportFormat.value = payload.ui?.exportFormat || "png";
     controls.exportQuality.value = payload.ui?.exportQuality || "0.88";
+    if (controls.exportPagination) controls.exportPagination.value = payload.ui?.exportPagination || "single";
     controls.exportAppearance.value = payload.ui?.exportAppearance || "match";
     state.zoomMode = payload.ui?.zoomMode === "manual" ? "manual" : "fit";
     const formatLabel = controls.exportButton.querySelector?.("small");

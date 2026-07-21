@@ -19,7 +19,7 @@ Target length: **2:30–2:45**. The English under **Say** is the transcript to r
 
 - Start on the clean editor.
 - At “after a trip,” click **Load example**.
-- Let the six sample photographs finish loading.
+- Let the twelve selected Kyoto photographs finish loading.
 
 **Say**
 
@@ -68,19 +68,20 @@ Target length: **2:30–2:45**. The English under **Say** is the transcript to r
 **Do**
 
 - Click an empty part of the canvas so no text cursor is active.
-- Press `Cmd+Z` once. Pause on the restored six-photo document.
+- Press `Cmd+Z` once. Pause on the restored twelve-photo document.
 - Press `Cmd+Shift+Z` once to restore the AI draft.
 
 **Say**
 
-> Applying the AI plan is one atomic document command. One Undo restores the six original image blocks, and Redo brings the draft back. AI is a reversible planner, not an autonomous publisher.
+> Applying the AI plan is one atomic document command. One Undo restores the twelve selected image blocks, and Redo brings the draft back. AI is a reversible planner, not an autonomous publisher.
 
 ## 1:51–2:09 — Export the result
 
 **Do**
 
-- Open the arrow beside **Export** and briefly show **Balanced · recommended**, **2x**, and **JPG**.
+- Open the arrow beside **Export** and briefly show **Balanced · recommended**, **Two files · balanced split**, **2x**, and **JPG**.
 - Close the options and click **Export**.
+- Briefly show the two downloaded JPGs side by side. Explain that they are two delivery files from one editable Plog, not two saved drafts.
 - After the success message, cut to the exported JPG and scroll down slightly.
 
 **Say**

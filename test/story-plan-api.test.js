@@ -15,8 +15,10 @@ const validRequest = (photoCount = 6) => new Request("https://plog.test/api/stor
 });
 
 test("story plan API accepts up to twelve photos and rejects larger batches", async () => {
-  const accepted = await handleStoryPlanRequest(validRequest(12), { OPENAI_API_KEY: "test-key" }, async () => (
-    new Response(JSON.stringify({
+  let upstreamBody;
+  const accepted = await handleStoryPlanRequest(validRequest(12), { OPENAI_API_KEY: "test-key" }, async (_url, options) => {
+    upstreamBody = JSON.parse(options.body);
+    return new Response(JSON.stringify({
       model: "gpt-5.6-terra",
       output: [{ type: "message", content: [{ type: "output_text", text: JSON.stringify({
         title: "Twelve frames",
@@ -26,9 +28,10 @@ test("story plan API accepts up to twelve photos and rejects larger batches", as
           { heading: "End", body: "Second.", photoIds: ["p7", "p8", "p9", "p10", "p11", "p12"] },
         ],
       }) }] }],
-    }), { status: 200, headers: { "content-type": "application/json" } })
-  ));
+    }), { status: 200, headers: { "content-type": "application/json" } });
+  });
   assert.equal(accepted.status, 200);
+  assert.match(upstreamBody.input[0].content[0].text, /exactly 3 coherent chapters/);
 
   const rejected = await handleStoryPlanRequest(validRequest(13), { OPENAI_API_KEY: "test-key" }, async () => {
     throw new Error("invalid requests must not reach OpenAI");

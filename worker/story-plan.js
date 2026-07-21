@@ -108,10 +108,15 @@ export async function handleStoryPlanRequest(request, env, fetchImpl = fetch) {
   const photoIds = body.photoIds.map(String);
   const notes = String(body.tripNotes || "").trim() || "No trip notes were provided. Infer only visible atmosphere; do not invent factual events.";
   const voice = String(body.voiceSample || "").trim() || "Use concise first-person travel-journal prose. Avoid clichés and unsupported facts.";
+  const chapterGuidance = photoIds.length >= 9
+    ? "Group the photos into exactly 3 coherent chapters."
+    : photoIds.length >= 5
+      ? "Group the photos into 2-3 coherent chapters."
+      : "Group the photos into exactly 2 coherent chapters.";
   const prompt = [
     `Create an editable travel-story plan from this labeled ${photoIds.length}-photo contact sheet.`,
     `Allowed photo IDs: ${photoIds.join(", ")}. Use each ID exactly once and no other IDs.`,
-    `Group the photos into 2-${STORY_PLAN_MAX_SECTION_COUNT} coherent chapters. Keep claims grounded in the notes or visible evidence.`,
+    `${chapterGuidance} Keep claims grounded in the notes or visible evidence.`,
     "Write a specific, restrained first-person draft; avoid generic travel-blog filler.",
     `Trip notes: ${notes}`,
     `Voice sample or direction: ${voice}`,
