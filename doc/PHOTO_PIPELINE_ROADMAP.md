@@ -59,4 +59,4 @@ Do not build the full pipeline until a 100–300 photo prototype demonstrates al
 4. the user can correct groups and selections without fighting the system;
 5. model cost and latency are bounded per trip.
 
-If those gates fail, keep Plog as a six-to-twenty-image programmable story composer rather than becoming a photo-management product.
+If those gates fail, keep Plog as a 2–12-image programmable story composer rather than becoming a photo-management product.

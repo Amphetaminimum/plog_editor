@@ -167,6 +167,28 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
   await waitInPage("document.querySelectorAll('#canvas .el').length === 6");
 
   await evaluate(`(() => {
+    window.fetch = async (input) => {
+      if (String(input) !== '/api/story-plan') throw new Error('unexpected fetch: ' + input);
+      return new Response(JSON.stringify({ error: 'The AI draft could not be generated. Try again.' }), {
+        status: 502,
+        headers: { 'content-type': 'application/json' }
+      });
+    };
+    document.querySelector('#btn-ai-draft').click();
+    document.querySelector('#ai-dialog-generate').click();
+  })()`);
+  await waitInPage("document.querySelector('#ai-dialog-status').dataset.tone === 'error'");
+  const failedDraftState = await evaluate(`({
+    blockCount: document.querySelectorAll('#canvas .el').length,
+    applyHidden: document.querySelector('#ai-dialog-apply').classList.contains('hidden'),
+    message: document.querySelector('#ai-dialog-status').textContent
+  })`);
+  assert.equal(failedDraftState.blockCount, 6);
+  assert.equal(failedDraftState.applyHidden, true);
+  assert.match(failedDraftState.message, /could not be generated/i);
+  await evaluate("document.querySelector('#ai-dialog-cancel').click()");
+
+  await evaluate(`(() => {
     window.fetch = async (input, options) => {
       if (String(input) !== '/api/story-plan') throw new Error('unexpected fetch: ' + input);
       const request = JSON.parse(options.body);
