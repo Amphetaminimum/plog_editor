@@ -2,6 +2,8 @@
 
 The submission requires a public YouTube video under three minutes with audio explaining both Codex and GPT‑5.6. Record at 1080p, keep the browser at a readable zoom, and use the English voiceover below. Captions can reuse the same text.
 
+The narration-only source is also available in [`BUILD_WEEK_VOICEOVER.txt`](BUILD_WEEK_VOICEOVER.txt) for recording, captions, or local text-to-speech.
+
 ## Shot List and Voiceover
 
 ### 0:00–0:18 — The problem

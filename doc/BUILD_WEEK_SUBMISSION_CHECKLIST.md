@@ -16,6 +16,7 @@
 ## Video
 
 - [x] Under-three-minute English script and shot list prepared
+- [x] 1:49 English voiceover draft generated locally
 - [ ] Record screen and voiceover
 - [ ] Confirm the video demonstrates the working GPT call
 - [ ] Mention both Codex and GPT‑5.6 in audio
