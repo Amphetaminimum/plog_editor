@@ -190,7 +190,7 @@ export function createDocStoreManager({
     setCanvasBackground(payload.ui?.canvasBg);
     controls.exportScale.value = payload.ui?.exportScale || "2";
     controls.exportFormat.value = payload.ui?.exportFormat || "png";
-    controls.exportQuality.value = payload.ui?.exportQuality || "0.9";
+    controls.exportQuality.value = payload.ui?.exportQuality || "0.88";
     controls.exportAppearance.value = payload.ui?.exportAppearance || "match";
     state.zoomMode = payload.ui?.zoomMode === "manual" ? "manual" : "fit";
     const formatLabel = controls.exportButton.querySelector?.("small");

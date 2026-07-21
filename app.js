@@ -107,13 +107,12 @@ const docDrawerList = document.getElementById("doc-drawer-list");
 const exportFormat = document.getElementById("export-format");
 const exportQuality = document.getElementById("export-quality");
 const exportAppearance = document.getElementById("export-appearance");
+const exportPreset = document.getElementById("export-preset");
 const exportOptionsSummary = document.getElementById("export-options-summary");
 const exportQualityField = document.getElementById("export-quality-field");
 const canvasBgInput = document.getElementById("canvas-bg");
 const btnCanvasBgReset = document.getElementById("btn-canvas-bg-reset");
 const canvasPaletteStatus = document.getElementById("canvas-palette-status");
-const importQuality = document.getElementById("import-quality");
-const importQualityValue = document.getElementById("import-quality-value");
 const inputDocument = document.getElementById("input-document");
 const canvasBgPresetButtons = [...document.querySelectorAll("[data-canvas-bg]")];
 const propRotation = document.getElementById("prop-rotation");
@@ -198,8 +197,8 @@ function createDefaultDocData() {
       customWidth: "1200",
       canvasBg: CANVAS_BG_DEFAULTS.night,
       exportScale: "2",
-      exportFormat: "png",
-      exportQuality: "0.9",
+      exportFormat: "jpg",
+      exportQuality: "0.88",
       zoomMode: "fit",
       themeMode: "night",
     },
@@ -606,11 +605,11 @@ function applyCanvasBackground(value, { persist = false } = {}) {
 function updateCanvasPaletteUi() {
   if (!canvasPaletteStatus || !btnCanvasBgReset) return;
   const auto = canvasUsesThemeDefaults(state.themeMode);
-  const themeLabel = state.themeMode === "day" ? "Day" : "Night";
   canvasPaletteStatus.textContent = auto
-    ? "Theme default colors follow day and night automatically."
-    : "Using custom canvas colors. They stay until you switch themes or reset.";
-  btnCanvasBgReset.textContent = auto ? `Reapply ${themeLabel} Default` : `Use ${themeLabel} Default`;
+    ? "Canvas colors follow the current appearance."
+    : "Custom canvas colors stay until you switch appearance or reset them.";
+  btnCanvasBgReset.classList.toggle("hidden", auto);
+  btnCanvasBgReset.textContent = "Reset canvas colors";
 }
 
 function applyThemePalette(mode = state.themeMode, { persist = false } = {}) {
@@ -887,8 +886,8 @@ function applyThemeMode(mode = state.themeMode, { syncPalette = true } = {}) {
     applyCanvasBackground(currentCanvasBackground());
   }
   const label = state.themeMode.charAt(0).toUpperCase() + state.themeMode.slice(1);
-  if (btnThemeMode) btnThemeMode.textContent = `Theme: ${label}`;
-  if (btnThemeModeMobile) btnThemeModeMobile.textContent = `Theme: ${label}`;
+  if (btnThemeMode) btnThemeMode.textContent = `Appearance: ${label}`;
+  if (btnThemeModeMobile) btnThemeModeMobile.textContent = `Appearance: ${label}`;
   saveSession();
 }
 
@@ -896,6 +895,7 @@ function syncAppliedDocState({ hydrate = true, pushInitialHistory = false } = {}
   applyCanvasWidth();
   applyZoom(state.zoomMode === "fit" ? "fit" : state.zoom, { mode: state.zoomMode, persist: false });
   applyThemeMode(state.themeMode, { syncPalette: false });
+  syncExportOptionsUi();
   flushRender();
   renderDocDrawer();
   if (hydrate) {
@@ -1937,8 +1937,7 @@ document.getElementById("input-image").addEventListener("change", async (ev) => 
   if (!file) return;
   let assetBlob;
   try {
-    const quality = Math.max(0.8, Math.min(1, (Number(importQuality?.value) || 96) / 100));
-    assetBlob = await normalizeImageAsset(file, { quality });
+    assetBlob = await normalizeImageAsset(file, { quality: 0.92 });
   } catch (err) {
     console.error("Failed to normalize image asset", err);
     showToast("That HEIF image could not be converted. Try JPG or PNG for the demo.", "error");
@@ -1999,10 +1998,6 @@ document.getElementById("input-image").addEventListener("change", async (ev) => 
   );
   showToast("Image added. The canvas has been extended automatically.");
   ev.target.value = "";
-});
-
-importQuality?.addEventListener("input", () => {
-  if (importQualityValue) importQualityValue.textContent = importQuality.value;
 });
 
 document.getElementById("btn-delete").addEventListener("click", () => {
@@ -2243,14 +2238,15 @@ document.getElementById("btn-export").addEventListener("click", async () => {
   setGenerateButtonState(true);
   try {
     const delivery = await exportRaster();
+    const sizeLabel = delivery.size ? `${(delivery.size / (1024 * 1024)).toFixed(1)} MB` : "";
     if (delivery.method === "share") {
-      showToast("Image exported through your device’s share menu.");
+      showToast(`Image ready${sizeLabel ? ` · ${sizeLabel}` : ""}. Use the share menu to save it.`);
     } else if (delivery.method === "cancelled") {
       showToast("Export cancelled.");
     } else if (delivery.mobile) {
-      showToast("Image ready. If it opens in a tab, use Share → Save Image.");
+      showToast(`Image ready${sizeLabel ? ` · ${sizeLabel}` : ""}. If it opens in a tab, use Share → Save Image.`);
     } else {
-      showToast(`${exportFormat.value.toUpperCase()} exported successfully to your downloads.`);
+      showToast(`${exportFormat.value.toUpperCase()} · ${sizeLabel} exported successfully to your downloads.`);
     }
   } catch (err) {
     console.error(err);
@@ -2395,7 +2391,32 @@ function syncExportOptionsUi() {
   const scale = `${exportScale.value}×`;
   if (exportOptionsSummary) exportOptionsSummary.textContent = `${format} · ${scale}`;
   exportQualityField?.classList.toggle("hidden", exportFormat.value === "png");
+  if (!exportPreset) return;
+  const signature = `${exportFormat.value}:${exportScale.value}:${exportQuality.value}`;
+  const presetBySignature = {
+    "jpg:1:0.82": "compact",
+    "jpg:2:0.88": "balanced",
+  };
+  exportPreset.value = exportFormat.value === "png" && exportScale.value === "2"
+    ? "maximum"
+    : presetBySignature[signature] || "custom";
 }
+
+function applyExportPreset(preset) {
+  const settings = {
+    compact: { format: "jpg", scale: "1", quality: "0.82" },
+    balanced: { format: "jpg", scale: "2", quality: "0.88" },
+    maximum: { format: "png", scale: "2", quality: "0.96" },
+  }[preset];
+  if (!settings) return;
+  exportFormat.value = settings.format;
+  exportScale.value = settings.scale;
+  exportQuality.value = settings.quality;
+  syncExportOptionsUi();
+  saveSession();
+}
+
+exportPreset?.addEventListener("change", () => applyExportPreset(exportPreset.value));
 
 exportFormat.addEventListener("change", () => {
   syncExportOptionsUi();
@@ -2417,7 +2438,6 @@ async function initApp() {
     await buildStarterDoc(createDocRecord("Untitled Plog"));
   }
   syncAppliedDocState({ hydrate: true, pushInitialHistory: true });
-  syncExportOptionsUi();
   syncResponsiveShell();
   document.body.dataset.appReady = "true";
 }

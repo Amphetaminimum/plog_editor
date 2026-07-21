@@ -206,6 +206,13 @@ body.theme-dark .topbar {
 
 .toolbar-actions {
   gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+body.theme-dark .toolbar-actions {
+  background: transparent;
 }
 
 .actions .btn {
@@ -354,6 +361,13 @@ body.theme-dark .export-options-menu[open] .export-options-trigger.btn {
   font-size: 11px;
 }
 
+.export-preset-hint {
+  margin: -2px 0 2px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
 .export-html-btn {
   margin-top: 2px;
   color: var(--muted);
@@ -422,7 +436,7 @@ body.theme-dark .toolbar-menu[open] summary.btn {
   display: none;
 }
 
-.mobile-theme-btn {
+.btn.mobile-theme-btn {
   display: none;
 }
 
@@ -988,6 +1002,13 @@ body.theme-dark .btn-primary {
   color: var(--accent-ink);
 }
 
+body.theme-dark .export-split-control .btn-generate,
+body.theme-dark .export-split-control .export-options-trigger.btn {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
 .btn-danger {
   margin-top: 18px;
   background: rgba(255, 244, 241, 0.52);
@@ -1042,22 +1063,6 @@ body.theme-dark .btn-danger:hover {
   white-space: nowrap;
   padding: 10px 14px;
   border-radius: 999px;
-}
-
-.import-quality-control {
-  grid-column: 1 / -1;
-  margin-bottom: 0;
-  padding: 2px 2px 0;
-}
-
-.import-quality-control span {
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
-}
-
-.import-quality-control input {
-  margin-top: 6px;
-  padding: 0;
 }
 
 .canvas-wrap {
@@ -2268,14 +2273,6 @@ body.theme-dark #no-selection {
     transform: translateX(-50%);
   }
 
-  .mobile-theme-btn {
-    display: block;
-    margin-bottom: 12px;
-    border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
-    background: color-mix(in srgb, var(--accent) 9%, transparent);
-    color: var(--ink);
-  }
-
   .mobile-shell-btn {
     min-height: 40px;
     gap: 5px;
@@ -2376,6 +2373,14 @@ body.theme-dark #no-selection {
 }
 
 @media (max-width: 767px) {
+  .btn.mobile-theme-btn {
+    display: block;
+    margin-bottom: 12px;
+    border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+    background: color-mix(in srgb, var(--accent) 9%, transparent);
+    color: var(--ink);
+  }
+
   .landing-container {
     width: calc(100vw - 32px);
   }

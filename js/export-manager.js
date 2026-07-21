@@ -120,16 +120,16 @@ export function createExportManager({
     if (mobile && canShareFiles) {
       try {
         await navigator.share(shareData);
-        return { method: "share", mobile, filename };
+        return { method: "share", mobile, filename, size: blob.size };
       } catch (error) {
-        if (error?.name === "AbortError") return { method: "cancelled", mobile, filename };
+        if (error?.name === "AbortError") return { method: "cancelled", mobile, filename, size: blob.size };
       }
     }
 
     const url = URL.createObjectURL(blob);
     triggerDownload(url, filename);
     window.setTimeout(() => URL.revokeObjectURL(url), 30000);
-    return { method: "download", mobile, filename };
+    return { method: "download", mobile, filename, size: blob.size };
   }
 
   function filenameForExport(ext, scale) {

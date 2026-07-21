@@ -130,6 +130,12 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
   });
   cdp = await connectCdp(target.webSocketDebuggerUrl);
   await cdp.send("Runtime.enable");
+  await cdp.send("Emulation.setDeviceMetricsOverride", {
+    width: 1280,
+    height: 720,
+    deviceScaleFactor: 1,
+    mobile: false,
+  });
 
   const evaluate = async (expression) => {
     const result = await cdp.send("Runtime.evaluate", { expression, awaitPromise: true, returnByValue: true });
@@ -146,6 +152,14 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
   })()`);
 
   await waitInPage("document.body.dataset.appReady === 'true'");
+  const desktopControls = await evaluate(`({
+    exportPreset: document.querySelector('#export-preset').value,
+    mobileAppearanceDisplay: getComputedStyle(document.querySelector('#btn-theme-mode-mobile')).display,
+    canvasResetHidden: document.querySelector('#btn-canvas-bg-reset').classList.contains('hidden')
+  })`);
+  assert.equal(desktopControls.exportPreset, "balanced");
+  assert.equal(desktopControls.mobileAppearanceDisplay, "none");
+  assert.equal(desktopControls.canvasResetHidden, true);
   await evaluate("document.querySelector('#btn-load-example').click()");
   await waitInPage("document.querySelectorAll('#canvas .el').length === 6");
 
@@ -195,6 +209,7 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
     userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1",
   });
   await cdp.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 5 });
+  await waitInPage("getComputedStyle(document.querySelector('#btn-theme-mode-mobile')).display !== 'none'");
   await evaluate(`(() => {
     window.__sharedExport = null;
     Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => true });
@@ -212,6 +227,6 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
   })()`);
   await waitInPage("window.__sharedExport?.fileCount === 1");
   const mobileExport = await evaluate("window.__sharedExport");
-  assert.equal(mobileExport.type, "image/png");
-  assert.match(mobileExport.name, /\.png$/);
+  assert.equal(mobileExport.type, "image/jpeg");
+  assert.match(mobileExport.name, /\.jpg$/);
 });

@@ -31,7 +31,7 @@
             <details class="toolbar-menu">
               <summary class="btn">View</summary>
               <div class="menu-panel menu-panel-wide">
-                <button id="btn-theme-mode" class="btn menu-btn">Theme: Night</button>
+                <button id="btn-theme-mode" class="btn menu-btn">Appearance: Night</button>
                 <label class="export-scale-label menu-field">
                   Zoom
                   <select id="canvas-zoom">
@@ -61,9 +61,20 @@
                     <span id="export-options-summary">PNG · 2×</span>
                   </div>
                   <label class="export-scale-label menu-field">
+                    Output
+                    <select id="export-preset">
+                      <option value="compact">Compact</option>
+                      <option value="balanced">Balanced · recommended</option>
+                      <option value="maximum">Maximum detail</option>
+                      <option value="custom">Custom</option>
+                    </select>
+                  </label>
+                  <p class="export-preset-hint">Balanced is tuned for sharing. Final size still depends on the photos and canvas length.</p>
+                  <label class="export-scale-label menu-field">
                     Resolution
                     <select id="export-scale">
                       <option value="1">1x</option>
+                      <option value="1.5">1.5x</option>
                       <option value="2" selected>2x</option>
                       <option value="3">3x</option>
                     </select>
@@ -80,6 +91,7 @@
                     Quality
                     <select id="export-quality">
                       <option value="0.82">82</option>
+                      <option value="0.88">88</option>
                       <option value="0.9" selected>90</option>
                       <option value="0.96">96</option>
                     </select>
@@ -166,10 +178,6 @@
                 Import document
                 <input id="input-document" type="file" accept=".md,.markdown,.json,text/markdown,application/json" />
               </label>
-              <label class="import-quality-control">
-                Import Quality <span id="import-quality-value">96</span>
-                <input id="import-quality" type="range" min="80" max="100" value="96" />
-              </label>
               <button id="btn-add-divider" class="btn">Divider</button>
               <button id="btn-add-quote" class="btn">Quote</button>
             </div>
@@ -178,7 +186,7 @@
           <section class="panel-section">
             <div class="group">
               <h3>Canvas</h3>
-              <button id="btn-theme-mode-mobile" class="btn mobile-theme-btn" type="button">Theme: Night</button>
+              <button id="btn-theme-mode-mobile" class="btn mobile-theme-btn" type="button">Appearance: Night</button>
               <label>
                 Width
                 <select id="canvas-width">
@@ -202,7 +210,7 @@
                   </div>
                   <div class="canvas-bg-row">
                     <input id="canvas-bg" type="color" value="#14110d" />
-                    <button id="btn-canvas-bg-reset" class="btn canvas-bg-reset" type="button">Use Theme Default</button>
+                    <button id="btn-canvas-bg-reset" class="btn canvas-bg-reset hidden" type="button">Reset canvas colors</button>
                   </div>
                   <p id="canvas-palette-status" class="hint canvas-palette-status">Theme default colors follow day and night automatically.</p>
                 </div>
