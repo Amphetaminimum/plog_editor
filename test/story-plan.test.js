@@ -19,6 +19,20 @@ test("story plans deduplicate photo ids and assign every photo once", () => {
   assert.deepEqual(plan.sections.flatMap((section) => section.photoIds).sort(), photoIds);
 });
 
+test("story plans accept a typical nine-photo trip", () => {
+  const ninePhotoIds = Array.from({ length: 9 }, (_, index) => `p${index + 1}`);
+  const plan = normalizeStoryPlan({
+    title: "Nine frames",
+    sections: [
+      { heading: "Start", body: "First chapter.", photoIds: ["p1", "p2", "p3"] },
+      { heading: "Middle", body: "Second chapter.", photoIds: ["p4", "p5", "p6"] },
+      { heading: "End", body: "Third chapter.", photoIds: ["p7", "p8", "p9"] },
+    ],
+  }, ninePhotoIds);
+
+  assert.deepEqual(plan.sections.flatMap((section) => section.photoIds).sort(), ninePhotoIds.sort());
+});
+
 test("compiled AI story is one invertible document batch", () => {
   let seq = 0;
   const existing = [{ id: "old", type: "text", content: "Old", style: {} }];

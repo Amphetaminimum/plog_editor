@@ -1,3 +1,5 @@
+import { STORY_PLAN_MAX_PHOTO_COUNT, STORY_PLAN_MAX_SECTION_COUNT, STORY_PLAN_MIN_PHOTO_COUNT, storyPlanPhotoCountIsValid } from "../js/story-plan-limits.js";
+
 const MAX_REQUEST_BYTES = 1_900_000;
 const MAX_REQUESTS_PER_HOUR = 8;
 const requestsByClient = new Map();
@@ -12,7 +14,7 @@ export const STORY_PLAN_RESPONSE_SCHEMA = {
     sections: {
       type: "array",
       minItems: 2,
-      maxItems: 4,
+      maxItems: STORY_PLAN_MAX_SECTION_COUNT,
       items: {
         type: "object",
         additionalProperties: false,
@@ -20,7 +22,7 @@ export const STORY_PLAN_RESPONSE_SCHEMA = {
         properties: {
           heading: { type: "string", maxLength: 80 },
           body: { type: "string", maxLength: 700 },
-          photoIds: { type: "array", items: { type: "string" }, maxItems: 6 },
+          photoIds: { type: "array", items: { type: "string" }, maxItems: STORY_PLAN_MAX_PHOTO_COUNT },
         },
       },
     },
@@ -72,8 +74,8 @@ function outputText(response) {
 function validBody(body) {
   return body
     && Array.isArray(body.photoIds)
-    && body.photoIds.length === 6
-    && new Set(body.photoIds.map(String)).size === 6
+    && storyPlanPhotoCountIsValid(body.photoIds.length)
+    && new Set(body.photoIds.map(String)).size === body.photoIds.length
     && /^data:image\/jpeg;base64,/i.test(String(body.contactSheet || ""))
     && String(body.tripNotes || "").length <= 2_000
     && String(body.voiceSample || "").length <= 2_000;
@@ -97,15 +99,19 @@ export async function handleStoryPlanRequest(request, env, fetchImpl = fetch) {
   } catch {
     return jsonResponse({ error: "Invalid JSON request." }, 400);
   }
-  if (!validBody(body)) return jsonResponse({ error: "Provide one JPEG contact sheet for exactly six unique photos." }, 400);
+  if (!validBody(body)) {
+    return jsonResponse({
+      error: `Provide one JPEG contact sheet for ${STORY_PLAN_MIN_PHOTO_COUNT}–${STORY_PLAN_MAX_PHOTO_COUNT} unique photos.`,
+    }, 400);
+  }
 
   const photoIds = body.photoIds.map(String);
   const notes = String(body.tripNotes || "").trim() || "No trip notes were provided. Infer only visible atmosphere; do not invent factual events.";
   const voice = String(body.voiceSample || "").trim() || "Use concise first-person travel-journal prose. Avoid clichés and unsupported facts.";
   const prompt = [
-    "Create an editable travel-story plan from this labeled six-photo contact sheet.",
+    `Create an editable travel-story plan from this labeled ${photoIds.length}-photo contact sheet.`,
     `Allowed photo IDs: ${photoIds.join(", ")}. Use each ID exactly once and no other IDs.`,
-    "Group the photos into 2-4 coherent chapters. Keep claims grounded in the notes or visible evidence.",
+    `Group the photos into 2-${STORY_PLAN_MAX_SECTION_COUNT} coherent chapters. Keep claims grounded in the notes or visible evidence.`,
     "Write a specific, restrained first-person draft; avoid generic travel-blog filler.",
     `Trip notes: ${notes}`,
     `Voice sample or direction: ${voice}`,

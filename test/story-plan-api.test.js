@@ -3,15 +3,38 @@ import assert from "node:assert/strict";
 
 import { handleStoryPlanRequest } from "../worker/story-plan.js";
 
-const validRequest = () => new Request("https://plog.test/api/story-plan", {
+const validRequest = (photoCount = 6) => new Request("https://plog.test/api/story-plan", {
   method: "POST",
   headers: { "content-type": "application/json" },
   body: JSON.stringify({
     contactSheet: `data:image/jpeg;base64,${Buffer.from("demo").toString("base64")}`,
-    photoIds: ["p1", "p2", "p3", "p4", "p5", "p6"],
+    photoIds: Array.from({ length: photoCount }, (_, index) => `p${index + 1}`),
     tripNotes: "Kyoto after rain",
     voiceSample: "Quiet and observant",
   }),
+});
+
+test("story plan API accepts up to twelve photos and rejects larger batches", async () => {
+  const accepted = await handleStoryPlanRequest(validRequest(12), { OPENAI_API_KEY: "test-key" }, async () => (
+    new Response(JSON.stringify({
+      model: "gpt-5.6-terra",
+      output: [{ type: "message", content: [{ type: "output_text", text: JSON.stringify({
+        title: "Twelve frames",
+        dek: "A longer walk.",
+        sections: [
+          { heading: "Start", body: "First.", photoIds: ["p1", "p2", "p3", "p4", "p5", "p6"] },
+          { heading: "End", body: "Second.", photoIds: ["p7", "p8", "p9", "p10", "p11", "p12"] },
+        ],
+      }) }] }],
+    }), { status: 200, headers: { "content-type": "application/json" } })
+  ));
+  assert.equal(accepted.status, 200);
+
+  const rejected = await handleStoryPlanRequest(validRequest(13), { OPENAI_API_KEY: "test-key" }, async () => {
+    throw new Error("invalid requests must not reach OpenAI");
+  });
+  assert.equal(rejected.status, 400);
+  assert.match((await rejected.json()).error, /2–12/);
 });
 
 test("story plan API keeps missing server credentials explicit", async () => {

@@ -1,6 +1,6 @@
 # Large Photo Library Roadmap — Not Implemented
 
-The Build Week demo deliberately starts after photo selection: it works with six image blocks. The often-described “1,000 travel photos” workflow is a product hypothesis and architecture direction, not a current feature.
+The Build Week demo deliberately starts after photo selection: the bundled example has six image blocks, while AI drafting accepts 2–12. The often-described “1,000 travel photos” workflow is a product hypothesis and architecture direction, not a current feature.
 
 ## Proposed Pipeline
 

@@ -14,6 +14,7 @@ import { createStateRenderer } from "./js/render-state.js";
 import { createShellManager } from "./js/shell-manager.js";
 import { idbDeleteAsset, idbGetAsset, idbSetAsset, normalizeImageAsset } from "./js/storage.js";
 import { compileStoryPlanBatch, normalizeStoryPlan } from "./js/story-plan.js";
+import { STORY_PLAN_MAX_PHOTO_COUNT, STORY_PLAN_MIN_PHOTO_COUNT, storyPlanPhotoCountIsValid } from "./js/story-plan-limits.js";
 
 const FONT_MAP = {
   fangzheng: '"方正清刻本悦宋", "FZQKBYSJW--GB1-0", "Songti SC", "STSong", "Noto Serif SC", serif',
@@ -1051,8 +1052,8 @@ function closeAiDialog() {
 
 function openAiDialog() {
   const images = state.elements.filter((item) => item.type === "image");
-  if (images.length !== 6) {
-    showToast("This Build Week flow uses exactly six image blocks. Load the demo or adjust the canvas first.", "error");
+  if (!storyPlanPhotoCountIsValid(images.length)) {
+    showToast(`AI drafting supports ${STORY_PLAN_MIN_PHOTO_COUNT}–${STORY_PLAN_MAX_PHOTO_COUNT} image blocks.`, "error");
     return;
   }
   pendingAiDraft = null;
@@ -1062,7 +1063,7 @@ function openAiDialog() {
   aiPlanPreview.replaceChildren();
   aiDialogApply.classList.add("hidden");
   aiDialogGenerate.classList.remove("hidden");
-  aiDialogStatus.textContent = "Six image blocks are ready. Apply replaces this document as one undoable action.";
+  aiDialogStatus.textContent = `${images.length} image blocks are ready. Apply replaces this document as one undoable action.`;
   aiDialogStatus.dataset.tone = "neutral";
   aiDialogBackdrop.classList.remove("hidden");
   requestAnimationFrame(() => aiTripNotes.focus());
@@ -1093,8 +1094,8 @@ function renderAiPlanPreview(plan, model) {
 }
 
 async function generateAiDraftPreview() {
-  const sourceImages = state.elements.filter((item) => item.type === "image").slice(0, 6);
-  if (sourceImages.length !== 6) return;
+  const sourceImages = state.elements.filter((item) => item.type === "image");
+  if (!storyPlanPhotoCountIsValid(sourceImages.length)) return;
   aiAbortController?.abort();
   aiAbortController = new AbortController();
   setAiDialogBusy(true);
@@ -1108,7 +1109,7 @@ async function generateAiDraftPreview() {
     const contactSheet = await createContactSheet(sourceImages);
     pendingAiPhotoBlocks = contactSheet.photos.map(({ id, block }) => ({ ...structuredClone(block), id }));
     aiDialogGenerate.textContent = "Asking GPT‑5.6…";
-    aiDialogStatus.textContent = "GPT‑5.6 is grouping the six frames and drafting chapters…";
+    aiDialogStatus.textContent = `GPT‑5.6 is grouping ${sourceImages.length} frames and drafting chapters…`;
     const response = await fetch("/api/story-plan", {
       method: "POST",
       headers: { "content-type": "application/json" },

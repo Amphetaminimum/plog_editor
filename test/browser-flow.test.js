@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -92,6 +92,8 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
   });
   const address = server.address();
   const profile = await mkdtemp(join(tmpdir(), "plog-browser-test-"));
+  const downloadDir = join(profile, "downloads");
+  await mkdir(downloadDir, { recursive: true });
   const url = `http://127.0.0.1:${address.port}/editor.html`;
   const chrome = spawn(CHROME, [
     "--headless=new",
@@ -130,6 +132,7 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
   });
   cdp = await connectCdp(target.webSocketDebuggerUrl);
   await cdp.send("Runtime.enable");
+  await cdp.send("Page.setDownloadBehavior", { behavior: "allow", downloadPath: downloadDir });
   await cdp.send("Emulation.setDeviceMetricsOverride", {
     width: 1280,
     height: 720,
@@ -192,6 +195,23 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
   assert.equal(aiRequest.contactSheetPrefix, "data:image/jpeg;base64,");
   await evaluate("document.querySelector('#ai-dialog-apply').click()");
   await waitInPage("document.querySelectorAll('#canvas .el').length === 10");
+  await evaluate(`(() => {
+    const prototype = CanvasRenderingContext2D.prototype;
+    window.__originalFillText = prototype.fillText;
+    window.__aiExportText = [];
+    prototype.fillText = function(text, ...args) {
+      window.__aiExportText.push(String(text));
+      return window.__originalFillText.call(this, text, ...args);
+    };
+    document.querySelector('#app-toast').textContent = '';
+    document.querySelector('#btn-export').click();
+  })()`);
+  await waitInPage("document.querySelector('#app-toast').textContent.includes('exported successfully')");
+  const aiExportText = await evaluate(`(() => {
+    CanvasRenderingContext2D.prototype.fillText = window.__originalFillText;
+    return window.__aiExportText.join(' ');
+  })()`);
+  assert.match(aiExportText.replace(/\s+/g, " "), /Six Frames Before Sunrise/);
   await evaluate("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', metaKey: true, bubbles: true }))");
   await waitInPage("document.querySelectorAll('#canvas .el').length === 6");
 

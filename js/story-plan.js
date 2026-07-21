@@ -1,6 +1,7 @@
 import { DOCUMENT_COMMANDS } from "./document-commands.js";
+import { STORY_PLAN_MAX_PHOTO_COUNT, STORY_PLAN_MAX_SECTION_COUNT, STORY_PLAN_MIN_PHOTO_COUNT, storyPlanPhotoCountIsValid } from "./story-plan-limits.js";
 
-export const STORY_PLAN_PHOTO_COUNT = 6;
+export { STORY_PLAN_MAX_PHOTO_COUNT, STORY_PLAN_MIN_PHOTO_COUNT } from "./story-plan-limits.js";
 
 function cleanText(value, maxLength) {
   return String(value || "").replace(/\s+/g, " ").trim().slice(0, maxLength);
@@ -17,12 +18,12 @@ function escapeHtml(value) {
 
 export function normalizeStoryPlan(plan, photoIds) {
   const allowed = [...new Set((photoIds || []).map(String))];
-  if (allowed.length !== STORY_PLAN_PHOTO_COUNT) {
-    throw new Error(`AI drafting needs exactly ${STORY_PLAN_PHOTO_COUNT} photos.`);
+  if (!storyPlanPhotoCountIsValid(allowed.length)) {
+    throw new Error(`AI drafting supports ${STORY_PLAN_MIN_PHOTO_COUNT}–${STORY_PLAN_MAX_PHOTO_COUNT} photos.`);
   }
 
   const claimed = new Set();
-  const rawSections = Array.isArray(plan?.sections) ? plan.sections.slice(0, 4) : [];
+  const rawSections = Array.isArray(plan?.sections) ? plan.sections.slice(0, STORY_PLAN_MAX_SECTION_COUNT) : [];
   const sections = rawSections.map((section, index) => {
     const ids = [];
     for (const id of Array.isArray(section?.photoIds) ? section.photoIds : []) {
@@ -44,7 +45,7 @@ export function normalizeStoryPlan(plan, photoIds) {
   unclaimed.forEach((id, index) => sections[index % sections.length].photoIds.push(id));
 
   return {
-    title: cleanText(plan?.title, 100) || "A Journey in Six Frames",
+    title: cleanText(plan?.title, 100) || `A Journey in ${allowed.length} Frames`,
     dek: cleanText(plan?.dek, 320),
     sections,
   };
@@ -52,7 +53,7 @@ export function normalizeStoryPlan(plan, photoIds) {
 
 export function compileStoryPlanBatch({ existingBlocks, imageBlocks, plan, createBlock, meta }) {
   if (typeof createBlock !== "function") throw new Error("createBlock is required");
-  const photos = (imageBlocks || []).slice(0, STORY_PLAN_PHOTO_COUNT);
+  const photos = (imageBlocks || []).slice(0, STORY_PLAN_MAX_PHOTO_COUNT);
   const normalized = normalizeStoryPlan(plan, photos.map((item) => item.id));
   const photoById = new Map(photos.map((item) => [item.id, structuredClone(item)]));
   const nextBlocks = [];

@@ -1,8 +1,8 @@
 # Plog
 
-**Plog turns six visual moments into an editable long-form story—not a flattened AI artifact.**
+**Plog turns a set of visual moments into an editable long-form story—not a flattened AI artifact.**
 
-Plog is a local-first, block-based picture-story composer. A user can arrange and edit content manually, import Markdown or structured JSON, or ask GPT‑5.6 to propose a grounded story plan from six images. Every path ends in the same versioned blocks, deterministic vertical layout, and editable export workflow.
+Plog is a local-first, block-based picture-story composer. A user can arrange and edit content manually, import Markdown or structured JSON, or ask GPT‑5.6 to propose a grounded story plan from 2–12 images. Every path ends in the same versioned blocks, deterministic vertical layout, and editable export workflow.
 
 Live demo: [plog-editor.renovacyoun.chatgpt.site](https://plog-editor.renovacyoun.chatgpt.site)
 
@@ -16,7 +16,7 @@ OpenAI Build Week track: **Apps for your life** — travel, personal creativity,
 4. Choose **Apply draft**. The plan becomes ordinary editable Plog blocks.
 5. Press `Cmd/Ctrl+Z` once to undo the entire AI operation, or continue editing and export JPG, PNG, WebP, or HTML.
 
-The AI request does **not** upload six original files. The browser first creates one labeled, compressed 3×2 contact sheet and sends that low-detail image to a server-side OpenAI Responses API endpoint. The API key never enters client JavaScript. The bundled demo photographs are original AI-generated sample assets, so the repository does not depend on third-party photo licenses.
+The AI request does **not** upload the original files individually. For 2–12 selected images, the browser first creates one labeled, compressed, adaptive contact sheet and sends that low-detail image to a server-side OpenAI Responses API endpoint. The API key never enters client JavaScript. The bundled six-photo demo uses original AI-generated sample assets, so the repository does not depend on third-party photo licenses.
 
 ## What Works Today
 
@@ -82,7 +82,7 @@ Important modules:
 - `app.js` — editor orchestration and AI Preview / Apply / Cancel UI
 - `js/document-commands.js` — pure block command reducer and atomic batches
 - `js/story-plan.js` — validates an AI plan and compiles it into one undoable command
-- `js/contact-sheet.js` — locally reduces six images to one labeled JPEG
+- `js/contact-sheet.js` — locally reduces 2–12 images to one adaptive labeled JPEG
 - `worker/story-plan.js` — protected GPT‑5.6 Responses API integration
 - `js/canvas-layout.js` — authored width, auto-flow, and canvas sizing
 - `js/editor-render.js` — editable DOM preview
