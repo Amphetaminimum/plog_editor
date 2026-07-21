@@ -17,6 +17,7 @@
 
 - [x] Under-three-minute English script and shot list prepared
 - [x] Under-three-minute presenter transcript with exact click directions
+- [x] Recording inputs match the current twelve-photo Kyoto demo
 - [ ] Record the screen while reading the transcript in your own voice
 - [ ] Confirm the video demonstrates the working GPT call
 - [ ] Mention both Codex and GPT‑5.6 in audio

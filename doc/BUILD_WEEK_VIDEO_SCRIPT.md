@@ -8,9 +8,9 @@ Target length: **2:30–2:45**. The English under **Say** is the transcript to r
 2. Run the app locally with `npm run dev`; use the local URL because `.dev.vars` contains the server-side API key. Never show the terminal, `.dev.vars`, API dashboard, or Network panel in the recording.
 3. Create a clean Plog, then return to the editor before recording.
 4. Copy these two inputs so you can paste them quickly:
-   - Trip notes: `Kyoto after rain: a temple gate, maple leaves, narrow lanes, a quiet cafe, the Kamo River, and lanterns at dusk.`
+   - Trip notes: `A quiet autumn walk through Kyoto temples and gardens after rain, from tiled rooftops and moss paths to shaded wooden corridors.`
    - Your voice: `First person, observant and restrained. Keep the prose concrete.`
-5. Open the GitHub README in a second tab. Keep the exported JPG available for the final shot.
+5. Open the GitHub README in a second tab. Keep both exported JPGs available for the final shots.
 6. It is fine to cut out the model waiting time. Do not cut between **Apply draft** and **Undo**, because that interaction is important evidence.
 
 ## 0:00–0:18 — Problem and product
@@ -82,7 +82,7 @@ Target length: **2:30–2:45**. The English under **Say** is the transcript to r
 - Open the arrow beside **Export** and briefly show **Balanced · recommended**, **Two files · balanced split**, **2x**, and **JPG**.
 - Close the options and click **Export**.
 - Briefly show the two downloaded JPGs side by side. Explain that they are two delivery files from one editable Plog, not two saved drafts.
-- After the success message, cut to the exported JPG and scroll down slightly.
+- After the success message, show the first exported JPG, then the second continuation JPG, and scroll each one slightly.
 
 **Say**
 
