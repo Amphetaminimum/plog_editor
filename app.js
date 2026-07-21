@@ -1003,19 +1003,19 @@ async function loadBuildWeekExample() {
   state.selectedId = null;
   state.seq = Math.max(state.seq, 100);
 
-  const demoViews = [
-    "0,0,800,600",
-    "800,0,800,600",
-    "0,300,800,600",
-    "800,300,800,600",
-    "360,120,800,600",
-    "620,260,600,600",
+  const demoPhotos = [
+    "kyoto-01-temple-gate.jpg",
+    "kyoto-02-maple-lantern.jpg",
+    "kyoto-03-rainy-lane.jpg",
+    "kyoto-04-coffee-window.jpg",
+    "kyoto-05-kamo-river.jpg",
+    "kyoto-06-lantern-alley.jpg",
   ];
-  demoViews.forEach((viewBox, index) => {
+  demoPhotos.forEach((filename, index) => {
     state.elements.push(createElement("image", {
       id: `demo-photo-${index + 1}`,
-      src: new URL(`./assets/build-week-demo.svg#svgView(viewBox(${viewBox}))`, window.location.href).href,
-      aspectRatio: index === 5 ? 1 : 4 / 3,
+      src: new URL(`./assets/demo/${filename}`, window.location.href).href,
+      aspectRatio: 3 / 2,
       spacingBefore: index === 0 ? "normal" : "tight",
       style: { radius: 16, rotation: 0, brightness: 100, contrast: 100, saturation: 100, warmth: 0, grayscale: 0, frame: "none" },
     }));

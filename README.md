@@ -16,7 +16,7 @@ OpenAI Build Week track: **Apps for your life** — travel, personal creativity,
 4. Choose **Apply draft**. The plan becomes ordinary editable Plog blocks.
 5. Press `Cmd/Ctrl+Z` once to undo the entire AI operation, or continue editing and export JPG, PNG, WebP, or HTML.
 
-The AI request does **not** upload six original files. The browser first creates one labeled, compressed 3×2 contact sheet and sends that low-detail image to a server-side OpenAI Responses API endpoint. The API key never enters client JavaScript.
+The AI request does **not** upload six original files. The browser first creates one labeled, compressed 3×2 contact sheet and sends that low-detail image to a server-side OpenAI Responses API endpoint. The API key never enters client JavaScript. The bundled demo photographs are original AI-generated sample assets, so the repository does not depend on third-party photo licenses.
 
 ## What Works Today
 
