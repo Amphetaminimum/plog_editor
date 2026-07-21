@@ -165,6 +165,17 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
   assert.equal(desktopControls.canvasResetHidden, true);
   await evaluate("document.querySelector('#btn-load-example').click()");
   await waitInPage("document.querySelectorAll('#canvas .el').length === 12");
+  assert.equal(await evaluate("document.body.classList.contains('theme-dark')"), true);
+  assert.equal(await evaluate("document.querySelector('#canvas').dataset.theme"), "dark");
+  await evaluate("document.querySelector('#btn-theme-mode').click()");
+  await waitInPage("!document.body.classList.contains('theme-dark')");
+  await evaluate(`(() => {
+    document.querySelector('#app-toast').textContent = '';
+    document.querySelector('#btn-load-example').click();
+  })()`);
+  await waitInPage("document.querySelector('#app-toast').textContent.includes('Twelve-photo Kyoto demo loaded')");
+  assert.equal(await evaluate("document.body.classList.contains('theme-dark')"), false);
+  assert.equal(await evaluate("document.querySelector('#canvas').dataset.theme"), "light");
   assert.equal(await evaluate("document.querySelector('#export-pagination')"), null);
   assert.match(await evaluate("document.querySelector('#export-options-summary').textContent"), /JPG · 2×/);
 

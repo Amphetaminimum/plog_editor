@@ -2,7 +2,7 @@
 
 Target length: **2:30–2:50**. Read only the English under **Say**. The instructions under **Do** are not spoken.
 
-The original clean narration rehearsal was **1:55** (about **134 words per minute**). The revised narration is 276 words, or roughly **2:04** at the same comfortable pace. The remaining 25–45 seconds should come from visible actions, short review pauses, and one edited cut across model waiting—not from adding filler to the script.
+The original clean narration rehearsal was **1:55** (about **134 words per minute**). The revised narration is 314 words, or roughly **2:21** at the same comfortable pace. The remaining 10–30 seconds should come from visible actions, short review pauses, and one edited cut across model waiting—not from adding filler to the script.
 
 ## Before recording
 
@@ -19,25 +19,25 @@ The original clean narration rehearsal was **1:55** (about **134 words per minut
 **Do**
 
 - Start on the empty editor.
-- Click **Load example**.
-- Let all twelve Kyoto photographs appear.
 
 **Say**
 
-> After a trip, I usually have hundreds of photos and fragments of memory, but very little patience to turn them into something I can share. Plog helps me turn selected moments into one editable visual story.
+> After a trip, I usually come home with hundreds of photos and little fragments of memory—but not much patience to turn them into something I can share. That's why I built Plog: to turn selected moments into one editable visual story.
 
-## 0:20–0:38 — Start with selected photos
+## 0:20–0:40 — Start with selected photos
 
 **Do**
 
+- Click **Load example**.
+- Let all twelve Kyoto photographs appear.
 - Scroll through several of the loaded photos.
 - Select one photo and apply the **Portra** image preset.
 
 **Say**
 
-> For this demo, I am starting with twelve Kyoto photos I have already selected. I can arrange and style them manually, while Plog keeps the long page flowing as the content changes.
+> Okay, so let's load a small example from one of my Kyoto trips. I've already picked these twelve photos. I can add text and images in the order I want, then use a few presets or filters to adjust the look.
 
-## 0:38–1:08 — Ask GPT‑5.6 for a first draft
+## 0:40–1:09 — Ask GPT‑5.6 for a first draft
 
 **Do**
 
@@ -50,9 +50,9 @@ The original clean narration rehearsal was **1:55** (about **134 words per minut
 
 **Say**
 
-> I add a short note with context the photos cannot explain by themselves. The browser combines the twelve photos into one compressed contact sheet—a labeled grid of small previews—and GPT‑5.6 uses it with my notes to propose chapters, photo order, and a concise first draft. Nothing has changed yet.
+> Now, this is where GPT‑5.6 helps me get started. I'll add a little context—this was a quiet walk through Kyoto just after the rain. Plog combines the photos into one compressed contact sheet, and GPT‑5.6 uses it with my note to propose a title, photo order, and chapters. This is still just a preview.
 
-## 1:08–1:35 — Review, apply, and keep editing
+## 1:09–1:35 — Review, apply, and keep editing
 
 **Do**
 
@@ -63,9 +63,9 @@ The original clean narration rehearsal was **1:55** (about **134 words per minut
 
 **Say**
 
-> I review the proposal before applying it. Once applied, the result is not a flattened AI image or a locked template. It becomes ordinary Plog content, so I can rewrite the text, change the image treatment, or rearrange the story myself.
+> Okay, this looks pretty close, so I'll apply it. It doesn't become a flattened AI image or a locked template. It's ordinary Plog content, so I can rewrite the text, adjust the filters, or keep building the story block by block.
 
-## 1:35–1:47 — A quick reversibility check
+## 1:35–1:46 — A quick reversibility check
 
 **Do**
 
@@ -74,9 +74,9 @@ The original clean narration rehearsal was **1:55** (about **134 words per minut
 
 **Say**
 
-> AI gives me a useful starting point, but I remain in control of the document and can undo any change.
+> AI gives me a useful starting point, but I still control the document. I can undo that edit—and bring it back.
 
-## 1:47–2:10 — Export the continuous story
+## 1:46–2:09 — Export the continuous story
 
 **Do**
 
@@ -88,9 +88,9 @@ The original clean narration rehearsal was **1:55** (about **134 words per minut
 
 **Say**
 
-> I can export the same editable document as one continuous JPEG. The long image preserves the full reading flow, while PNG and WebP remain available for different sharing needs.
+> Once I'm happy with the story, I can export it with the balanced preset at two-times resolution. And that's it: one continuous JPEG with the complete reading flow preserved. PNG and WebP are also available.
 
-## 2:10–2:26 — Codex contribution
+## 2:09–2:25 — Codex contribution
 
 **Do**
 
@@ -100,7 +100,7 @@ The original clean narration rehearsal was **1:55** (about **134 words per minut
 
 > I built and refined Plog with Codex, from the block-based editing workflow to the secure GPT‑5.6 integration, reversible editing, browser testing, and reliable long-image export.
 
-## 2:26–2:50 — Honest next step
+## 2:25–2:50 — Honest next step
 
 **Do**
 
@@ -108,7 +108,7 @@ The original clean narration rehearsal was **1:55** (about **134 words per minut
 
 **Say**
 
-> Today, Plog starts with photos I have already selected. The next step is to use timestamps, GPS, duplicate and blur detection, and burst clustering locally. Only small contact sheets of representative candidates would reach AI for final selection, chapter planning, and an editable draft.
+> Right now, I still choose the photos before bringing them into Plog. The next step is to do more of that filtering locally, using timestamps, GPS, duplicate and blur detection, and burst clustering. Then only a small contact sheet of representative photos would go to AI for final selection, chapter planning, and an editable first draft.
 
 ## Recording checks
 

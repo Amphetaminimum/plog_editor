@@ -987,6 +987,7 @@ function syncRestoredHistoryState() {
 
 async function loadBuildWeekExample() {
   await flushSaveSession();
+  const currentThemeMode = state.themeMode;
   let doc = state.docs.find((entry) => entry.name === "Example" || entry.name === "Build Week Demo");
   if (!doc) {
     doc = createDocRecord("Example");
@@ -1025,8 +1026,7 @@ async function loadBuildWeekExample() {
   });
 
   setLayoutLocked(true);
-  applyThemeMode("day");
-  applyThemePalette("day");
+  applyThemeMode(currentThemeMode);
   reflowFrom(0);
   state.history = [];
   state.historyIndex = -1;
