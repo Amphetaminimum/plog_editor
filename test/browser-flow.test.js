@@ -108,9 +108,15 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
   let cdp;
   t.after(async () => {
     cdp?.close();
-    chrome.kill("SIGTERM");
+    if (chrome.exitCode == null && chrome.signalCode == null) {
+      await new Promise((resolveExit) => {
+        chrome.once("exit", resolveExit);
+        chrome.kill("SIGTERM");
+      });
+    }
+    server.closeAllConnections?.();
     await new Promise((resolveClose) => server.close(resolveClose));
-    await rm(profile, { recursive: true, force: true });
+    await rm(profile, { recursive: true, force: true, maxRetries: 4, retryDelay: 100 });
   });
 
   const debugPort = await waitForValue(async () => {
@@ -162,18 +168,50 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
     const frame = document.querySelector('#prop-frame');
     frame.value = 'card';
     frame.dispatchEvent(new Event('change', { bubbles: true }));
+    document.querySelector('#app-toast').textContent = '';
     document.querySelector('#btn-export').click();
   })()`);
-  await waitInPage("document.querySelector('#app-toast').textContent.includes('exported successfully')");
+  await waitInPage("document.querySelector('#app-toast').textContent.length > 0");
 
   const result = await evaluate(`({
     count: document.querySelectorAll('#canvas .el').length,
     summary: document.querySelector('#canvas-summary').textContent,
     importedText: [...document.querySelectorAll('#canvas .content')].some((node) => node.textContent.includes('Arrival')),
+    exportMessage: document.querySelector('#app-toast').textContent,
     exportSucceeded: document.querySelector('#app-toast').textContent.includes('exported successfully')
   })`);
   assert.equal(result.count, 8);
   assert.match(result.summary, /8 blocks/);
   assert.equal(result.importedText, true);
-  assert.equal(result.exportSucceeded, true);
+  assert.equal(result.exportSucceeded, true, result.exportMessage);
+
+  await cdp.send("Emulation.setDeviceMetricsOverride", {
+    width: 390,
+    height: 844,
+    deviceScaleFactor: 3,
+    mobile: true,
+  });
+  await cdp.send("Emulation.setUserAgentOverride", {
+    userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1",
+  });
+  await cdp.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 5 });
+  await evaluate(`(() => {
+    window.__sharedExport = null;
+    Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => true });
+    Object.defineProperty(navigator, 'share', {
+      configurable: true,
+      value: async (payload) => {
+        window.__sharedExport = {
+          fileCount: payload.files.length,
+          name: payload.files[0].name,
+          type: payload.files[0].type,
+        };
+      },
+    });
+    document.querySelector('#btn-mobile-export').click();
+  })()`);
+  await waitInPage("window.__sharedExport?.fileCount === 1");
+  const mobileExport = await evaluate("window.__sharedExport");
+  assert.equal(mobileExport.type, "image/png");
+  assert.match(mobileExport.name, /\.png$/);
 });

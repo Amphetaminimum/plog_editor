@@ -107,6 +107,8 @@ const docDrawerList = document.getElementById("doc-drawer-list");
 const exportFormat = document.getElementById("export-format");
 const exportQuality = document.getElementById("export-quality");
 const exportAppearance = document.getElementById("export-appearance");
+const exportOptionsSummary = document.getElementById("export-options-summary");
+const exportQualityField = document.getElementById("export-quality-field");
 const canvasBgInput = document.getElementById("canvas-bg");
 const btnCanvasBgReset = document.getElementById("btn-canvas-bg-reset");
 const canvasPaletteStatus = document.getElementById("canvas-palette-status");
@@ -247,7 +249,7 @@ function setGenerateButtonState(loading) {
   if (!btnExport || !label) return;
   btnExport.disabled = loading;
   btnExport.classList.toggle("is-loading", loading);
-  label.textContent = loading ? "Exporting…" : "Export image";
+  label.textContent = loading ? "Exporting…" : "Export";
   if (btnMobileExport) {
     const mobileLabel = btnMobileExport.querySelector(".mobile-shell-label");
     btnMobileExport.disabled = loading;
@@ -2240,8 +2242,16 @@ btnCanvasBgReset?.addEventListener("click", () => {
 document.getElementById("btn-export").addEventListener("click", async () => {
   setGenerateButtonState(true);
   try {
-    await exportRaster();
-    showToast(`${exportFormat.value.toUpperCase()} exported successfully to your downloads.`);
+    const delivery = await exportRaster();
+    if (delivery.method === "share") {
+      showToast("Image exported through your device’s share menu.");
+    } else if (delivery.method === "cancelled") {
+      showToast("Export cancelled.");
+    } else if (delivery.mobile) {
+      showToast("Image ready. If it opens in a tab, use Share → Save Image.");
+    } else {
+      showToast(`${exportFormat.value.toUpperCase()} exported successfully to your downloads.`);
+    }
   } catch (err) {
     console.error(err);
     showToast("Export failed. Try PNG first, or use Export HTML from the menu.", "error");
@@ -2380,12 +2390,22 @@ btnDocDelete.addEventListener("click", async () => {
   closeDocDrawer();
 });
 
+function syncExportOptionsUi() {
+  const format = exportFormat.value.toUpperCase();
+  const scale = `${exportScale.value}×`;
+  if (exportOptionsSummary) exportOptionsSummary.textContent = `${format} · ${scale}`;
+  exportQualityField?.classList.toggle("hidden", exportFormat.value === "png");
+}
+
 exportFormat.addEventListener("change", () => {
-  const formatLabel = btnExport.querySelector("small");
-  if (formatLabel) formatLabel.textContent = exportFormat.value.toUpperCase();
+  syncExportOptionsUi();
   saveSession();
 });
 
+exportScale.addEventListener("change", () => {
+  syncExportOptionsUi();
+  saveSession();
+});
 exportQuality.addEventListener("change", saveSession);
 exportAppearance.addEventListener("change", saveSession);
 
@@ -2397,6 +2417,7 @@ async function initApp() {
     await buildStarterDoc(createDocRecord("Untitled Plog"));
   }
   syncAppliedDocState({ hydrate: true, pushInitialHistory: true });
+  syncExportOptionsUi();
   syncResponsiveShell();
   document.body.dataset.appReady = "true";
 }

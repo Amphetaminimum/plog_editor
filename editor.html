@@ -47,48 +47,55 @@
                 <button id="btn-fit-frame" class="btn menu-btn">Fit To Frame</button>
               </div>
             </details>
-            <details class="toolbar-menu">
-              <summary class="btn">Export</summary>
-              <div class="menu-panel menu-panel-wide">
-                <label class="export-scale-label menu-field">
-                  Scale
-                  <select id="export-scale">
-                    <option value="1">1x</option>
-                    <option value="2" selected>2x</option>
-                    <option value="3">3x</option>
-                  </select>
-                </label>
-                <label class="export-scale-label menu-field">
-                  Format
-                  <select id="export-format">
-                    <option value="png" selected>PNG</option>
-                    <option value="jpg">JPG</option>
-                    <option value="webp">WebP</option>
-                  </select>
-                </label>
-                <label class="export-scale-label menu-field">
-                  Quality
-                  <select id="export-quality">
-                    <option value="0.82">82</option>
-                    <option value="0.9" selected>90</option>
-                    <option value="0.96">96</option>
-                  </select>
-                </label>
-                <label class="export-scale-label menu-field">
-                  Appearance
-                  <select id="export-appearance">
-                    <option value="match" selected>Match</option>
-                    <option value="light">Light</option>
-                    <option value="dark">Dark</option>
-                  </select>
-                </label>
-                <button id="btn-export-html" class="btn menu-btn">Export HTML</button>
-              </div>
-            </details>
-            <button id="btn-export" class="btn btn-primary btn-generate" data-idle-label="Export image" type="button">
-              <span class="btn-generate-label">Export image</span>
-              <small>PNG</small>
-            </button>
+            <div class="export-split-control">
+              <button id="btn-export" class="btn btn-primary btn-generate" data-idle-label="Export" type="button">
+                <span class="btn-generate-label">Export</span>
+              </button>
+              <details class="toolbar-menu export-options-menu">
+                <summary class="btn export-options-trigger" aria-label="Export options" title="Export options">
+                  <span aria-hidden="true">⌄</span>
+                </summary>
+                <div class="menu-panel menu-panel-wide export-options-panel">
+                  <div class="export-options-heading">
+                    <strong>Export options</strong>
+                    <span id="export-options-summary">PNG · 2×</span>
+                  </div>
+                  <label class="export-scale-label menu-field">
+                    Resolution
+                    <select id="export-scale">
+                      <option value="1">1x</option>
+                      <option value="2" selected>2x</option>
+                      <option value="3">3x</option>
+                    </select>
+                  </label>
+                  <label class="export-scale-label menu-field">
+                    Format
+                    <select id="export-format">
+                      <option value="png" selected>PNG</option>
+                      <option value="jpg">JPG</option>
+                      <option value="webp">WebP</option>
+                    </select>
+                  </label>
+                  <label id="export-quality-field" class="export-scale-label menu-field hidden">
+                    Quality
+                    <select id="export-quality">
+                      <option value="0.82">82</option>
+                      <option value="0.9" selected>90</option>
+                      <option value="0.96">96</option>
+                    </select>
+                  </label>
+                  <label class="export-scale-label menu-field">
+                    Color theme
+                    <select id="export-appearance">
+                      <option value="match" selected>Match</option>
+                      <option value="light">Light</option>
+                      <option value="dark">Dark</option>
+                    </select>
+                  </label>
+                  <button id="btn-export-html" class="btn menu-btn export-html-btn">Download editable HTML</button>
+                </div>
+              </details>
+            </div>
           </div>
         </div>
       </header>

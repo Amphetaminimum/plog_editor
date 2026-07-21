@@ -256,6 +256,42 @@ body.theme-dark .toolbar-group {
   position: relative;
 }
 
+.export-split-control {
+  display: inline-flex;
+  align-items: stretch;
+  overflow: visible;
+  border-radius: 999px;
+  box-shadow: 0 12px 24px rgba(237, 111, 92, 0.18);
+}
+
+.export-split-control .btn-generate {
+  border-radius: 999px 0 0 999px;
+  box-shadow: none;
+}
+
+.export-options-menu {
+  display: flex;
+}
+
+.export-options-trigger.btn {
+  min-width: 42px;
+  width: 42px;
+  margin: 0;
+  padding: 0;
+  border-width: 0 0 0 1px;
+  border-color: rgba(255, 255, 255, 0.34);
+  border-radius: 0 999px 999px 0;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 16px;
+}
+
+.export-options-menu[open] .export-options-trigger.btn,
+body.theme-dark .export-options-menu[open] .export-options-trigger.btn {
+  border-color: rgba(255, 255, 255, 0.34);
+  background: color-mix(in srgb, var(--accent) 86%, black);
+}
+
 .toolbar-menu summary {
   list-style: none;
 }
@@ -275,7 +311,8 @@ body.theme-dark .toolbar-group {
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  background: var(--panel);
+  background: color-mix(in srgb, var(--panel-strong) 96%, transparent);
+  backdrop-filter: blur(18px);
   box-shadow: 0 18px 50px rgba(18, 13, 8, 0.14);
   animation: menu-in 0.18s ease;
 }
@@ -293,6 +330,34 @@ body.theme-dark .toolbar-group {
 
 .menu-panel-wide {
   min-width: 220px;
+}
+
+.export-options-panel {
+  min-width: 252px;
+}
+
+.export-options-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.export-options-heading strong {
+  font-size: 13px;
+}
+
+.export-options-heading span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.export-html-btn {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .toolbar-menu[open] summary.btn {
@@ -907,13 +972,6 @@ body.theme-dark .file-btn {
   min-height: 42px;
   padding-inline: 18px;
   font-weight: 700;
-}
-
-.btn-generate small {
-  padding-left: 9px;
-  border-left: 1px solid rgba(255, 255, 255, 0.42);
-  font-size: 9px;
-  letter-spacing: 0.12em;
 }
 
 .btn-generate.is-loading {

@@ -88,6 +88,50 @@ export function createExportManager({
     link.remove();
   }
 
+  function canvasToBlob(outputCanvas, mime, quality) {
+    return new Promise((resolve, reject) => {
+      outputCanvas.toBlob((blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("image-encode-failed"));
+      }, mime, quality);
+    });
+  }
+
+  function isMobileShareContext() {
+    const mobileUserAgent = /Android|iPad|iPhone|iPod/i.test(navigator.userAgent);
+    const touchFirstDevice = window.matchMedia?.("(pointer: coarse)")?.matches === true
+      && Number(navigator.maxTouchPoints) > 0;
+    return mobileUserAgent || touchFirstDevice;
+  }
+
+  async function deliverRaster(blob, filename, mime) {
+    const mobile = isMobileShareContext();
+    const file = new File([blob], filename, { type: mime });
+    const shareData = { files: [file], title: docName() };
+    let canShareFiles = false;
+    if (typeof navigator.share === "function") {
+      try {
+        canShareFiles = typeof navigator.canShare !== "function" || navigator.canShare(shareData);
+      } catch {
+        canShareFiles = false;
+      }
+    }
+
+    if (mobile && canShareFiles) {
+      try {
+        await navigator.share(shareData);
+        return { method: "share", mobile, filename };
+      } catch (error) {
+        if (error?.name === "AbortError") return { method: "cancelled", mobile, filename };
+      }
+    }
+
+    const url = URL.createObjectURL(blob);
+    triggerDownload(url, filename);
+    window.setTimeout(() => URL.revokeObjectURL(url), 30000);
+    return { method: "download", mobile, filename };
+  }
+
   function filenameForExport(ext, scale) {
     const stamp = new Date().toISOString().slice(0, 10);
     return `${docName().replace(/\s+/g, "-").toLowerCase() || "plog"}-${stamp}-${scale}x.${ext}`;
@@ -103,7 +147,8 @@ export function createExportManager({
 
     const mime = format === "jpg" ? "image/jpeg" : format === "webp" ? "image/webp" : "image/png";
     const ext = format === "jpg" ? "jpg" : format;
-    triggerDownload(out.toDataURL(mime, quality), filenameForExport(ext, scale));
+    const blob = await canvasToBlob(out, mime, quality);
+    return deliverRaster(blob, filenameForExport(ext, scale), mime);
   }
 
   async function exportHtml() {
