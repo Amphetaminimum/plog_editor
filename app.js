@@ -317,6 +317,23 @@ function renderDocDrawer() {
 
     const visual = document.createElement("div");
     visual.className = "doc-card-visual";
+    const docElements = Array.isArray(doc.data?.state?.elements) ? doc.data.state.elements : [];
+    const coverElement = docElements.find((element) => element?.type === "image" && (element.src || element.assetId));
+    if (coverElement) {
+      visual.classList.add("has-cover");
+      const cover = document.createElement("img");
+      cover.className = "doc-card-cover";
+      cover.alt = "";
+      cover.loading = "lazy";
+      if (coverElement.src) {
+        cover.src = coverElement.src;
+      } else if (coverElement.assetId) {
+        void ensureAssetUrl(coverElement.assetId).then((source) => {
+          if (source && cover.isConnected) cover.src = source;
+        });
+      }
+      visual.appendChild(cover);
+    }
 
     const visualTitle = document.createElement("div");
     visualTitle.className = "doc-card-visual-title";
@@ -1205,7 +1222,7 @@ if (docDrawerBackdrop) {
 }
 
 if (btnDocDrawer) {
-  btnDocDrawer.addEventListener("click", () => {
+  btnDocDrawer.addEventListener("click", async () => {
     const nextOpen = !document.body.classList.contains("doc-drawer-open");
     closeMobilePanels();
     if (!nextOpen) {
@@ -1213,6 +1230,8 @@ if (btnDocDrawer) {
       return;
     }
     closeToolbarMenus();
+    await flushSaveSession();
+    renderDocDrawer();
     openDocDrawer();
   });
 }
@@ -1890,6 +1909,18 @@ document.addEventListener("keydown", (ev) => {
   const active = document.activeElement;
   const isEditing = active && active.getAttribute && active.getAttribute("contenteditable") === "true";
   const selected = getElement(state.selectedId);
+
+  if (isEditing && ev.key === "Escape") {
+    active.blur();
+    window.getSelection()?.removeAllRanges();
+    state.savedSelection = null;
+    state.savedSelectionElementId = null;
+    state.savedSelectionTarget = null;
+    render();
+    ev.preventDefault();
+    ev.stopPropagation();
+    return;
+  }
 
   if (isEditing && ev.key === "Enter" && !ev.altKey && !ev.ctrlKey && !ev.metaKey) {
     insertLineBreakAtSelection(active);

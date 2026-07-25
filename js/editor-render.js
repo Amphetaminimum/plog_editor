@@ -323,6 +323,7 @@ export function createEditorRenderManager({
         }
         title.style.fontSize = `${item.style.fontSize ?? 62}px`;
         title.style.color = item.style.color ?? "#1f1f22";
+        meta.style.color = item.style.color ?? "#1f1f22";
         title.style.fontFamily = familyCss(item);
         title.style.fontWeight = String(item.style.fontWeight ?? 500);
         title.style.maxWidth = `${Math.max(180, layout.contentWidth - 460)}px`;
@@ -360,6 +361,7 @@ export function createEditorRenderManager({
         if (cardBody.innerHTML !== item.content.bodyHtml) cardBody.innerHTML = item.content.bodyHtml;
         cardTitle.style.fontFamily = familyCss(item);
         cardTitle.style.fontWeight = "500";
+        cardTitle.style.color = item.style.color ?? "#1f1f22";
         cardBody.style.fontFamily = familyCss(item);
         cardBody.style.color = item.style.color ?? "#1f1f22";
         cardBody.style.fontWeight = String(item.style.fontWeight ?? 300);

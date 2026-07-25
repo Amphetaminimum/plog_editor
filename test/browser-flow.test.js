@@ -163,8 +163,50 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
   assert.equal(desktopControls.exportPreset, "balanced");
   assert.equal(desktopControls.mobileAppearanceDisplay, "none");
   assert.equal(desktopControls.canvasResetHidden, true);
+
+  const textControlState = await evaluate(`(async () => {
+    const colorInput = document.querySelector('#prop-color');
+    const colorTrigger = colorInput.nextElementSibling.querySelector('.modern-color-trigger');
+    let nativeColorClicks = 0;
+    colorInput.addEventListener('click', () => { nativeColorClicks += 1; });
+    colorTrigger.click();
+    colorTrigger.click();
+
+    const content = document.querySelector('#canvas .el-text .content');
+    content.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerId: 41 }));
+    content.focus();
+    colorInput.value = '#b61a1a';
+    colorInput.dispatchEvent(new Event('input', { bubbles: true }));
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+    const appliedColor = getComputedStyle(content).color;
+    content.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    const blockSelected = content.closest('.el').classList.contains('selected');
+    const handleDisplay = getComputedStyle(content.closest('.el').querySelector('.move-handle')).display;
+    const editingAfterEscape = document.activeElement === content;
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true }));
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    return {
+      nativeColorClicks,
+      appliedColor,
+      blockSelected,
+      handleDisplay,
+      editingAfterEscape,
+      remainingBlocks: document.querySelectorAll('#canvas .el').length,
+    };
+  })()`);
+  assert.equal(textControlState.nativeColorClicks, 0);
+  assert.equal(textControlState.appliedColor, "rgb(182, 26, 26)");
+  assert.equal(textControlState.blockSelected, true);
+  assert.equal(textControlState.handleDisplay, "flex");
+  assert.equal(textControlState.editingAfterEscape, false);
+  assert.equal(textControlState.remainingBlocks, 1);
+
   await evaluate("document.querySelector('#btn-load-example').click()");
   await waitInPage("document.querySelectorAll('#canvas .el').length === 12");
+  assert.match(await evaluate("document.querySelector('.doc-card.is-active .doc-card-cover')?.src || ''"), /kyoto-demo-/);
   assert.equal(await evaluate("document.body.classList.contains('theme-dark')"), true);
   assert.equal(await evaluate("document.querySelector('#canvas').dataset.theme"), "dark");
   await evaluate("document.querySelector('#btn-theme-mode').click()");

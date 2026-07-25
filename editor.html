@@ -257,7 +257,7 @@
               Type
               <input id="prop-type" type="text" readonly />
             </label>
-            <p class="hint">Drag with the top-left handle. Resize with the bottom-right dot.</p>
+            <p class="hint">Click text to edit. Press Esc to select the block, then Delete to remove it.</p>
             <div id="text-style-controls">
               <label>
                 Font Size
@@ -309,10 +309,10 @@
                   <button id="btn-clear-format" class="btn inspector-btn" type="button">Clear</button>
                 </div>
               </div>
-              <label>
-                Text Color
+              <div class="field-block">
+                <span class="field-label">Text Color</span>
                 <input id="prop-color" type="color" value="#1f1f22" />
-              </label>
+              </div>
             </div>
             <label>
               Spacing Before
@@ -431,7 +431,7 @@
 
     <template id="tpl-text">
       <div class="el el-text" data-type="text">
-        <div class="move-handle" aria-hidden="true">Drag</div>
+        <button class="move-handle" type="button" aria-label="Select text block">•••</button>
         <div class="content" contenteditable="true" data-placeholder="Write your story..."></div>
         <div class="resize-handle" aria-hidden="true"></div>
       </div>
@@ -439,7 +439,7 @@
 
     <template id="tpl-image">
       <div class="el el-image" data-type="image">
-        <div class="move-handle" aria-hidden="true">Drag</div>
+        <button class="move-handle" type="button" aria-label="Select image block">•••</button>
         <img alt="Plog image" />
         <div class="resize-handle" aria-hidden="true"></div>
       </div>
@@ -447,7 +447,7 @@
 
     <template id="tpl-divider">
       <div class="el el-divider" data-type="divider">
-        <div class="move-handle" aria-hidden="true">Drag</div>
+        <button class="move-handle" type="button" aria-label="Select divider block">•••</button>
         <div class="divider-line"></div>
         <div class="resize-handle" aria-hidden="true"></div>
       </div>
@@ -455,7 +455,7 @@
 
     <template id="tpl-header">
       <div class="el el-header" data-type="header">
-        <div class="move-handle" aria-hidden="true">Drag</div>
+        <button class="move-handle" type="button" aria-label="Select title block">•••</button>
         <div class="header-title" contenteditable="true">Tokyo Coffee Log</div>
         <div class="header-meta" contenteditable="true">[August 20]</div>
         <div class="resize-handle" aria-hidden="true"></div>
@@ -464,7 +464,7 @@
 
     <template id="tpl-quote">
       <div class="el el-quote" data-type="quote">
-        <div class="move-handle" aria-hidden="true">Drag</div>
+        <button class="move-handle" type="button" aria-label="Select quote block">•••</button>
         <div class="quote-mark">"</div>
         <div class="quote-content" contenteditable="true" data-placeholder="Quote..."></div>
         <div class="resize-handle" aria-hidden="true"></div>
@@ -473,7 +473,7 @@
 
     <template id="tpl-card">
       <div class="el el-card" data-type="card">
-        <div class="move-handle" aria-hidden="true">Drag</div>
+        <button class="move-handle" type="button" aria-label="Select card block">•••</button>
         <div class="card-title" contenteditable="true" data-placeholder="Card title"></div>
         <div class="card-body" contenteditable="true" data-placeholder="Card text..."></div>
         <div class="resize-handle" aria-hidden="true"></div>

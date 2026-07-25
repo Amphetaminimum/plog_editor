@@ -251,7 +251,12 @@ function enhanceColor(input, closeAll) {
     trigger.setAttribute("aria-expanded", "false");
   }
 
-  trigger.addEventListener("click", () => (popover.hidden ? open() : close()));
+  trigger.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (popover.hidden) open();
+    else close();
+  });
   plane.addEventListener("pointerdown", (event) => {
     plane.setPointerCapture?.(event.pointerId);
     setFromPlane(event);
