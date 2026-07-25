@@ -19,6 +19,7 @@ export function createEditorRenderManager({
   updateCanvasHeight,
   updateViewportMetrics,
   updateBlockContent,
+  syncEnhancedControls,
 }) {
   function syncInspector() {
     const selected = getElement(state.selectedId);
@@ -30,6 +31,7 @@ export function createEditorRenderManager({
       if (controls.btnMobileSettings) controls.btnMobileSettings.disabled = true;
       controls.btnUndo.disabled = state.historyIndex <= 0;
       controls.btnRedo.disabled = state.historyIndex >= state.history.length - 1;
+      syncEnhancedControls?.();
       return;
     }
 
@@ -76,6 +78,7 @@ export function createEditorRenderManager({
     controls.propFontFamily.disabled = !textLike;
     controls.propFontWeight.disabled = !textLike;
     controls.propColor.disabled = selected.type === "divider";
+    syncEnhancedControls?.();
   }
 
   function setupNodeOnce(node) {

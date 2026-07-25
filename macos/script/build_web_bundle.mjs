@@ -25,6 +25,7 @@ const moduleOrder = [
   "js/dialog.js",
   "js/history-manager.js",
   "js/image-filters.js",
+  "js/modern-controls.js",
   "js/export-layout.js",
   "js/render-state.js",
   "js/editor-render.js",

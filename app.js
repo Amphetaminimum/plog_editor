@@ -9,6 +9,7 @@ import { createHistoryManager } from "./js/history-manager.js";
 import { createContactSheet } from "./js/contact-sheet.js";
 import { sanitizeEditableHtml } from "./js/html-sanitize.js";
 import { formatMonthYearLabel } from "./js/header-format.js";
+import { initModernControls } from "./js/modern-controls.js";
 import { DEFAULT_IMAGE_LOOK, imagePresetById } from "./js/image-filters.js";
 import { createStateRenderer } from "./js/render-state.js";
 import { createShellManager } from "./js/shell-manager.js";
@@ -163,6 +164,7 @@ const aiDialogGenerate = document.getElementById("ai-dialog-generate");
 const aiDialogApply = document.getElementById("ai-dialog-apply");
 const appToast = document.getElementById("app-toast");
 const canvasSummary = document.getElementById("canvas-summary");
+const modernControls = initModernControls();
 let toastTimer = null;
 let aiAbortController = null;
 let pendingAiDraft = null;
@@ -612,6 +614,7 @@ function syncCanvasBackgroundPresetState() {
 function applyCanvasBackground(value, { persist = false } = {}) {
   const next = normalizeCanvasBackground(value, defaultCanvasBackgroundForTheme());
   if (canvasBgInput) canvasBgInput.value = next;
+  modernControls.sync();
   canvas.style.background = next;
   syncCanvasBackgroundPresetState();
   updateCanvasPaletteUi();
@@ -823,6 +826,7 @@ const docStore = createDocStoreManager({
   updateBlockContent: (id, patch) => {
     applyDocumentCommandState({ type: DOCUMENT_COMMANDS.UPDATE_CONTENT, id, patch });
   },
+  syncEnhancedControls: () => modernControls.sync(),
 }));
 
 const exportManager = createExportManager({
@@ -2529,6 +2533,7 @@ function syncExportOptionsUi() {
   exportPreset.value = exportFormat.value === "png" && exportScale.value === "2"
     ? "maximum"
     : presetBySignature[signature] || "custom";
+  modernControls.sync();
 }
 
 function applyExportPreset(preset) {
