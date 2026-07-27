@@ -52,6 +52,9 @@ export function createShellManager({
       state.zoom = Math.max(0.3, Math.min(2, Number(nextZoom) || 1));
     }
     nodes.canvas.style.transform = "none";
+    nodes.canvasScale.style.setProperty("--canvas-zoom", String(state.zoom));
+    const handleScreenScale = 0.68 + 0.44 * (1 - Math.exp(-0.7 * state.zoom));
+    nodes.canvasScale.style.setProperty("--handle-screen-scale", String(handleScreenScale));
     nodes.canvasScale.style.transform = `scale(${state.zoom})`;
     syncZoomControl();
     updateViewportMetrics();

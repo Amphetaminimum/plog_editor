@@ -220,6 +220,25 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
   assert.equal(await evaluate("document.querySelector('#canvas').dataset.theme"), "light");
   assert.equal(await evaluate("document.querySelector('#export-pagination')"), null);
   assert.match(await evaluate("document.querySelector('#export-options-summary').textContent"), /JPG · 2×/);
+  const modernExportState = await evaluate(`(() => {
+    const menu = document.querySelector('.export-options-menu');
+    document.querySelector('.export-options-trigger').click();
+    const menuOpen = menu.open;
+    const selectTrigger = document.querySelector('.export-options-panel .modern-select-trigger');
+    selectTrigger.click();
+    const selectExpanded = selectTrigger.getAttribute('aria-expanded');
+    selectTrigger.click();
+    return {
+      menuOpen,
+      selectExpanded,
+      fontInputType: document.querySelector('#prop-font-size').type,
+      triggerLabel: document.querySelector('.export-options-trigger').textContent.trim()
+    };
+  })()`);
+  assert.equal(modernExportState.menuOpen, true);
+  assert.equal(modernExportState.selectExpanded, "true");
+  assert.equal(modernExportState.fontInputType, "text");
+  assert.match(modernExportState.triggerLabel, /Export/);
 
   await evaluate(`(() => {
     window.fetch = async (input) => {
@@ -298,6 +317,77 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
   await evaluate("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', metaKey: true, bubbles: true }))");
   await waitInPage("document.querySelectorAll('#canvas .el').length === 12");
 
+  const contextInsertState = await evaluate(`(async () => {
+    const target = [...document.querySelectorAll('#canvas .el')][4];
+    const targetId = target.dataset.id;
+    const handle = target.querySelector('.move-handle');
+    handle.dispatchEvent(new PointerEvent('pointerdown', {
+      bubbles: true,
+      pointerId: 71,
+      clientX: 120,
+      clientY: 160
+    }));
+    handle.dispatchEvent(new PointerEvent('pointerup', {
+      bubbles: true,
+      pointerId: 71,
+      clientX: 120,
+      clientY: 160
+    }));
+    const above = document.querySelector('[data-block-menu-position="above"]');
+    above.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, pointerType: 'mouse' }));
+    const mainRect = document.querySelector('#block-menu').getBoundingClientRect();
+    const submenu = document.querySelector('[data-block-menu-view="types"]');
+    const submenuRect = submenu.getBoundingClientRect();
+    const hoverSubmenuVisible = !submenu.classList.contains('hidden');
+    const submenuAdjacent = submenuRect.right <= mainRect.left || submenuRect.left >= mainRect.right;
+    above.click();
+    document.querySelector('[data-block-menu-type="text"]').click();
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const selected = document.querySelector('#canvas .el.selected');
+    return {
+      targetId,
+      selectedId: selected?.dataset.id,
+      selectedTop: Number.parseFloat(selected?.style.top || '0'),
+      targetTop: Number.parseFloat(document.querySelector('[data-id="' + targetId + '"]')?.style.top || '0'),
+      menuHidden: document.querySelector('#block-menu').classList.contains('hidden'),
+      activeEditable: document.activeElement?.getAttribute('contenteditable') === 'true',
+      count: document.querySelectorAll('#canvas .el').length,
+      hoverSubmenuVisible,
+      submenuAdjacent,
+    };
+  })()`);
+  assert.notEqual(contextInsertState.selectedId, contextInsertState.targetId);
+  assert.equal(contextInsertState.count, 13);
+  assert.equal(contextInsertState.menuHidden, true);
+  assert.equal(contextInsertState.activeEditable, true);
+  assert.equal(contextInsertState.hoverSubmenuVisible, true);
+  assert.equal(contextInsertState.submenuAdjacent, true);
+  assert.ok(contextInsertState.selectedTop < contextInsertState.targetTop);
+
+  await evaluate(`(() => {
+    const selected = document.querySelector('#canvas .el.selected');
+    const handle = selected.querySelector('.move-handle');
+    handle.dispatchEvent(new PointerEvent('pointerdown', {
+      bubbles: true,
+      pointerId: 72,
+      clientX: 120,
+      clientY: 160
+    }));
+    handle.dispatchEvent(new PointerEvent('pointerup', {
+      bubbles: true,
+      pointerId: 72,
+      clientX: 120,
+      clientY: 160
+    }));
+    document.querySelector('[data-block-menu-delete]').click();
+  })()`);
+  await waitInPage("document.querySelectorAll('#canvas .el').length === 12");
+  assert.match(await evaluate("document.querySelector('#app-toast').textContent"), /Block deleted/);
+  await evaluate("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', metaKey: true, bubbles: true }))");
+  await waitInPage("document.querySelectorAll('#canvas .el').length === 13");
+  await evaluate("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', metaKey: true, bubbles: true }))");
+  await waitInPage("document.querySelectorAll('#canvas .el').length === 12");
+
   await evaluate("document.querySelector('#btn-add-text').click()");
   await waitInPage("document.querySelectorAll('#canvas .el').length === 13");
   await evaluate("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', metaKey: true, bubbles: true }))");
@@ -345,6 +435,28 @@ test("browser flow loads a demo, inserts and undoes a block, imports Markdown, a
   });
   await cdp.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 5 });
   await waitInPage("getComputedStyle(document.querySelector('#btn-theme-mode-mobile')).display !== 'none'");
+  await evaluate(`(() => {
+    document.querySelector('#btn-mobile-elements').click();
+    document.querySelector('#btn-add-text').click();
+  })()`);
+  await waitInPage("document.querySelectorAll('#canvas .el').length === 15");
+  await waitInPage("document.activeElement?.getAttribute('contenteditable') === 'true'");
+  await waitInPage("document.querySelector('#canvas .el.selected')?.getBoundingClientRect().top >= document.querySelector('.canvas-stage').getBoundingClientRect().top && document.querySelector('#canvas .el.selected')?.getBoundingClientRect().bottom <= document.querySelector('.canvas-stage').getBoundingClientRect().bottom");
+  const mobileAddState = await evaluate(`(() => {
+    const selected = document.querySelector('#canvas .el.selected');
+    const stage = document.querySelector('.canvas-stage').getBoundingClientRect();
+    const selectedRect = selected.getBoundingClientRect();
+    return {
+      leftPanelOpen: document.body.classList.contains('mobile-panel-left-open'),
+      activeEditable: document.activeElement?.getAttribute('contenteditable') === 'true',
+      selectedVisible: selectedRect.top >= stage.top && selectedRect.bottom <= stage.bottom,
+    };
+  })()`);
+  assert.equal(mobileAddState.leftPanelOpen, false);
+  assert.equal(mobileAddState.activeEditable, true);
+  assert.equal(mobileAddState.selectedVisible, true);
+  await evaluate("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', metaKey: true, bubbles: true }))");
+  await waitInPage("document.querySelectorAll('#canvas .el').length === 14");
   await evaluate(`(() => {
     window.__sharedExport = null;
     Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => true });

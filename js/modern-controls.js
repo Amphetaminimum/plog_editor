@@ -73,7 +73,9 @@ function enhanceSelect(select, closeAll) {
   function sync() {
     trigger.querySelector("span").textContent = optionLabel(select);
     trigger.disabled = select.disabled;
-    const label = select.closest("label")?.childNodes[0]?.textContent?.trim() || "Selection";
+    const label = select.getAttribute("aria-label")
+      || select.closest("label")?.childNodes[0]?.textContent?.trim()
+      || "Selection";
     trigger.setAttribute("aria-label", `${label}: ${optionLabel(select)}`);
     menu.querySelectorAll("[role=option]").forEach((item) => {
       const active = item.dataset.value === select.value;

@@ -13,6 +13,7 @@ export function createEditorRenderManager({
   familyCss,
   onEditableBlur,
   onEditableFocus,
+  onMoveHandleActivate,
   reflowAfterElement,
   reflowAll,
   saveSession,
@@ -193,6 +194,8 @@ export function createEditorRenderManager({
   }
 
   function bindNodeEvents(node) {
+    let handlePointerStart = null;
+
     node.addEventListener("pointerdown", (ev) => {
       const target = ev.target;
       const isResize = target.classList.contains("resize-handle");
@@ -203,6 +206,14 @@ export function createEditorRenderManager({
       state.selectedId = item.id;
       render();
       if (isContent) return;
+
+      if (isMoveHandle) {
+        handlePointerStart = {
+          x: ev.clientX,
+          y: ev.clientY,
+          pointerId: ev.pointerId,
+        };
+      }
 
       if (isResize) {
         state.resize = {
@@ -248,6 +259,20 @@ export function createEditorRenderManager({
       node.setPointerCapture?.(ev.pointerId);
       document.body.classList.add("drag-reordering");
       ev.preventDefault();
+    });
+
+    node.addEventListener("pointerup", (ev) => {
+      if (!ev.target.classList.contains("move-handle") || !handlePointerStart) return;
+      if (ev.pointerId !== handlePointerStart.pointerId) return;
+      const distance = Math.hypot(ev.clientX - handlePointerStart.x, ev.clientY - handlePointerStart.y);
+      handlePointerStart = null;
+      if (distance > 6) return;
+      onMoveHandleActivate?.({
+        id: node.dataset.id,
+        anchor: ev.target,
+      });
+      ev.preventDefault();
+      ev.stopPropagation();
     });
   }
 

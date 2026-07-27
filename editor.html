@@ -8,7 +8,7 @@
     <meta http-equiv="Expires" content="0" />
     <title>Plog — Image-led stories on a long canvas</title>
     <link rel="icon" href="./favicon.svg?v=20260720-001" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260721-001" />
+    <link rel="stylesheet" href="./styles.css?v=20260727-003" />
   </head>
   <body class="page-editor">
     <div class="app-shell">
@@ -16,15 +16,10 @@
         <div class="topbar-main">
           <button id="btn-doc-drawer" class="btn shell-icon-btn" type="button" aria-label="Open documents"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="1" y1="1" x2="17" y2="1"/><line x1="1" y1="7" x2="17" y2="7"/><line x1="1" y1="13" x2="17" y2="13"/></svg></button>
           <div class="brand">
-            <p class="brand-note">Long content composer</p>
+            <p class="brand-note">Image-led story editor</p>
             <h1>Plog</h1>
           </div>
         </div>
-        <ol class="flow-steps" aria-label="Workflow">
-          <li><span>1</span> Add content</li>
-          <li><span>2</span> Format</li>
-          <li class="is-current"><span>3</span> Export draft</li>
-        </ol>
         <div class="actions">
           <button id="btn-load-example-top" class="btn shell-link-btn" type="button">Load example</button>
           <div class="toolbar-group toolbar-actions">
@@ -47,66 +42,67 @@
                 <button id="btn-fit-frame" class="btn menu-btn">Fit To Frame</button>
               </div>
             </details>
-            <div class="export-split-control">
-              <button id="btn-export" class="btn btn-primary btn-generate" data-idle-label="Export" type="button">
-                <span class="btn-generate-label">Export</span>
-              </button>
-              <details class="toolbar-menu export-options-menu">
-                <summary class="btn export-options-trigger" aria-label="Export options" title="Export options">
-                  <span aria-hidden="true">⌄</span>
-                </summary>
-                <div class="menu-panel menu-panel-wide export-options-panel">
+            <details class="toolbar-menu export-options-menu">
+              <summary class="btn btn-primary export-options-trigger" aria-label="Open export options">
+                <span>Export</span>
+                <svg class="export-options-chevron" aria-hidden="true" viewBox="0 0 16 16">
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </summary>
+              <div class="menu-panel menu-panel-wide export-options-panel">
                   <div class="export-options-heading">
                     <strong>Export options</strong>
                     <span id="export-options-summary">PNG · 2×</span>
                   </div>
-                  <label class="export-scale-label menu-field">
-                    Output
-                    <select id="export-preset">
+                  <div class="export-scale-label menu-field">
+                    <span>Output</span>
+                    <select id="export-preset" aria-label="Output">
                       <option value="compact">Compact</option>
                       <option value="balanced">Balanced · recommended</option>
                       <option value="maximum">Maximum detail</option>
                       <option value="custom">Custom</option>
                     </select>
-                  </label>
+                  </div>
                   <p class="export-preset-hint">Balanced is tuned for sharing. Final size still depends on the photos and canvas length.</p>
-                  <label class="export-scale-label menu-field">
-                    Resolution
-                    <select id="export-scale">
+                  <div class="export-scale-label menu-field">
+                    <span>Resolution</span>
+                    <select id="export-scale" aria-label="Resolution">
                       <option value="1">1x</option>
                       <option value="1.5">1.5x</option>
                       <option value="2" selected>2x</option>
                       <option value="3">3x</option>
                     </select>
-                  </label>
-                  <label class="export-scale-label menu-field">
-                    Format
-                    <select id="export-format">
+                  </div>
+                  <div class="export-scale-label menu-field">
+                    <span>Format</span>
+                    <select id="export-format" aria-label="Format">
                       <option value="png" selected>PNG</option>
                       <option value="jpg">JPG</option>
                       <option value="webp">WebP</option>
                     </select>
-                  </label>
-                  <label id="export-quality-field" class="export-scale-label menu-field hidden">
-                    Quality
-                    <select id="export-quality">
+                  </div>
+                  <div id="export-quality-field" class="export-scale-label menu-field hidden">
+                    <span>Quality</span>
+                    <select id="export-quality" aria-label="Quality">
                       <option value="0.82">82</option>
                       <option value="0.88">88</option>
                       <option value="0.9" selected>90</option>
                       <option value="0.96">96</option>
                     </select>
-                  </label>
-                  <label class="export-scale-label menu-field">
-                    Color theme
-                    <select id="export-appearance">
+                  </div>
+                  <div class="export-scale-label menu-field">
+                    <span>Color theme</span>
+                    <select id="export-appearance" aria-label="Color theme">
                       <option value="match" selected>Match</option>
                       <option value="light">Light</option>
                       <option value="dark">Dark</option>
                     </select>
-                  </label>
-                </div>
-              </details>
-            </div>
+                  </div>
+                  <button id="btn-export" class="btn btn-primary btn-generate export-confirm-btn" data-idle-label="Export current canvas" type="button">
+                    <span class="btn-generate-label">Export current canvas</span>
+                  </button>
+              </div>
+            </details>
           </div>
         </div>
       </header>
@@ -228,7 +224,7 @@
         <section class="canvas-wrap">
           <div class="canvas-context-bar">
             <div>
-              <strong>Live document preview</strong>
+              <strong>Canvas</strong>
               <span id="layout-status">Auto layout keeps blocks stacked and extends the canvas.</span>
             </div>
             <span id="canvas-summary" class="canvas-summary">0 blocks</span>
@@ -261,8 +257,9 @@
             <div id="text-style-controls">
               <label>
                 Font Size
-                <input id="prop-font-size" type="number" min="12" max="140" />
+                <input id="prop-font-size" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-describedby="font-size-hint" />
               </label>
+              <p id="font-size-hint" class="hint hint-tight">Type a value, or scroll here to adjust without moving the panel.</p>
               <label>
                 Font Size Preset
                 <select id="prop-font-size-preset">
@@ -391,6 +388,28 @@
     <div id="mobile-panel-backdrop" class="mobile-panel-backdrop hidden"></div>
     <div id="app-toast" class="app-toast hidden" role="status" aria-live="polite"></div>
 
+    <div id="block-menu" class="block-menu hidden" role="dialog" aria-label="Block actions">
+      <div class="block-menu-view" data-block-menu-view="root">
+        <p>Insert around this block</p>
+        <button type="button" data-block-menu-position="above"><span>Add above</span><b>›</b></button>
+        <button type="button" data-block-menu-position="below"><span>Add below</span><b>›</b></button>
+        <button class="block-menu-delete" type="button" data-block-menu-delete><span>Delete block</span></button>
+      </div>
+      <div class="block-menu-view block-menu-submenu hidden" data-block-menu-view="types">
+        <button class="block-menu-back" type="button" data-block-menu-back><b>‹</b><span>Back</span></button>
+        <p data-block-menu-heading>Add below</p>
+        <div class="block-menu-types">
+          <button type="button" data-block-menu-type="header">Title</button>
+          <button type="button" data-block-menu-type="text">Text</button>
+          <button type="button" data-block-menu-type="section">New section</button>
+          <button type="button" data-block-menu-type="image">Image</button>
+          <button type="button" data-block-menu-type="quote">Quote</button>
+          <button type="button" data-block-menu-type="divider">Divider</button>
+        </div>
+      </div>
+      <input id="context-image-input" class="hidden" type="file" accept="image/*,.hif,.heif,.heic,image/heif,image/heic" />
+    </div>
+
     <div id="dialog-backdrop" class="dialog-backdrop hidden">
       <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
         <h3 id="dialog-title">Edit</h3>
@@ -480,6 +499,6 @@
       </div>
     </template>
 
-    <script src="./app.js?v=20260721-001" type="module"></script>
+    <script src="./app.js?v=20260727-003" type="module"></script>
   </body>
 </html>

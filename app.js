@@ -113,6 +113,7 @@ const exportQuality = document.getElementById("export-quality");
 const exportAppearance = document.getElementById("export-appearance");
 const exportPreset = document.getElementById("export-preset");
 const exportOptionsSummary = document.getElementById("export-options-summary");
+const exportOptionsMenu = document.querySelector(".export-options-menu");
 const exportQualityField = document.getElementById("export-quality-field");
 const canvasBgInput = document.getElementById("canvas-bg");
 const btnCanvasBgReset = document.getElementById("btn-canvas-bg-reset");
@@ -164,11 +165,19 @@ const aiDialogGenerate = document.getElementById("ai-dialog-generate");
 const aiDialogApply = document.getElementById("ai-dialog-apply");
 const appToast = document.getElementById("app-toast");
 const canvasSummary = document.getElementById("canvas-summary");
+const blockMenu = document.getElementById("block-menu");
+const blockMenuRoot = blockMenu?.querySelector('[data-block-menu-view="root"]');
+const blockMenuTypes = blockMenu?.querySelector('[data-block-menu-view="types"]');
+const blockMenuHeading = blockMenu?.querySelector("[data-block-menu-heading]");
+const contextImageInput = document.getElementById("context-image-input");
 const modernControls = initModernControls();
 let toastTimer = null;
 let aiAbortController = null;
 let pendingAiDraft = null;
 let pendingAiPhotoBlocks = null;
+let blockMenuTargetId = null;
+let blockMenuPosition = "below";
+let pendingContextImageInsertion = null;
 const STYLE_PROPERTY_BY_KIND = {
   "style.color": "color",
   "style.fontFamily": "fontFamily",
@@ -835,6 +844,7 @@ const docStore = createDocStoreManager({
   familyCss,
   onEditableBlur: (editable) => finishEditableSession(editable),
   onEditableFocus: (editable) => beginEditableSession(editable),
+  onMoveHandleActivate: ({ id, anchor }) => openBlockMenu(id, anchor),
   reflowAfterElement,
   reflowAll: () => reflowFrom(0),
   saveSession: (...args) => saveSession(...args),
@@ -1190,9 +1200,11 @@ toolbarMenus.forEach((menu) => {
   menu.addEventListener("click", (ev) => {
     const target = ev.target;
     if (!(target instanceof HTMLElement)) return;
-    if (target.closest("button")) {
-      menu.removeAttribute("open");
-    }
+    const button = target.closest("button");
+    if (!button) return;
+    if (button.closest(".modern-select, .modern-color")) return;
+    if (button === btnExport) return;
+    menu.removeAttribute("open");
   });
 });
 
@@ -1681,22 +1693,199 @@ async function deleteImageAssetsForItems(items) {
   await Promise.all(items.filter((item) => item?.type === "image" && item.assetId).map((item) => deleteImageAssetForItem(item)));
 }
 
-function addElement(item) {
-  let insertedIndex = state.elements.length;
-  const anchor = getInsertionAnchor();
-  if (anchor) {
-    const anchorIndex = state.elements.findIndex((entry) => entry.id === anchor.id);
-    insertedIndex = anchorIndex + 1;
-    // The command reducer owns the insertion below.
-  } else {
-    insertedIndex = state.elements.length;
-  }
+function focusEditableAtEnd(editable) {
+  if (!editable) return;
+  editable.focus({ preventScroll: true });
+  const range = document.createRange();
+  range.selectNodeContents(editable);
+  range.collapse(false);
+  const selection = window.getSelection();
+  selection?.removeAllRanges();
+  selection?.addRange(range);
+}
+
+function editableForItem(item, node = getElementNode(item?.id)) {
+  if (!item || !node) return null;
+  if (item.type === "text") return node.querySelector(".content");
+  if (item.type === "quote") return node.querySelector(".quote-content");
+  if (item.type === "header") return node.querySelector(".header-title");
+  if (item.type === "card") return node.querySelector(".card-title");
+  return null;
+}
+
+function insertElementAt(item, insertedIndex) {
   dispatchDocumentCommand({ type: DOCUMENT_COMMANDS.INSERT, index: insertedIndex, block: item });
+  flushRender();
+  closeMobilePanels();
+  let node = getElementNode(item.id);
+  let editable = editableForItem(item, node);
+  focusEditableAtEnd(editable);
   requestAnimationFrame(() => {
-    const node = getElementNode(item.id);
-    node?.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
+    node = getElementNode(item.id);
+    editable = editableForItem(item, node);
+    focusEditableAtEnd(editable);
+    requestAnimationFrame(() => {
+      node?.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
+    });
   });
 }
+
+function addElement(item) {
+  const anchor = getInsertionAnchor();
+  const anchorIndex = anchor ? state.elements.findIndex((entry) => entry.id === anchor.id) : -1;
+  insertElementAt(item, anchorIndex >= 0 ? anchorIndex + 1 : state.elements.length);
+}
+
+function contextInsertionIndex(targetId, position) {
+  const targetIndex = state.elements.findIndex((entry) => entry.id === targetId);
+  if (targetIndex < 0) return state.elements.length;
+  return position === "above" ? targetIndex : targetIndex + 1;
+}
+
+function closeBlockMenu() {
+  if (!blockMenu) return;
+  blockMenu.classList.add("hidden");
+  blockMenu.classList.remove("opens-left");
+  blockMenuRoot?.classList.remove("hidden");
+  blockMenuTypes?.classList.add("hidden");
+  blockMenuTypes?.style.removeProperty("top");
+  blockMenuTargetId = null;
+}
+
+function showBlockSubmenu(position, trigger, { focus = false } = {}) {
+  if (!blockMenu || !blockMenuTypes || !trigger) return;
+  blockMenuPosition = position === "above" ? "above" : "below";
+  if (blockMenuHeading) blockMenuHeading.textContent = blockMenuPosition === "above" ? "Add above" : "Add below";
+  blockMenuTypes.classList.remove("hidden");
+
+  if (window.innerWidth >= 768) {
+    blockMenuRoot?.classList.remove("hidden");
+    const menuRect = blockMenu.getBoundingClientRect();
+    const submenuWidth = blockMenuTypes.offsetWidth || 210;
+    const submenuHeight = blockMenuTypes.offsetHeight || 270;
+    const roomOnRight = window.innerWidth - menuRect.right - 12;
+    const roomOnLeft = menuRect.left - 12;
+    blockMenu.classList.toggle("opens-left", roomOnRight < submenuWidth + 8 && roomOnLeft > roomOnRight);
+    const maxTop = Math.max(0, window.innerHeight - menuRect.top - submenuHeight - 12);
+    blockMenuTypes.style.top = `${clamp(trigger.offsetTop - 8, 0, maxTop)}px`;
+  } else {
+    blockMenuRoot?.classList.add("hidden");
+    blockMenuTypes.style.removeProperty("top");
+  }
+
+  if (focus) blockMenuTypes.querySelector("[data-block-menu-type]")?.focus();
+}
+
+function hideBlockSubmenu() {
+  blockMenuTypes?.classList.add("hidden");
+  blockMenu?.classList.remove("opens-left");
+  blockMenuTypes?.style.removeProperty("top");
+}
+
+function openBlockMenu(id, anchor) {
+  if (!blockMenu || !anchor || !getElement(id)) return;
+  blockMenuTargetId = id;
+  blockMenuPosition = "below";
+  blockMenuRoot?.classList.remove("hidden");
+  blockMenuTypes?.classList.add("hidden");
+  blockMenu.classList.remove("hidden");
+
+  if (window.innerWidth >= 768) {
+    const rect = anchor.getBoundingClientRect();
+    const width = blockMenu.offsetWidth || 244;
+    const height = Math.max(blockMenu.offsetHeight || 176, 280);
+    const left = clamp(rect.left, 12, window.innerWidth - width - 12);
+    const preferredTop = rect.bottom + 8;
+    const top = preferredTop + height <= window.innerHeight - 12
+      ? preferredTop
+      : Math.max(12, rect.top - height - 8);
+    blockMenu.style.left = `${left}px`;
+    blockMenu.style.top = `${top}px`;
+  } else {
+    blockMenu.style.removeProperty("top");
+  }
+
+  blockMenu.querySelector("[data-block-menu-position]")?.focus({ preventScroll: true });
+}
+
+function contextBlockForType(type) {
+  if (type === "header") {
+    return createElement("header", {
+      content: { title: "", meta: formatMonthYearLabel() },
+      spacingBefore: "section",
+      style: { fontSize: 62, color: defaultTextColorForTheme(), radius: 0, fontFamily: "fangzheng" },
+    });
+  }
+  if (type === "section") {
+    return createElement("text", { content: "", placeholder: "New paragraph...", spacingBefore: "section" });
+  }
+  if (type === "text") {
+    return createElement("text", { content: "", placeholder: "Write your story...", spacingBefore: "normal" });
+  }
+  if (type === "quote") {
+    return createElement("quote", { content: "", spacingBefore: "normal" });
+  }
+  if (type === "divider") {
+    return createElement("divider", { spacingBefore: "section" });
+  }
+  return null;
+}
+
+blockMenu?.addEventListener("click", (ev) => {
+  const positionButton = ev.target.closest("[data-block-menu-position]");
+  if (positionButton) {
+    showBlockSubmenu(positionButton.dataset.blockMenuPosition, positionButton, { focus: true });
+    return;
+  }
+
+  if (ev.target.closest("[data-block-menu-back]")) {
+    hideBlockSubmenu();
+    blockMenuRoot?.classList.remove("hidden");
+    blockMenuRoot?.querySelector("[data-block-menu-position]")?.focus();
+    return;
+  }
+
+  if (ev.target.closest("[data-block-menu-delete]")) {
+    const targetId = blockMenuTargetId;
+    closeBlockMenu();
+    if (targetId && getElement(targetId)) {
+      dispatchDocumentCommand({ type: DOCUMENT_COMMANDS.DELETE, id: targetId });
+      showToast("Block deleted. Use Undo to restore it.");
+    }
+    return;
+  }
+
+  const typeButton = ev.target.closest("[data-block-menu-type]");
+  if (!typeButton || !blockMenuTargetId) return;
+  const targetId = blockMenuTargetId;
+  const position = blockMenuPosition;
+  const type = typeButton.dataset.blockMenuType;
+  if (type === "image") {
+    pendingContextImageInsertion = { targetId, position };
+    contextImageInput?.click();
+    closeBlockMenu();
+    return;
+  }
+  const item = contextBlockForType(type);
+  if (item) insertElementAt(item, contextInsertionIndex(targetId, position));
+  closeBlockMenu();
+});
+
+blockMenu?.addEventListener("pointerover", (ev) => {
+  if (window.innerWidth < 768) return;
+  const positionButton = ev.target.closest("[data-block-menu-position]");
+  if (positionButton) {
+    showBlockSubmenu(positionButton.dataset.blockMenuPosition, positionButton);
+    return;
+  }
+  if (ev.target.closest("[data-block-menu-delete]")) hideBlockSubmenu();
+});
+
+document.addEventListener("pointerdown", (ev) => {
+  if (blockMenu?.classList.contains("hidden")) return;
+  if (blockMenu.contains(ev.target) || ev.target.closest(".move-handle")) return;
+  closeBlockMenu();
+});
 
 function snapX(value) {
   const layout = canvasLayout();
@@ -1901,6 +2090,12 @@ document.addEventListener("selectionchange", () => {
 });
 
 document.addEventListener("keydown", (ev) => {
+  if (ev.key === "Escape" && blockMenu && !blockMenu.classList.contains("hidden")) {
+    closeBlockMenu();
+    ev.preventDefault();
+    return;
+  }
+
   if (ev.key === "Escape" && !aiDialogBackdrop?.classList.contains("hidden")) {
     closeAiDialog();
     ev.preventDefault();
@@ -2100,17 +2295,15 @@ inputDocument?.addEventListener("change", async (ev) => {
   }
 });
 
-document.getElementById("input-image").addEventListener("change", async (ev) => {
-  const file = ev.target.files?.[0];
-  if (!file) return;
+async function insertImageFile(file, insertion = null) {
+  if (!file) return false;
   let assetBlob;
   try {
     assetBlob = await normalizeImageAsset(file, { quality: 0.92 });
   } catch (err) {
     console.error("Failed to normalize image asset", err);
     showToast("That HEIF image could not be converted. Try JPG or PNG for the demo.", "error");
-    ev.target.value = "";
-    return;
+    return false;
   }
 
   const tempUrl = URL.createObjectURL(assetBlob);
@@ -2130,8 +2323,7 @@ document.getElementById("input-image").addEventListener("change", async (ev) => 
       normalizedType: assetBlob.type || "",
     }, err);
     showToast("That image could not be displayed. Try a JPG, PNG, or WebP file.", "error");
-    ev.target.value = "";
-    return;
+    return false;
   } finally {
     URL.revokeObjectURL(tempUrl);
   }
@@ -2147,24 +2339,40 @@ document.getElementById("input-image").addEventListener("change", async (ev) => 
   } catch (err) {
     console.error("Failed to persist image asset", err);
     showToast("The image could not be saved locally. Check browser storage and try again.", "error");
-    ev.target.value = "";
-    return;
+    return false;
   }
 
   const src = await ensureAssetUrl(assetId);
-
-  addElement(
-    createElement("image", {
-      src,
-      assetId,
-      width,
-      height,
-      aspectRatio,
-      spacingBefore: defaultSpacingBefore("image", (getInsertionAnchor() || state.elements[state.elements.length - 1])?.type),
-      style: { radius: 0, fontSize: 60, color: defaultTextColorForTheme(), fontFamily: "fangzheng" },
-    }),
-  );
+  const targetIndex = insertion ? contextInsertionIndex(insertion.targetId, insertion.position) : null;
+  const reference = insertion
+    ? state.elements[Math.max(0, targetIndex - 1)]
+    : getInsertionAnchor() || state.elements[state.elements.length - 1];
+  const item = createElement("image", {
+    src,
+    assetId,
+    width,
+    height,
+    aspectRatio,
+    spacingBefore: defaultSpacingBefore("image", reference?.type),
+    style: { radius: 0, fontSize: 60, color: defaultTextColorForTheme(), fontFamily: "fangzheng" },
+  });
+  if (insertion) insertElementAt(item, targetIndex);
+  else addElement(item);
   showToast("Image added. The canvas has been extended automatically.");
+  return true;
+}
+
+document.getElementById("input-image").addEventListener("change", async (ev) => {
+  const file = ev.target.files?.[0];
+  await insertImageFile(file);
+  ev.target.value = "";
+});
+
+contextImageInput?.addEventListener("change", async (ev) => {
+  const file = ev.target.files?.[0];
+  const insertion = pendingContextImageInsertion;
+  pendingContextImageInsertion = null;
+  await insertImageFile(file, insertion);
   ev.target.value = "";
 });
 
@@ -2195,10 +2403,54 @@ function wireInspectorNumber(input, updater) {
   });
 }
 
-wireInspectorNumber(propFontSize, (selected, value) => {
-  selected.style.fontSize = clamp(value || 12, 12, 128);
+function applyFontSizeValue(rawValue, historyKind = "style.fontSize") {
+  const selected = getElement(state.selectedId);
+  if (!selected) return;
+  const parsed = Number(rawValue);
+  if (!Number.isFinite(parsed)) {
+    propFontSize.value = String(selected.style.fontSize ?? 60);
+    return;
+  }
+  const beforeValue = selected.style.fontSize;
+  const afterValue = clamp(Math.round(parsed), 12, 128);
+  propFontSize.value = String(afterValue);
   propFontSizePreset.value = "";
+  if (afterValue === beforeValue) return;
+  applyDocumentCommandState({
+    type: DOCUMENT_COMMANDS.UPDATE_STYLE,
+    id: selected.id,
+    patch: { fontSize: afterValue },
+  });
+  render();
+  commitStyleChange(selected, historyKind, beforeValue, afterValue);
+}
+
+propFontSize.addEventListener("change", () => {
+  applyFontSizeValue(propFontSize.value);
 });
+
+propFontSize.addEventListener("keydown", (ev) => {
+  if (ev.key !== "Enter") return;
+  ev.preventDefault();
+  applyFontSizeValue(propFontSize.value);
+  propFontSize.blur();
+});
+
+let fontSizeWheelDelta = 0;
+propFontSize.addEventListener("wheel", (ev) => {
+  const selected = getElement(state.selectedId);
+  if (!selected) return;
+  ev.preventDefault();
+  ev.stopPropagation();
+  const normalizedDelta = ev.deltaMode === 1 ? ev.deltaY * 16 : ev.deltaY;
+  fontSizeWheelDelta += normalizedDelta;
+  const threshold = 36;
+  if (Math.abs(fontSizeWheelDelta) < threshold) return;
+  const steps = Math.min(3, Math.floor(Math.abs(fontSizeWheelDelta) / threshold));
+  const direction = fontSizeWheelDelta > 0 ? -1 : 1;
+  fontSizeWheelDelta -= Math.sign(fontSizeWheelDelta) * steps * threshold;
+  applyFontSizeValue((selected.style.fontSize ?? 60) + direction * steps, "style.fontSize");
+}, { passive: false });
 
 wireInspectorNumber(propRotation, (selected, value) => {
   selected.style.rotation = clamp(value || 0, -180, 180);
@@ -2421,6 +2673,7 @@ document.getElementById("btn-export").addEventListener("click", async () => {
     showToast("Export failed. Try PNG at 1x, then export again.", "error");
   } finally {
     setGenerateButtonState(false);
+    exportOptionsMenu?.removeAttribute("open");
   }
 });
 
