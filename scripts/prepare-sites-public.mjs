@@ -8,7 +8,7 @@ const publicRoot = resolve(projectRoot, "public");
 await rm(publicRoot, { recursive: true, force: true });
 await mkdir(publicRoot, { recursive: true });
 
-for (const file of ["index.html", "editor.html", "app.js", "styles.css", "favicon.svg"]) {
+for (const file of ["index.html", "editor.html", "app.js", "landing.js", "styles.css", "favicon.svg"]) {
   await cp(resolve(projectRoot, file), resolve(publicRoot, file));
 }
 

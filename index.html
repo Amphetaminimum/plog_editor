@@ -8,18 +8,10 @@
     <meta http-equiv="Expires" content="0" />
     <title>Plog — Local-first image-led stories</title>
     <link rel="icon" href="./favicon.svg?v=20260721-001" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260531-003" />
+    <link rel="stylesheet" href="./styles.css?v=20260727-004" />
   </head>
   <body class="page-landing">
-    <div class="landing-shell">
-      <header class="landing-meta-bar">
-        <div class="landing-container landing-meta-inner">
-          <span><strong>Plog</strong> Build Week demo</span>
-          <span>Local-first long-canvas editing for image-led stories</span>
-          <span><i></i> Local-first, export-ready workspace</span>
-        </div>
-      </header>
-
+    <div id="top" class="landing-shell">
       <nav class="landing-nav">
         <div class="landing-container landing-nav-inner">
           <a class="landing-brand" href="./index.html">
@@ -30,9 +22,7 @@
             </span>
           </a>
           <div class="landing-nav-links">
-            <a href="#why">Why it feels different</a>
-            <a href="#surface">Surface language</a>
-            <a href="#flow">Workflow</a>
+            <a href="#story">Product tour</a>
           </div>
           <div class="landing-nav-actions">
             <a class="btn landing-nav-btn" href="./editor.html">Open Editor</a>
@@ -42,158 +32,169 @@
 
       <main>
         <section class="landing-hero">
+          <img
+            class="landing-hero-image"
+            src="./assets/demo/kyoto-demo-10-shadow-corridor.jpg"
+            alt="A shadowed Kyoto corridor opening onto a vivid green garden"
+            fetchpriority="high"
+          />
+          <div class="landing-hero-shade" aria-hidden="true"></div>
           <div class="landing-container landing-hero-grid">
             <div class="landing-hero-copy">
-              <p class="landing-eyebrow">A local-first editor for visual stories</p>
+              <p class="landing-eyebrow">Local-first · one continuous canvas</p>
               <h1>
-                A calmer long-canvas
-                <span class="landing-serif">editor</span>
-                for image-led writing.
-                <span class="landing-dot">.</span>
+                <span class="landing-wordmark">Plog.</span>
+                <span class="landing-promise">Shape the photos.<br /><span class="landing-serif">Keep the story yours.</span></span>
               </h1>
               <p class="landing-lead">
-                Compose text and images as ordered blocks. Plog keeps them in a stable vertical flow and exports the result without taking ownership of the source document.
+                Compose image-led stories as editable blocks, then export the complete canvas as one long image.
               </p>
               <div class="landing-cta-row">
-                <a class="btn btn-primary landing-cta" href="./editor.html">Enter Editor</a>
-                <a class="btn landing-ghost-cta" href="#surface">Preview the workspace</a>
+                <a class="btn btn-primary landing-cta" href="./editor.html">Open the editor</a>
+                <a class="btn landing-ghost-cta" href="#story">See how it works</a>
               </div>
-              <dl class="landing-stat-grid">
-                <div class="landing-stat">
-                  <dt>01</dt>
-                  <dd>One canvas instead of separate pages, forms, and modals</dd>
-                </div>
-                <div class="landing-stat">
-                  <dt>02</dt>
-                  <dd>Text, images, quotes, and spacing remain editable as one document</dd>
-                </div>
-                <div class="landing-stat">
-                  <dt>03</dt>
-                  <dd>Export the complete story as one continuous long image</dd>
-                </div>
-              </dl>
+              <p class="landing-hero-note">Your source photos stay local. AI drafts remain preview-first and editable.</p>
             </div>
+          </div>
+        </section>
 
-            <div class="landing-hero-visual">
-              <div class="landing-preview-card landing-preview-frame">
-                <div class="landing-preview-topline">
-                  <span>Editor preview</span>
-                  <span>Long canvas</span>
+        <section id="story" class="landing-story" aria-label="Plog product tour">
+          <div class="landing-story-sticky">
+            <div class="landing-container landing-story-layout">
+              <div class="landing-story-copy">
+                <div class="landing-section-rule landing-section-rule-dark">
+                  <span>Inside Plog</span>
+                  <span>Scroll to explore</span>
                 </div>
-                <div class="landing-preview-app">
-                  <div class="landing-preview-sidebar">
-                    <div class="landing-preview-chip landing-preview-chip-accent">Drafts</div>
-                    <div class="landing-preview-tile">Travel issue</div>
-                    <div class="landing-preview-tile">Studio notes</div>
-                    <div class="landing-preview-tile">Photo essay</div>
+                <p class="landing-story-count" aria-live="polite"><span data-story-current>01</span> / 03</p>
+                <div class="landing-story-chapters" role="tablist" aria-label="Product chapters">
+                  <button class="landing-story-chapter is-active" type="button" role="tab" aria-selected="true" data-story-chapter="0">
+                    <span>01</span>
+                    <strong>Build the story</strong>
+                    <small>Arrange images, titles, text, quotes, and dividers on one continuous canvas.</small>
+                  </button>
+                  <button class="landing-story-chapter" type="button" role="tab" aria-selected="false" data-story-chapter="1">
+                    <span>02</span>
+                    <strong>AI proposes. You decide.</strong>
+                    <small>GPT‑5.6 turns a contact sheet into a draft you can preview, apply, or dismiss.</small>
+                  </button>
+                  <button class="landing-story-chapter" type="button" role="tab" aria-selected="false" data-story-chapter="2">
+                    <span>03</span>
+                    <strong>Export one continuous story</strong>
+                    <small>Keep editing every block, then export the whole composition as one long image.</small>
+                  </button>
+                </div>
+              </div>
+
+              <div class="landing-product-stage" aria-live="polite">
+                <div class="landing-product-window">
+                  <div class="landing-product-topbar">
+                    <span><i></i><i></i><i></i></span>
+                    <strong>Plog / Kyoto garden</strong>
+                    <em data-story-label>Compose</em>
                   </div>
-                  <div class="landing-preview-canvas">
-                    <div class="landing-preview-canvas-sheet">
-                      <div class="landing-preview-kicker">Current draft</div>
-                      <div class="landing-preview-title">Build the page first, tune the styling as it settles.</div>
-                      <div class="landing-preview-line"></div>
-                      <div class="landing-preview-body">
-                        A single sheet for headlines, body copy, image blocks, quotes, and dividers. The layout stays legible while you iterate.
+                  <div class="landing-product-frame is-active" data-story-frame="0">
+                    <div class="landing-product-sidebar">
+                      <span>Add content</span>
+                      <b>Title</b><b>Text</b><b>Image</b><b>Quote</b>
+                    </div>
+                    <div class="landing-product-canvas">
+                      <div class="landing-product-sheet">
+                        <p>KYOTO · OCTOBER</p>
+                        <h2>A garden made<br />of borrowed light.</h2>
+                        <img src="./assets/demo/kyoto-demo-10-shadow-corridor.jpg" alt="" />
+                        <blockquote>The path slowed us down before the garden asked us to stop.</blockquote>
                       </div>
-                      <div class="landing-preview-quote">“Closer to laying out a story than filling out a CMS.”</div>
                     </div>
                   </div>
+                  <div class="landing-product-frame landing-ai-frame" data-story-frame="1">
+                    <div class="landing-ai-card">
+                      <div>
+                        <span>Draft with GPT‑5.6</span>
+                        <strong>AI proposes.<br />The author decides.</strong>
+                        <p>Twelve local previews become one editable story plan. Nothing changes until Apply.</p>
+                      </div>
+                      <div class="landing-contact-sheet" aria-hidden="true">
+                        <img src="./assets/demo/kyoto-demo-01-temple-rooftops.jpg" alt="" />
+                        <img src="./assets/demo/kyoto-demo-04-moss-path.jpg" alt="" />
+                        <img src="./assets/demo/kyoto-demo-07-dry-garden.jpg" alt="" />
+                        <img src="./assets/demo/kyoto-demo-10-shadow-corridor.jpg" alt="" />
+                      </div>
+                      <div class="landing-ai-actions"><span>Cancel</span><span>Generate preview</span><span class="is-primary">Apply draft</span></div>
+                    </div>
+                  </div>
+                  <div class="landing-product-frame landing-export-frame" data-story-frame="2">
+                    <div class="landing-export-canvas">
+                      <div class="landing-export-sheet">
+                        <span>KYOTO · A VISUAL NOTE</span>
+                        <img src="./assets/demo/kyoto-demo-10-shadow-corridor.jpg" alt="" />
+                        <h2>Keep the whole story together.</h2>
+                        <p>One canvas. Every block editable. One continuous export when it finally reads right.</p>
+                        <img src="./assets/demo/kyoto-demo-07-dry-garden.jpg" alt="" />
+                      </div>
+                    </div>
+                    <div class="landing-export-controls"><span>PNG</span><span>2×</span><strong>Export</strong></div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section id="why" class="landing-section">
-          <div class="landing-container">
-            <div class="landing-section-rule">
-              <span>Why it feels different</span>
-              <span>Editor-first, not CMS-first</span>
-            </div>
-            <div class="landing-card-grid">
-              <article class="landing-info-card">
-                <p class="landing-card-tag">Surface</p>
-                <h2>Start with the page, not the settings<span class="landing-dot">.</span></h2>
-                <p>
-                  Add a header, drop in an image, pull a quote, then keep stacking blocks until the story reads well.
-                </p>
-              </article>
-              <article class="landing-info-card">
-                <p class="landing-card-tag">Theme logic</p>
-                <h2>Light for reading, dark for working<span class="landing-dot">.</span></h2>
-                <p>
-                  The editor stays comfortable in a darker workspace, while exports can still land cleanly in light or dark.
-                </p>
-              </article>
-              <article class="landing-info-card">
-                <p class="landing-card-tag">Interaction</p>
-                <h2>Made for small layout decisions over and over<span class="landing-dot">.</span></h2>
-                <p>
-                  Reorder blocks, adjust spacing, switch widths, and keep iterating while deterministic auto-flow protects the reading order.
-                </p>
-              </article>
-            </div>
-          </div>
-        </section>
-
-        <section id="surface" class="landing-section">
-          <div class="landing-container">
-            <div class="landing-section-rule">
-              <span>Surface language</span>
-              <span>Dense enough to work, quiet enough to stay with</span>
-            </div>
-            <div class="landing-feature-grid">
-              <div class="landing-feature-block">
-                <p class="landing-card-tag">Editor shell</p>
-                <h2>A working surface that stays readable while you edit<span class="landing-dot">.</span></h2>
-                <ul class="landing-feature-list">
-                  <li>Keep a small library of plogs and jump between drafts quickly.</li>
-                  <li>Use one framed canvas instead of juggling multiple panes.</li>
-                  <li>Edit styles in-place without turning the right panel into a wall of controls.</li>
-                </ul>
+        <section class="landing-continuity" data-landing-reveal aria-labelledby="continuity-title">
+          <div class="landing-continuity-sticky">
+            <div class="landing-container landing-continuity-layout">
+              <div class="landing-continuity-copy">
+                <div class="landing-section-rule">
+                  <span>03 / The long canvas</span>
+                  <span>One continuous output</span>
+                </div>
+                <p class="landing-continuity-kicker">Not a deck of pages</p>
+                <h2 id="continuity-title">One story that keeps unfolding.</h2>
+                <p>Titles, photographs, pauses, and captions stay in one editable rhythm—from the first frame to the final export.</p>
+                <div class="landing-continuity-notes" aria-label="Continuous canvas benefits">
+                  <span><b>01</b> Reorder any block</span>
+                  <span><b>02</b> Keep the full composition editable</span>
+                  <span><b>03</b> Export without page breaks</span>
+                </div>
               </div>
-              <div class="landing-feature-block">
-                <p class="landing-card-tag">Theme bridge</p>
-                <h2>One workflow, with light and dark views when you need them<span class="landing-dot">.</span></h2>
-                <ul class="landing-feature-list">
-                  <li>Author in dark mode if you want the workspace to stay calm.</li>
-                  <li>Switch to day mode when you want to judge the page like a finished artifact.</li>
-                  <li>Export in either mode without rebuilding the layout.</li>
-                </ul>
+              <div class="landing-continuity-stage" aria-hidden="true">
+                <div class="landing-long-canvas">
+                  <img class="landing-long-export" src="./assets/demo/plog-example-long.jpg" alt="" />
+                </div>
+                <span class="landing-continuity-guide">Real example output · editable all the way down</span>
               </div>
             </div>
           </div>
         </section>
 
-        <section id="flow" class="landing-section">
-          <div class="landing-container">
-            <div class="landing-section-rule">
-              <span>Workflow</span>
-              <span>One document from draft to export</span>
+        <section class="landing-finale" data-landing-reveal aria-labelledby="finale-title">
+          <img class="landing-finale-image" src="./assets/demo/kyoto-demo-12-forest-villa.jpg" alt="" />
+          <div class="landing-finale-shade"></div>
+          <div class="landing-container landing-finale-inner">
+            <div class="landing-section-rule landing-section-rule-dark">
+              <span>04 / Your next story</span>
+              <span>Start with the photographs</span>
             </div>
-            <div class="landing-flow-grid">
-              <div class="landing-flow-step">
-                <span>01</span>
-                <strong>Open a draft</strong>
-                <p>Start from a blank plog or continue an existing one from the library.</p>
-              </div>
-              <div class="landing-flow-step">
-                <span>02</span>
-                <strong>Build on one long canvas</strong>
-                <p>Mix text, images, quote blocks, dividers, and cards in the same continuous surface.</p>
-              </div>
-              <div class="landing-flow-step">
-                <span>03</span>
-                <strong>Export when it reads right</strong>
-                <p>Ship a PNG, JPEG, or WebP once the layout and pacing feel finished.</p>
-              </div>
-            </div>
-            <div class="landing-bottom-cta">
-              <a class="btn btn-primary landing-cta" href="./editor.html">Start a draft</a>
+            <div class="landing-finale-copy">
+              <p>Keep the edit in your hands.</p>
+              <h2 id="finale-title">Your camera roll already has a story in it.</h2>
+              <a class="btn btn-primary landing-cta" href="./editor.html">Open the editor</a>
             </div>
           </div>
         </section>
+
       </main>
+      <footer class="landing-footer">
+        <div class="landing-container landing-footer-inner">
+          <div>
+            <span>Plog / Image-led story editor</span>
+            <strong>Local first. Editable by design.</strong>
+          </div>
+          <a class="landing-footer-link" href="#top">Back to top ↑</a>
+        </div>
+      </footer>
     </div>
+    <script src="./landing.js?v=20260727-005" type="module"></script>
   </body>
 </html>
